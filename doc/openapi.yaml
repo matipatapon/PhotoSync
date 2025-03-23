@@ -1,9 +1,8 @@
-# https://swagger.io/docs/specification/v3_0/about/
 openapi: 3.0.4
 info:
   title: Photo storage API
-  description: API for uploading, editing, accessing photos.
-  version: 0.0.1
+  description: API for uploading, editing and accessing photos.
+  version: 0.0.2
   contact:
     name: Mateusz Piętka
     email: matipietka@gmail.com
@@ -11,47 +10,104 @@ servers:
   - url: /v1
     description: locally deployed server
 paths:
-  /photo:
-    summary: endpoint for accessing photos
-    parameters:
-      - in: cookie
-        name: userToken
-        description: user authentication token
-        schema:
-          type: integer
-        required: true
+  /login:
+    summary: endpoint used for authentication
     get:
-      summary: get ids of photos
+      summary: send login and hashed password to get authentication token
       parameters:
-        - in: query
-          name: offset
-          description: after which position start collecting photos
+        - in: header
+          name: login
           schema:
-            type: integer
-            default: 0
-            minimum: 0
-        - in: query
-          name: count
-          description: how many photos should be returned
+            type: string
+          required: true
+        - in: header
+          name: password
+          description: hashed password
           schema:
-            type: integer
-            default: 1
-            minimum: 1
+            type: string
+          required: true
       responses:
         200:
-          description: OK
+          description: ok
+          content:
+            text/plain:
+              schema:
+                description: authentication token
+                type: string
+  /register:
+    summary: endpoint used for creation of user account
     post:
+      summary: send login, email and hashed password to create user account
+      parameters:
+        - in: header
+          name: login
+          schema:
+            type: string
+          required: true
+        - in: header
+          name: password
+          description: hashed password
+          schema:
+            type: string
+          required: true
+        - in: header
+          name: email
+          schema:
+            type: string
+          required: true
+      responses:
+        201:
+          description: user account created
+  /photo:
+    summary: endpoint for accessing photos
+    get:
+      security:
+        - UserTokenAuth: []
+      summary: get metadata for all user photos
+      responses:
+        200:
+          description: returned metadata for all user photos
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                    date:
+                      type: string
+                    name:
+                      type: string
+    post:
+      security:
+        - UserTokenAuth: []
       summary: upload new photo to server
       requestBody:
         content:
-            image/*:
-              schema:
-                $ref: "#/components/schemas/Image"
+            multipart/form-data: 
+                schema:
+                  type: object
+                  properties:
+                    photo:
+                      $ref: "#/components/schemas/Image"
+                    metadata:
+                      properties:
+                        date:
+                          type: string
+                        name:
+                          type: string
       responses:
-        200:
-          description: OK
+        201:
+          description: successfully saved photo on server
+          content:
+            text/plain:
+              schema:
+                description: id of newly created photo
+                type: integer
+
   /photo/{id}:
-    summary: tak
     parameters:
       - in: path
         name: id
@@ -59,12 +115,55 @@ paths:
           type: integer
         required: true
     get:
-      summary: get
+      security:
+        - UserTokenAuth: []
+      summary: get image file from server
       responses:
         200:
           description: ok
+          content:
+            image/*:
+              schema:
+                $ref: "#/components/schemas/Image"
+    delete:
+      security:
+        - UserTokenAuth: []
+      summary: delete photo from server
+      responses:
+        200:
+          description: ok
+    put:
+      security:
+        - UserTokenAuth: []
+      summary: update image file or metadata
+      requestBody:
+        content:
+            multipart/form-data: 
+                schema:
+                  type: object
+                  properties:
+                    photo:
+                      $ref: "#/components/schemas/Image"
+                    metadata:
+                      properties:
+                        date:
+                          type: string
+                        name:
+                          type: string
+      responses:
+        200:
+          description: ok
+
 components:
   schemas:
     Image:
       type: string
       format: binary
+      description: image file
+
+  securitySchemes:
+    UserTokenAuth:
+      type: apiKey
+      in: header
+      name: USER-TOKEN
+    
