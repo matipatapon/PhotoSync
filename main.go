@@ -7,6 +7,6 @@ import (
 var ZIEMNIAK = false
 
 func main() {
-	db := database.NewPostgresDataBaseWrapper("postgres", "postgres", "postgres", "localhost", 5432)
+	db := database.NewPostgresDataBase("postgres", "postgres", "postgres", "localhost", 5432)
 	db.QueryRow("SELECT * from Test")
 }
