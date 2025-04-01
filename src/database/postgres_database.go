@@ -2,7 +2,6 @@ package database
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"log"
 
@@ -27,42 +26,52 @@ func NewPostgresDataBase(
 	return &PostgresDataBase{db, user, password, address, port}
 }
 
-func (dbw PostgresDataBase) query(sql string) (pgx.Rows, error) {
+func (dbw PostgresDataBase) connect() *pgx.Conn {
 	log.Printf("Connecting to %s", createConnectionUrl(dbw.db, dbw.user, "####", dbw.address, dbw.port))
 	conn, err := pgx.Connect(context.Background(), createConnectionUrl(dbw.db, dbw.user, dbw.password, dbw.address, dbw.port))
 	if err != nil {
 		log.Print(err.Error())
-		return nil, err
+		return nil
+	}
+	return conn
+}
+
+func (dbw PostgresDataBase) query(sql string) pgx.Rows {
+	conn := dbw.connect()
+	if conn == nil {
+		return nil
 	}
 
 	log.Printf("Executing query %s", sql)
 	rows, err := conn.Query(context.Background(), sql)
-
 	if err != nil {
 		log.Print(err.Error())
-		return nil, err
+		return nil
 	}
 
-	return rows, nil
+	return rows
 }
 
-func (dbw PostgresDataBase) QueryRow(sql string) ([]any, error) {
-	rows, err := dbw.query(sql)
-
-	if err != nil {
-		return nil, err
+func (dbw PostgresDataBase) QueryRow(sql string) []any {
+	rows := dbw.query(sql)
+	if rows == nil {
+		return nil
 	}
 
 	defer rows.Close()
 	rowReturned := rows.Next()
-
 	log.Print("Fetching row")
 	if !rowReturned {
 		log.Print("No rows returned!")
-		return nil, errors.New("no row returned")
+		return nil
 	}
 
-	return rows.Values()
+	values, err := rows.Values()
+	if err != nil {
+		log.Printf("Couldn't get values, %s", err.Error())
+	}
+
+	return values
 }
 
 func createConnectionUrl(

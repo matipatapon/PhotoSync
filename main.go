@@ -8,5 +8,5 @@ var ZIEMNIAK = false
 
 func main() {
 	db := database.NewPostgresDataBase("postgres", "postgres", "postgres", "localhost", 5432)
-	db.QueryRow("SELECT * from Test")
+	db.QueryRow("SELECT version()")
 }
