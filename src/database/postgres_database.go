@@ -2,6 +2,7 @@ package database
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 
@@ -26,7 +27,7 @@ func NewPostgresDataBase(
 	return &PostgresDataBase{db, user, password, address, port}
 }
 
-func (dbw PostgresDataBase) QueryRow(sql string) ([]any, error) {
+func (dbw PostgresDataBase) QueryRow(sql string, args ...any) ([]any, error) {
 	log.Printf("Connecting to %s", createConnectionUrl(dbw.db, dbw.user, "####", dbw.address, dbw.port))
 	conn, err := pgx.Connect(context.Background(), createConnectionUrl(dbw.db, dbw.user, dbw.password, dbw.address, dbw.port))
 	if err != nil {
@@ -35,19 +36,19 @@ func (dbw PostgresDataBase) QueryRow(sql string) ([]any, error) {
 	}
 
 	log.Printf("Executing query %s", sql)
-	rows, err := conn.Query(context.Background(), sql)
+	rows, err := conn.Query(context.Background(), sql, args...)
 	if err != nil {
 		log.Print(err.Error())
 		return nil, err
 	}
 
 	defer rows.Close()
-	rows.Next()
-	// log.Print("Fetching row")
-	// if !rowReturned {
-	// 	log.Print("No rows returned!")
-	// 	return nil, nil
-	// }
+	rowReturned := rows.Next()
+	log.Print("Fetching row")
+	if !rowReturned {
+		log.Print("No row returned!")
+		return nil, errors.New("no rows returned")
+	}
 
 	return rows.Values()
 }
