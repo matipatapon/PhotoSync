@@ -110,4 +110,10 @@ func TestQueryRowShouldReturnFirstRow(t *testing.T) {
 	}
 }
 
+// Maybe wystarczy tylko 1 komenda?
+func TestTest(t *testing.T) {
+	db := createSut()
+	db.QueryRow("INSERT INTO postgres_database_test_table_with_two_items VALUES($1, $2)", 0, "Stefanek")
+}
+
 // TODO write test for query with args
