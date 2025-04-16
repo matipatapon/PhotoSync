@@ -18,3 +18,9 @@ CREATE TABLE postgres_database_test_table_with_two_items(
 );
 INSERT INTO postgres_database_test_table_with_two_items VALUES(1, 'Mort');
 INSERT INTO postgres_database_test_table_with_two_items VALUES(2, 'Luna');
+
+DROP TABLE IF EXISTS postgres_database_test_insertion_table;
+CREATE TABLE postgres_database_test_insertion_table(
+    id integer not null PRIMARY KEY,
+    name text not null
+);

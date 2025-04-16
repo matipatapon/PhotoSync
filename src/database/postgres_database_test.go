@@ -38,82 +38,106 @@ func createSut() *PostgresDataBase {
 	)
 }
 
-func TestQueryRowShouldReturnErrorWhenCannotConnectToDb(t *testing.T) {
+func TestQueryShouldReturnErrorWhenCannotConnectToDb(t *testing.T) {
 	sut := NewPostgresDataBase(getDb(), getUser(), "wrong_password", getIp(), getPort())
 
-	result, err := sut.QueryRow("SELECT version()")
+	result, err := sut.Query("SELECT version()")
 
-	if result != nil || err == nil || !strings.HasPrefix(err.Error(), "failed to connect to ") {
+	if len(result) != 0 || err == nil || !strings.HasPrefix(err.Error(), "failed to connect to ") {
 		t.Error()
 	}
 }
 
-func TestQueryRowShouldReturnResultOfQuery(t *testing.T) {
+func TestQueryShouldReturnResultOfQuery(t *testing.T) {
 	db := createSut()
 
-	result, err := db.QueryRow("SELECT version()")
+	result, err := db.Query("SELECT version()")
 
-	if err != nil || result == nil || !strings.HasPrefix(result[0].(string), "PostgreSQL") {
+	if err != nil || !strings.HasPrefix(result[0][0].(string), "PostgreSQL") {
 		t.Error()
 	}
 }
 
-func TestQueryRowShouldReturnErrorWhenWrongQuery(t *testing.T) {
+func TestQueryShouldReturnErrorWhenWrongQuery(t *testing.T) {
 	db := createSut()
 
-	result, err := db.QueryRow("SELECT version)")
+	result, err := db.Query("SELECT version)")
 
-	if err == nil || result != nil {
+	if err == nil || len(result) != 0 {
 		t.Error()
 	}
 }
 
-func TestQueryRowShouldReturnErrorWhenTableHasNoRows(t *testing.T) {
+func TestQueryShouldReturnErrorWhenTableHasNoRows(t *testing.T) {
 	db := createSut()
 
-	result, err := db.QueryRow("SELECT * FROM postgres_database_test_empty_table")
+	result, err := db.Query("SELECT * FROM postgres_database_test_empty_table")
 
-	if err == nil || result != nil {
-		t.Error()
+	if err != nil || len(result) != 0 {
+		t.Error(len(result))
 	}
 }
 
-func TestQueryRowShouldReturnDataFromRow(t *testing.T) {
+func TestQueryShouldReturnDataFromRow(t *testing.T) {
 	db := createSut()
 
-	result, err := db.QueryRow("SELECT * FROM postgres_database_test_table_with_one_item")
+	result, err := db.Query("SELECT * FROM postgres_database_test_table_with_one_item")
 
-	if err != nil || result == nil {
+	if err != nil || len(result) == 0 {
 		t.Error()
 	}
-	if result[0] != int32(1) {
+	if result[0][0] != int32(1) {
 		t.Error()
 	}
-	if result[1] != "Mort" {
+	if result[0][1] != "Mort" {
 		t.Error()
 	}
 }
 
-func TestQueryRowShouldReturnFirstRow(t *testing.T) {
+func TestQueryShouldReturnAllRows(t *testing.T) {
 	db := createSut()
 
-	result, err := db.QueryRow("SELECT * FROM postgres_database_test_table_with_two_items ORDER BY id DESC")
+	result, err := db.Query("SELECT * FROM postgres_database_test_table_with_two_items ORDER BY id DESC")
 
-	if err != nil || result == nil {
+	if err != nil || len(result) != 2 {
 		t.Error()
 	}
-	if result[0] != int32(2) {
+	if result[0][0] != int32(2) && result[0][1] != "Luna" {
 		t.Error()
 	}
-	if result[1] != "Luna" {
+	if result[1][0] != int32(1) && result[1][1] != "Mort" {
 		t.Error()
 	}
 }
 
-// Maybe wystarczy tylko 1 komenda?
-func TestTest(t *testing.T) {
+func TestQueryShouldExecuteAnyCommandWithParams(t *testing.T) {
 	db := createSut()
-	db.QueryRow("INSERT INTO postgres_database_test_table_with_two_items VALUES($1, $2)", 0, "Stefanek")
-}
 
-// TODO write test for query with args
+	name1 := "Andrzej"
+	id1 := 1
+	name2 := "Grzegorz"
+	id2 := 2
+
+	result, err := db.Query("INSERT INTO postgres_database_test_insertion_table VALUES($1, $2)", id1, name1)
+	if len(result) != 0 || err != nil {
+		t.Error()
+	}
+
+	result, err = db.Query("INSERT INTO postgres_database_test_insertion_table VALUES($1, $2)", id2, name2)
+	if len(result) != 0 || err != nil {
+		t.Error()
+	}
+
+	result, err = db.Query("SELECT * FROM postgres_database_test_insertion_table ORDER BY name DESC")
+	if len(result) != 2 || err != nil {
+		t.Error()
+	}
+
+	if result[0][0] != id2 && result[0][1] != name2 {
+		t.Error()
+	}
+	if result[1][0] != id1 && result[1][1] != name1 {
+		t.Error()
+	}
+
+}
