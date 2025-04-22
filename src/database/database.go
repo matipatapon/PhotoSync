@@ -1,5 +1,5 @@
 package database
 
 type IDataBase interface {
-	Query() ([][]any, error)
+	Query(sql string, args ...any) ([][]any, error)
 }
