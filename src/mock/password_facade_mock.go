@@ -22,7 +22,7 @@ func (pfm *PasswordFacadeMock) ExpectHashPassword(password string, hash string, 
 	pfm.HashPasswordHashes = append(pfm.HashPasswordHashes, hash)
 }
 
-func (PasswordFacadeMock) CompareHashToPassword(hash string, password string) bool {
+func (PasswordFacadeMock) MatchHashToPassword(hash string, password string) bool {
 	return true
 }
 
