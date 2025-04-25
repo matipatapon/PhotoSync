@@ -2,8 +2,7 @@ package user
 
 import (
 	"errors"
-	"photosync/src/database"
-	"photosync/src/password"
+	"photosync/src/mock"
 	"testing"
 )
 
@@ -14,9 +13,9 @@ var QUERY string = "INSERT INTO users VALUES($1, $2)"
 var ERROR error = errors.New("ERROR")
 
 func TestUserFacadeShouldRegisterUser(t *testing.T) {
-	dbMock := database.NewDatabaseMock(t)
+	dbMock := mock.NewDatabaseMock(t)
 	dbMock.ExpectQuery(QUERY, [][]any{}, []any{USERNAME, HASH}, nil)
-	passwordFacadeMock := password.NewPasswordFacadeMock(t)
+	passwordFacadeMock := mock.NewPasswordFacadeMock(t)
 	passwordFacadeMock.ExpectHashPassword(PASSWORD, HASH, nil)
 	sut := NewUserFacade(&dbMock, &passwordFacadeMock)
 
@@ -30,8 +29,8 @@ func TestUserFacadeShouldRegisterUser(t *testing.T) {
 }
 
 func TestUserFacadeShouldReturnErrorWhenFailedToHashPassword(t *testing.T) {
-	dbMock := database.NewDatabaseMock(t)
-	passwordFacadeMock := password.NewPasswordFacadeMock(t)
+	dbMock := mock.NewDatabaseMock(t)
+	passwordFacadeMock := mock.NewPasswordFacadeMock(t)
 	passwordFacadeMock.ExpectHashPassword(PASSWORD, "", ERROR)
 	sut := NewUserFacade(&dbMock, &passwordFacadeMock)
 
@@ -44,9 +43,9 @@ func TestUserFacadeShouldReturnErrorWhenFailedToHashPassword(t *testing.T) {
 }
 
 func TestUserFacadeShouldReturnErrorWhenQueryFailed(t *testing.T) {
-	dbMock := database.NewDatabaseMock(t)
+	dbMock := mock.NewDatabaseMock(t)
 	dbMock.ExpectQuery(QUERY, [][]any{}, []any{USERNAME, HASH}, ERROR)
-	passwordFacadeMock := password.NewPasswordFacadeMock(t)
+	passwordFacadeMock := mock.NewPasswordFacadeMock(t)
 	passwordFacadeMock.ExpectHashPassword(PASSWORD, HASH, nil)
 	sut := NewUserFacade(&dbMock, &passwordFacadeMock)
 
