@@ -11,6 +11,8 @@ import (
 
 var logger *log.Logger = log.New(os.Stdout, "[PostgresDataBase]: ", log.LstdFlags)
 
+// PostgresDataBase struct implements IDataBase interface.
+// It handles connection with PostgreSQL database.
 type PostgresDataBase struct {
 	db       string
 	user     string
@@ -19,6 +21,7 @@ type PostgresDataBase struct {
 	port     int
 }
 
+// NewPostgresDataBase function creates PostgresDataBase.
 func NewPostgresDataBase(
 	db string,
 	user string,
@@ -29,6 +32,10 @@ func NewPostgresDataBase(
 	return &PostgresDataBase{db, user, password, address, port}
 }
 
+// Query method overrides IDataBase.Query.
+// Error will be returned when:
+//   - Connection to db cannot be established
+//   - PostgreSQL database will return error when processing query
 func (dbw PostgresDataBase) Query(sql string, args ...any) ([][]any, error) {
 	logger.Printf("Connecting to %s", createConnectionUrl(dbw.db, dbw.user, "####", dbw.address, dbw.port))
 	conn, err := pgx.Connect(context.Background(), createConnectionUrl(dbw.db, dbw.user, dbw.password, dbw.address, dbw.port))
