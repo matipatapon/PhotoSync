@@ -2,6 +2,7 @@
 package user
 
 import (
+	"errors"
 	"log"
 	"os"
 	"photosync/src/database"
@@ -45,5 +46,19 @@ func (uf *UserFacade) RegisterUser(name string, password string) error {
 		return err
 	}
 	logger.Printf("Registered %s", name)
+	return nil
+}
+
+// LoginUser checks if user with given username and password exists.
+// If user doesn't exist error will be returned.
+func (uf *UserFacade) LoginUser(username string, password string) error {
+	result, _ := uf.db.Query("SELECT password FROM users WHERE username = $1", username)
+
+	if len(result) == 0 {
+		return errors.New("user doesn't exist")
+	}
+
+	hash := result[0][0].(string)
+	uf.passwordFacade.MatchHashToPassword(hash, password)
 	return nil
 }
