@@ -59,14 +59,14 @@ func TestUserFacadeShouldReturnErrorWhenQueryFailed(t *testing.T) {
 	passwordFacadeMock.AssertAllExpectionsSatisfied()
 }
 
-func TestUserFacadeShouldLoginUser(t *testing.T) {
+func TestUserFacadeShouldCheckCredentials(t *testing.T) {
 	dbMock := mock.NewDatabaseMock(t)
 	dbMock.ExpectQuery(LOGIN_QUERY, [][]any{{HASH}}, []any{USERNAME}, nil)
 	passwordFacadeMock := mock.NewPasswordFacadeMock(t)
 	passwordFacadeMock.ExpectMatchHashToPassword(HASH, PASSWORD, true)
 	sut := NewUserFacade(&dbMock, &passwordFacadeMock)
 
-	err := sut.LoginUser(USERNAME, PASSWORD)
+	err := sut.CheckCredentials(USERNAME, PASSWORD)
 
 	if err != nil {
 		t.Fail()
@@ -77,11 +77,42 @@ func TestUserFacadeShouldLoginUser(t *testing.T) {
 
 func TestUserFacadeShouldReturnErrorWhenGivenUserDoesNotExist(t *testing.T) {
 	dbMock := mock.NewDatabaseMock(t)
-	dbMock.ExpectQuery(LOGIN_QUERY, [][]any{{}}, []any{USERNAME}, nil)
+	dbMock.ExpectQuery(LOGIN_QUERY, [][]any{}, []any{USERNAME}, nil)
 	passwordFacadeMock := mock.NewPasswordFacadeMock(t)
 	sut := NewUserFacade(&dbMock, &passwordFacadeMock)
 
-	err := sut.LoginUser(USERNAME, PASSWORD)
+	err := sut.CheckCredentials(USERNAME, PASSWORD)
+
+	if err == nil {
+		t.Fail()
+	}
+	dbMock.AssertAllExpectionsSatisfied()
+	passwordFacadeMock.AssertAllExpectionsSatisfied()
+}
+
+func TestUserFacadeShouldReturnErrorWhenDatabaseWillFailDuringLogin(t *testing.T) {
+	dbMock := mock.NewDatabaseMock(t)
+	dbMock.ExpectQuery(LOGIN_QUERY, [][]any{{HASH}}, []any{USERNAME}, ERROR)
+	passwordFacadeMock := mock.NewPasswordFacadeMock(t)
+	sut := NewUserFacade(&dbMock, &passwordFacadeMock)
+
+	err := sut.CheckCredentials(USERNAME, PASSWORD)
+
+	if err == nil {
+		t.Fail()
+	}
+	dbMock.AssertAllExpectionsSatisfied()
+	passwordFacadeMock.AssertAllExpectionsSatisfied()
+}
+
+func TestUserFacadeShouldReturnErrorWhenInvalidPassword(t *testing.T) {
+	dbMock := mock.NewDatabaseMock(t)
+	dbMock.ExpectQuery(LOGIN_QUERY, [][]any{{HASH}}, []any{USERNAME}, nil)
+	passwordFacadeMock := mock.NewPasswordFacadeMock(t)
+	passwordFacadeMock.ExpectMatchHashToPassword(HASH, PASSWORD, false)
+	sut := NewUserFacade(&dbMock, &passwordFacadeMock)
+
+	err := sut.CheckCredentials(USERNAME, PASSWORD)
 
 	if err == nil {
 		t.Fail()

@@ -49,16 +49,27 @@ func (uf *UserFacade) RegisterUser(name string, password string) error {
 	return nil
 }
 
-// LoginUser checks if user with given username and password exists.
-// If user doesn't exist error will be returned.
-func (uf *UserFacade) LoginUser(username string, password string) error {
-	result, _ := uf.db.Query("SELECT password FROM users WHERE username = $1", username)
+// CheckCredentials checks if user with given username and password exists.
+// If credentials are invalid, error will be returned.
+func (uf *UserFacade) CheckCredentials(username string, password string) error {
+	logger.Printf("Checking credentials for '%s'", username)
+	result, err := uf.db.Query("SELECT password FROM users WHERE username = $1", username)
 
+	if err != nil {
+		logger.Printf("Database error '%s'", err.Error())
+		return err
+	}
 	if len(result) == 0 {
+		logger.Printf("User '%s' doesn't exist", username)
 		return errors.New("user doesn't exist")
 	}
 
 	hash := result[0][0].(string)
-	uf.passwordFacade.MatchHashToPassword(hash, password)
+	if !uf.passwordFacade.MatchHashToPassword(hash, password) {
+		logger.Printf("Invalid password")
+		return errors.New("invalid password")
+	}
+
+	logger.Printf("Username and password are correct")
 	return nil
 }
