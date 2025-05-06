@@ -54,7 +54,7 @@ func (uf *UserFacade) RegisterUser(name string, password string) error {
 func (uf *UserFacade) LoginUser(username string, password string) error {
 	result, _ := uf.db.Query("SELECT password FROM users WHERE username = $1", username)
 
-	if len(result) == 0 {
+	if len(result) == 0 || len(result[0]) == 0 {
 		return errors.New("user doesn't exist")
 	}
 

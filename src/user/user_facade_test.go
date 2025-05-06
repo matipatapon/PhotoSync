@@ -77,6 +77,21 @@ func TestUserFacadeShouldLoginUser(t *testing.T) {
 
 func TestUserFacadeShouldReturnErrorWhenGivenUserDoesNotExist(t *testing.T) {
 	dbMock := mock.NewDatabaseMock(t)
+	dbMock.ExpectQuery(LOGIN_QUERY, [][]any{}, []any{USERNAME}, nil)
+	passwordFacadeMock := mock.NewPasswordFacadeMock(t)
+	sut := NewUserFacade(&dbMock, &passwordFacadeMock)
+
+	err := sut.LoginUser(USERNAME, PASSWORD)
+
+	if err == nil {
+		t.Fail()
+	}
+	dbMock.AssertAllExpectionsSatisfied()
+	passwordFacadeMock.AssertAllExpectionsSatisfied()
+}
+
+func TestUserFacadeShouldReturnErrorWhenEmptyRecordReturnedFromDb(t *testing.T) {
+	dbMock := mock.NewDatabaseMock(t)
 	dbMock.ExpectQuery(LOGIN_QUERY, [][]any{{}}, []any{USERNAME}, nil)
 	passwordFacadeMock := mock.NewPasswordFacadeMock(t)
 	sut := NewUserFacade(&dbMock, &passwordFacadeMock)

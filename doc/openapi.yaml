@@ -2,7 +2,7 @@ openapi: 3.0.4
 info:
   title: Photo storage API
   description: API for uploading, editing and accessing photos.
-  version: 0.0.2
+  version: 0.0.3
   contact:
     name: Mateusz Piętka
     email: matipietka@gmail.com
@@ -37,24 +37,18 @@ paths:
   /register:
     summary: endpoint used for creation of user account
     post:
-      summary: send login, email and hashed password to create user account
-      parameters:
-        - in: header
-          name: login
-          schema:
-            type: string
-          required: true
-        - in: header
-          name: password
-          description: hashed password
-          schema:
-            type: string
-          required: true
-        - in: header
-          name: email
-          schema:
-            type: string
-          required: true
+      summary: send username and password to create new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                password:
+                  type: string
       responses:
         201:
           description: user account created
