@@ -44,6 +44,8 @@ func (dbw PostgresDataBase) Query(sql string, args ...any) ([][]any, error) {
 		return nil, err
 	}
 
+	// TODO Query doesn't insert data into database, Exec must be used instead!
+
 	logger.Printf("Executing query %s", sql)
 	rows, err := conn.Query(context.Background(), sql, args...)
 	if err != nil {

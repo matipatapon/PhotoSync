@@ -27,10 +27,15 @@ func NewRegisterEndpoint(db database.IDataBase, passwordFacade password.IPasswor
 
 func (re *RegisterEndpoint) Post(c *gin.Context) {
 	var registerData RegisterData
-	c.BindJSON(&registerData)
+	err := c.BindJSON(&registerData)
+	if err != nil {
+		logger.Print("Invalid request received!")
+		c.Status(400)
+		return
+	}
+
 	username := registerData.Username
 	password := registerData.Password
-
 	logger.Printf("Attempting to register '%s'", username)
 
 	hash, err := re.passwordFacade.HashPassword(password)
@@ -39,6 +44,14 @@ func (re *RegisterEndpoint) Post(c *gin.Context) {
 		c.Status(400)
 		return
 	}
-	re.db.Query("INSERT INTO users VALUES($1, $2)", username, hash)
+
+	_, err = re.db.Query("INSERT INTO users VALUES($1, $2)", username, hash)
+	if err != nil {
+		logger.Printf("Query failed with following error: '%s'", err.Error())
+		c.Status(400)
+		return
+	}
+
+	logger.Printf("Registered '%s'", username)
 	c.Status(200)
 }

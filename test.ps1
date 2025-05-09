@@ -1,10 +1,12 @@
-param([String]$type="wrong_parameter", [String]$package="...")
+param([String]$type="wrong_parameter", [String]$package="...", [String]$test=".")
 
 if($type -ne "ut" -and $type -ne "ft" -and $type -ne "all" -and $type -ne "create-env"){
     "test.ps1 -type ut | will run unit tests"
     "test.ps1 -type ut -package package | will run UTies only for specific package"
+    "test.ps1 -type ut -test regex | will run test which matches given regex"
     "test.ps1 -type ft | will run functional tests"
     "test.ps1 -type create-env | will create testing enviorment"
+    exit 1
 }
 
 $Env:PGDB = "postgres"
@@ -34,7 +36,7 @@ function UnitTests(){
     
     Clear-Host
     "please wait ..."
-    go test -v ./src/$package
+    go test -v ./src/$package -run $test
     if($LASTEXITCODE -ne 0){
         "uties failed"
         exit 1
