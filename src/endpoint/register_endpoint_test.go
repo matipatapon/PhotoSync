@@ -29,7 +29,7 @@ func prepareGin() (*gin.Engine, *httptest.ResponseRecorder) {
 
 func TestRegisterEndpointShouldRegisterNewUser(t *testing.T) {
 	databaseMock := mock.NewDatabaseMock(t)
-	databaseMock.ExpectQuery("INSERT INTO users VALUES($1, $2)", [][]any{}, []any{USERNAME, HASH}, nil)
+	databaseMock.ExpectExecute("INSERT INTO users VALUES($1, $2)", []any{USERNAME, HASH}, nil)
 	passwordFacadeMock := mock.NewPasswordFacadeMock(t)
 	passwordFacadeMock.ExpectHashPassword(PASSWORD, HASH, nil)
 	sut := RegisterEndpoint{&databaseMock, &passwordFacadeMock}
@@ -95,7 +95,7 @@ func TestRegisterEndpointShouldReturnErrorWhenRequestHasInvalidPayload(t *testin
 
 func TestRegisterEndpointShouldReturnErrorWhenQueryFailed(t *testing.T) {
 	databaseMock := mock.NewDatabaseMock(t)
-	databaseMock.ExpectQuery("INSERT INTO users VALUES($1, $2)", [][]any{}, []any{USERNAME, HASH}, ERROR)
+	databaseMock.ExpectExecute("INSERT INTO users VALUES($1, $2)", []any{USERNAME, HASH}, ERROR)
 	passwordFacadeMock := mock.NewPasswordFacadeMock(t)
 	passwordFacadeMock.ExpectHashPassword(PASSWORD, HASH, nil)
 	sut := RegisterEndpoint{&databaseMock, &passwordFacadeMock}

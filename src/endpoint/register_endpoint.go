@@ -12,8 +12,8 @@ import (
 var logger *log.Logger = log.New(os.Stdout, "[RegisterEndpoint]: ", log.LstdFlags)
 
 type RegisterData struct {
-	Username string `json: username`
-	Password string `json: password`
+	Username string `json:"username"`
+	Password string `json:"password"`
 }
 
 type RegisterEndpoint struct {
@@ -45,9 +45,9 @@ func (re *RegisterEndpoint) Post(c *gin.Context) {
 		return
 	}
 
-	_, err = re.db.Query("INSERT INTO users VALUES($1, $2)", username, hash)
+	err = re.db.Execute("INSERT INTO users VALUES($1, $2)", username, hash)
 	if err != nil {
-		logger.Printf("Query failed with following error: '%s'", err.Error())
+		logger.Printf("Execute failed with following error: '%s'", err.Error())
 		c.Status(400)
 		return
 	}

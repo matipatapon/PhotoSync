@@ -110,7 +110,36 @@ func TestQueryShouldReturnAllRows(t *testing.T) {
 	}
 }
 
-func TestQueryShouldExecuteAnyCommandWithParams(t *testing.T) {
+func TestExecuteShouldUpdateRecord(t *testing.T) {
+	db := createSut()
+	changedName := "changed_name"
+
+	err := db.Execute("UPDATE postgres_database_test_table_to_update SET name = $1", changedName)
+
+	if err != nil {
+		t.Error()
+	}
+	result, err := db.Query("SELECT name FROM postgres_database_test_table_to_update")
+	if len(result) != 1 || err != nil || result[0][0] != changedName {
+		t.Error()
+	}
+}
+
+func TestExecuteShouldDeleteRecord(t *testing.T) {
+	db := createSut()
+
+	err := db.Execute("DELETE FROM postgres_database_test_table_to_delete")
+
+	if err != nil {
+		t.Error()
+	}
+	result, err := db.Query("SELECT name FROM postgres_database_test_table_to_delete")
+	if len(result) != 0 || err != nil {
+		t.Error()
+	}
+}
+
+func TestExecuteShouldInsertRecordsToDatabase(t *testing.T) {
 	db := createSut()
 
 	name1 := "Andrzej"
@@ -118,17 +147,17 @@ func TestQueryShouldExecuteAnyCommandWithParams(t *testing.T) {
 	name2 := "Grzegorz"
 	id2 := 2
 
-	result, err := db.Query("INSERT INTO postgres_database_test_insertion_table VALUES($1, $2)", id1, name1)
-	if len(result) != 0 || err != nil {
+	err := db.Execute("INSERT INTO postgres_database_test_insertion_table VALUES($1, $2)", id1, name1)
+	if err != nil {
 		t.Error()
 	}
 
-	result, err = db.Query("INSERT INTO postgres_database_test_insertion_table VALUES($1, $2)", id2, name2)
-	if len(result) != 0 || err != nil {
+	err = db.Execute("INSERT INTO postgres_database_test_insertion_table VALUES($1, $2)", id2, name2)
+	if err != nil {
 		t.Error()
 	}
 
-	result, err = db.Query("SELECT * FROM postgres_database_test_insertion_table ORDER BY name DESC")
+	result, err := db.Query("SELECT * FROM postgres_database_test_insertion_table ORDER BY name DESC")
 	if len(result) != 2 || err != nil {
 		t.Error()
 	}
@@ -140,4 +169,24 @@ func TestQueryShouldExecuteAnyCommandWithParams(t *testing.T) {
 		t.Error()
 	}
 
+}
+
+func TestExecuteShouldReturnErrorWhenInsertionFailed(t *testing.T) {
+	db := createSut()
+
+	err := db.Execute("INSERT INTO postgres_database_test_insertion_table VALUES($1, $2, $3)", 1, "name", "additional param")
+
+	if err == nil {
+		t.Error()
+	}
+}
+
+func TestExecuteShouldReturnErrorWhenCannotConnectToDb(t *testing.T) {
+	sut := NewPostgresDataBase(getDb(), getUser(), "wrong_password", getIp(), getPort())
+
+	err := sut.Execute("SELECT version()")
+
+	if err == nil || !strings.HasPrefix(err.Error(), "failed to connect to ") {
+		t.Error()
+	}
 }

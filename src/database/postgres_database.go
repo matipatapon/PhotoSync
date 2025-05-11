@@ -32,21 +32,41 @@ func NewPostgresDataBase(
 	return &PostgresDataBase{db, user, password, address, port}
 }
 
+// Execute method overrides IDataBase.Query.
+// Error will be returned when:
+//   - Connection to db cannot be established
+//   - PostgreSQL database will return error when processing query
+func (dbw PostgresDataBase) Execute(sql string, args ...any) error {
+	logger.Printf("Connecting to '%s'", createConnectionUrl(dbw.db, dbw.user, "####", dbw.address, dbw.port))
+	conn, err := pgx.Connect(context.Background(), createConnectionUrl(dbw.db, dbw.user, dbw.password, dbw.address, dbw.port))
+	if err != nil {
+		logger.Print(err.Error())
+		return err
+	}
+	defer conn.Close(context.Background())
+
+	logger.Printf("Executing modifying query '%s'", sql)
+	_, err = conn.Exec(context.Background(), sql, args...)
+	if err != nil {
+		logger.Printf("Execution failed %s", err.Error())
+	}
+	return err
+}
+
 // Query method overrides IDataBase.Query.
 // Error will be returned when:
 //   - Connection to db cannot be established
 //   - PostgreSQL database will return error when processing query
 func (dbw PostgresDataBase) Query(sql string, args ...any) ([][]any, error) {
-	logger.Printf("Connecting to %s", createConnectionUrl(dbw.db, dbw.user, "####", dbw.address, dbw.port))
+	logger.Printf("Connecting to '%s'", createConnectionUrl(dbw.db, dbw.user, "####", dbw.address, dbw.port))
 	conn, err := pgx.Connect(context.Background(), createConnectionUrl(dbw.db, dbw.user, dbw.password, dbw.address, dbw.port))
 	if err != nil {
 		logger.Print(err.Error())
 		return nil, err
 	}
+	defer conn.Close(context.Background())
 
-	// TODO Query doesn't insert data into database, Exec must be used instead!
-
-	logger.Printf("Executing query %s", sql)
+	logger.Printf("Executing non-modifying query '%s'", sql)
 	rows, err := conn.Query(context.Background(), sql, args...)
 	if err != nil {
 		logger.Print(err.Error())
