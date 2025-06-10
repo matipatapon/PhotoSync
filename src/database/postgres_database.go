@@ -5,11 +5,14 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"time"
 
 	"github.com/jackc/pgx/v4"
 )
 
 var logger *log.Logger = log.New(os.Stdout, "[PostgresDataBase]: ", log.LstdFlags)
+
+var TIMEOUT time.Duration = time.Second * 30
 
 // PostgresDataBase struct implements IDataBase interface.
 // It handles connection with PostgreSQL database.
@@ -37,16 +40,19 @@ func NewPostgresDataBase(
 //   - Connection to db cannot be established
 //   - PostgreSQL database will return error when processing query
 func (dbw PostgresDataBase) Execute(sql string, args ...any) error {
+	ctx, cancel := context.WithTimeout(context.Background(), TIMEOUT)
+	defer cancel()
+
 	logger.Printf("Connecting to '%s'", createConnectionUrl(dbw.db, dbw.user, "####", dbw.address, dbw.port))
-	conn, err := pgx.Connect(context.Background(), createConnectionUrl(dbw.db, dbw.user, dbw.password, dbw.address, dbw.port))
+	conn, err := pgx.Connect(ctx, createConnectionUrl(dbw.db, dbw.user, dbw.password, dbw.address, dbw.port))
 	if err != nil {
 		logger.Print(err.Error())
 		return err
 	}
-	defer conn.Close(context.Background())
+	defer conn.Close(ctx)
 
 	logger.Printf("Executing modifying query '%s'", sql)
-	_, err = conn.Exec(context.Background(), sql, args...)
+	_, err = conn.Exec(ctx, sql, args...)
 	if err != nil {
 		logger.Printf("Execution failed %s", err.Error())
 	}
@@ -58,16 +64,19 @@ func (dbw PostgresDataBase) Execute(sql string, args ...any) error {
 //   - Connection to db cannot be established
 //   - PostgreSQL database will return error when processing query
 func (dbw PostgresDataBase) Query(sql string, args ...any) ([][]any, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), TIMEOUT)
+	defer cancel()
+
 	logger.Printf("Connecting to '%s'", createConnectionUrl(dbw.db, dbw.user, "####", dbw.address, dbw.port))
-	conn, err := pgx.Connect(context.Background(), createConnectionUrl(dbw.db, dbw.user, dbw.password, dbw.address, dbw.port))
+	conn, err := pgx.Connect(ctx, createConnectionUrl(dbw.db, dbw.user, dbw.password, dbw.address, dbw.port))
 	if err != nil {
 		logger.Print(err.Error())
 		return nil, err
 	}
-	defer conn.Close(context.Background())
+	defer conn.Close(ctx)
 
 	logger.Printf("Executing non-modifying query '%s'", sql)
-	rows, err := conn.Query(context.Background(), sql, args...)
+	rows, err := conn.Query(ctx, sql, args...)
 	if err != nil {
 		logger.Print(err.Error())
 		return nil, err
