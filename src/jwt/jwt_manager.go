@@ -5,7 +5,7 @@ import (
 	"errors"
 	"log"
 	"os"
-	"time"
+	"photosync/src/helper"
 
 	ejwt "github.com/golang-jwt/jwt/v5"
 )
@@ -19,12 +19,13 @@ type IJwtManager interface {
 
 type JwtManager struct {
 	secretKey []byte
+	th        helper.ITimeHelper
 }
 
-func NewJwtManager() JwtManager {
-	jm := JwtManager{}
-	jm.secretKey = make([]byte, 64)
-	rand.Read(jm.secretKey)
+func NewJwtManager(th helper.ITimeHelper) JwtManager {
+	secretKey := make([]byte, 64)
+	rand.Read(secretKey)
+	jm := JwtManager{secretKey: secretKey, th: th}
 	logger.Print("Created JwtManager")
 	return jm
 }
@@ -58,7 +59,7 @@ func (jm *JwtManager) Decode(tokenString string) (JwtPayload, error) {
 	jp := JwtPayload{}
 
 	jp.ExpirationTime = int64(claimsMap["expiration_time"].(float64))
-	if jp.ExpirationTime < time.Now().Unix() {
+	if jp.ExpirationTime < jm.th.TimeNow() {
 		logger.Print("Token expired")
 		return jp, errors.New("token expired")
 	}

@@ -13,8 +13,8 @@ import (
 func main() {
 	db := database.NewPostgresDataBase("postgres", "postgres", "postgres", "localhost", 5432)
 	passwordFacade := password.PasswordFacade{}
-	jwtManager := jwt.NewJwtManager()
 	timeHelper := helper.TimeHelper{}
+	jwtManager := jwt.NewJwtManager(&timeHelper)
 
 	router := gin.Default()
 	registerEndpoint := endpoint.NewRegisterEndpoint(db, passwordFacade)
