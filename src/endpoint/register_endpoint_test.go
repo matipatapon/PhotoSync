@@ -32,7 +32,7 @@ func TestRegisterEndpointShouldRegisterNewUser(t *testing.T) {
 	databaseMock.ExpectExecute("INSERT INTO users VALUES($1, $2)", []any{USERNAME, HASH}, nil)
 	passwordFacadeMock := mock.NewPasswordFacadeMock(t)
 	passwordFacadeMock.ExpectHashPassword(PASSWORD, HASH, nil)
-	sut := RegisterEndpoint{&databaseMock, &passwordFacadeMock}
+	sut := NewRegisterEndpoint(&databaseMock, &passwordFacadeMock)
 	router, responseRecorder := prepareGin()
 	registerData := RegisterData{USERNAME, PASSWORD}
 	registerDataBytes, err := json.Marshal(registerData)
@@ -56,7 +56,7 @@ func TestRegisterEndpointShouldReturnErrorWhenFailedToHashPassword(t *testing.T)
 	databaseMock := mock.NewDatabaseMock(t)
 	passwordFacadeMock := mock.NewPasswordFacadeMock(t)
 	passwordFacadeMock.ExpectHashPassword(PASSWORD, HASH, ERROR)
-	sut := RegisterEndpoint{&databaseMock, &passwordFacadeMock}
+	sut := NewRegisterEndpoint(&databaseMock, &passwordFacadeMock)
 	router, responseRecorder := prepareGin()
 	registerData := RegisterData{USERNAME, PASSWORD}
 	registerDataBytes, err := json.Marshal(registerData)
@@ -79,7 +79,7 @@ func TestRegisterEndpointShouldReturnErrorWhenFailedToHashPassword(t *testing.T)
 func TestRegisterEndpointShouldReturnErrorWhenRequestHasInvalidPayload(t *testing.T) {
 	databaseMock := mock.NewDatabaseMock(t)
 	passwordFacadeMock := mock.NewPasswordFacadeMock(t)
-	sut := RegisterEndpoint{&databaseMock, &passwordFacadeMock}
+	sut := NewRegisterEndpoint(&databaseMock, &passwordFacadeMock)
 	router, responseRecorder := prepareGin()
 	request := httptest.NewRequest(http.MethodPost, "/", io.NopCloser(bytes.NewReader(INVALID_PAYLOAD)))
 	router.POST("/", sut.Post)
@@ -98,7 +98,7 @@ func TestRegisterEndpointShouldReturnErrorWhenQueryFailed(t *testing.T) {
 	databaseMock.ExpectExecute("INSERT INTO users VALUES($1, $2)", []any{USERNAME, HASH}, ERROR)
 	passwordFacadeMock := mock.NewPasswordFacadeMock(t)
 	passwordFacadeMock.ExpectHashPassword(PASSWORD, HASH, nil)
-	sut := RegisterEndpoint{&databaseMock, &passwordFacadeMock}
+	sut := NewRegisterEndpoint(&databaseMock, &passwordFacadeMock)
 	router, responseRecorder := prepareGin()
 	registerData := RegisterData{USERNAME, PASSWORD}
 	registerDataBytes, err := json.Marshal(registerData)
