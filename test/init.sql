@@ -24,3 +24,23 @@ CREATE TABLE postgres_database_test_insertion_table(
     id integer not null PRIMARY KEY,
     name text not null
 );
+
+DROP TABLE IF EXISTS postgres_database_test_table_to_drop;
+CREATE TABLE postgres_database_test_table_to_drop(
+    id integer not null PRIMARY KEY,
+    name text not null
+);
+
+DROP TABLE IF EXISTS postgres_database_test_table_to_update;
+CREATE TABLE postgres_database_test_table_to_update(
+    id integer not null PRIMARY KEY,
+    name text not null
+);
+INSERT INTO postgres_database_test_table_to_update VALUES(1, 'orginal_name');
+
+DROP TABLE IF EXISTS postgres_database_test_table_to_delete;
+CREATE TABLE postgres_database_test_table_to_delete(
+    id integer not null PRIMARY KEY,
+    name text not null
+);
+INSERT INTO postgres_database_test_table_to_delete VALUES(1, 'name');
