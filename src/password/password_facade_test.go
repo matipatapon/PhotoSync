@@ -1,6 +1,7 @@
-package password
+package password_test
 
 import (
+	"photosync/src/password"
 	"testing"
 )
 
@@ -13,7 +14,7 @@ func generate_password(length int) string {
 }
 
 func TestPasswordFacadeTwoSamePasswordsShouldNotHaveSameHash(t *testing.T) {
-	sut := PasswordFacade{}
+	sut := password.PasswordFacade{}
 	password := generate_password(72)
 	hash1, err1 := sut.HashPassword(password)
 	if err1 != nil {
@@ -29,7 +30,7 @@ func TestPasswordFacadeTwoSamePasswordsShouldNotHaveSameHash(t *testing.T) {
 }
 
 func TestPasswordFacadeShouldFailWhenPasswordIsTooLong(t *testing.T) {
-	sut := PasswordFacade{}
+	sut := password.PasswordFacade{}
 	too_long_password := generate_password(73)
 	hash, err := sut.HashPassword(too_long_password)
 	if hash != "" || err == nil {

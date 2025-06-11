@@ -11,14 +11,9 @@ import (
 	"photosync/src/jwt"
 	"photosync/src/mock"
 	"testing"
-
-	"github.com/gin-gonic/gin"
 )
 
 var TOKEN_STRING string = "TOKEN_STRING"
-var USERNAME string = "user123"
-var PASSWORD string = "password123"
-var HASH string = "hash"
 var EXPIRATION_TIME = 102
 var ONE_DAY int64 = 60 * 60 * 24
 
@@ -31,13 +26,6 @@ func (FakeReader) Close() error {
 
 func (FakeReader) Read(p []byte) (n int, err error) {
 	return 0, errors.New("error")
-}
-
-func prepareGin() (*gin.Engine, *httptest.ResponseRecorder) {
-	gin.SetMode(gin.TestMode)
-	responseRecorder := httptest.NewRecorder()
-	_, router := gin.CreateTestContext(responseRecorder)
-	return router, responseRecorder
 }
 
 func TestLoginEndpointShouldSendJwtWhenCredentialsAreCorrect(t *testing.T) {

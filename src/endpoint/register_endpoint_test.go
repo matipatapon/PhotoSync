@@ -1,4 +1,4 @@
-package endpoint
+package endpoint_test
 
 import (
 	"bytes"
@@ -9,32 +9,21 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"photosync/src/endpoint"
 	"photosync/src/mock"
-
-	"github.com/gin-gonic/gin"
 )
 
-var USERNAME string = "user"
-var PASSWORD string = "password"
-var HASH string = "HASH"
 var ERROR error = errors.New("ERROR")
 var INVALID_PAYLOAD = []byte("non json data")
-
-func prepareGin() (*gin.Engine, *httptest.ResponseRecorder) {
-	gin.SetMode(gin.TestMode)
-	responseRecorder := httptest.NewRecorder()
-	_, router := gin.CreateTestContext(responseRecorder)
-	return router, responseRecorder
-}
 
 func TestRegisterEndpointShouldRegisterNewUser(t *testing.T) {
 	databaseMock := mock.NewDatabaseMock(t)
 	databaseMock.ExpectExecute("INSERT INTO users VALUES($1, $2)", []any{USERNAME, HASH}, nil)
 	passwordFacadeMock := mock.NewPasswordFacadeMock(t)
 	passwordFacadeMock.ExpectHashPassword(PASSWORD, HASH, nil)
-	sut := NewRegisterEndpoint(&databaseMock, &passwordFacadeMock)
+	sut := endpoint.NewRegisterEndpoint(&databaseMock, &passwordFacadeMock)
 	router, responseRecorder := prepareGin()
-	registerData := RegisterData{USERNAME, PASSWORD}
+	registerData := endpoint.RegisterData{USERNAME, PASSWORD}
 	registerDataBytes, err := json.Marshal(registerData)
 	if err != nil {
 		t.Error(err)
@@ -56,9 +45,9 @@ func TestRegisterEndpointShouldReturnErrorWhenFailedToHashPassword(t *testing.T)
 	databaseMock := mock.NewDatabaseMock(t)
 	passwordFacadeMock := mock.NewPasswordFacadeMock(t)
 	passwordFacadeMock.ExpectHashPassword(PASSWORD, HASH, ERROR)
-	sut := NewRegisterEndpoint(&databaseMock, &passwordFacadeMock)
+	sut := endpoint.NewRegisterEndpoint(&databaseMock, &passwordFacadeMock)
 	router, responseRecorder := prepareGin()
-	registerData := RegisterData{USERNAME, PASSWORD}
+	registerData := endpoint.RegisterData{USERNAME, PASSWORD}
 	registerDataBytes, err := json.Marshal(registerData)
 	if err != nil {
 		t.Error(err)
@@ -79,7 +68,7 @@ func TestRegisterEndpointShouldReturnErrorWhenFailedToHashPassword(t *testing.T)
 func TestRegisterEndpointShouldReturnErrorWhenRequestHasInvalidPayload(t *testing.T) {
 	databaseMock := mock.NewDatabaseMock(t)
 	passwordFacadeMock := mock.NewPasswordFacadeMock(t)
-	sut := NewRegisterEndpoint(&databaseMock, &passwordFacadeMock)
+	sut := endpoint.NewRegisterEndpoint(&databaseMock, &passwordFacadeMock)
 	router, responseRecorder := prepareGin()
 	request := httptest.NewRequest(http.MethodPost, "/", io.NopCloser(bytes.NewReader(INVALID_PAYLOAD)))
 	router.POST("/", sut.Post)
@@ -98,9 +87,9 @@ func TestRegisterEndpointShouldReturnErrorWhenQueryFailed(t *testing.T) {
 	databaseMock.ExpectExecute("INSERT INTO users VALUES($1, $2)", []any{USERNAME, HASH}, ERROR)
 	passwordFacadeMock := mock.NewPasswordFacadeMock(t)
 	passwordFacadeMock.ExpectHashPassword(PASSWORD, HASH, nil)
-	sut := NewRegisterEndpoint(&databaseMock, &passwordFacadeMock)
+	sut := endpoint.NewRegisterEndpoint(&databaseMock, &passwordFacadeMock)
 	router, responseRecorder := prepareGin()
-	registerData := RegisterData{USERNAME, PASSWORD}
+	registerData := endpoint.RegisterData{USERNAME, PASSWORD}
 	registerDataBytes, err := json.Marshal(registerData)
 	if err != nil {
 		t.Error(err)

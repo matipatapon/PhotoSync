@@ -1,7 +1,8 @@
-package database
+package database_test
 
 import (
 	"os"
+	"photosync/src/database"
 	"strconv"
 	"strings"
 	"testing"
@@ -28,8 +29,8 @@ func getPort() int {
 	return port
 }
 
-func createSut() *PostgresDataBase {
-	return NewPostgresDataBase(
+func createSut() *database.PostgresDataBase {
+	return database.NewPostgresDataBase(
 		getDb(),
 		getUser(),
 		getPassword(),
@@ -39,7 +40,7 @@ func createSut() *PostgresDataBase {
 }
 
 func TestQueryShouldReturnErrorWhenCannotConnectToDb(t *testing.T) {
-	sut := NewPostgresDataBase(getDb(), getUser(), "wrong_password", getIp(), getPort())
+	sut := database.NewPostgresDataBase(getDb(), getUser(), "wrong_password", getIp(), getPort())
 
 	result, err := sut.Query("SELECT version()")
 
@@ -182,7 +183,7 @@ func TestExecuteShouldReturnErrorWhenInsertionFailed(t *testing.T) {
 }
 
 func TestExecuteShouldReturnErrorWhenCannotConnectToDb(t *testing.T) {
-	sut := NewPostgresDataBase(getDb(), getUser(), "wrong_password", getIp(), getPort())
+	sut := database.NewPostgresDataBase(getDb(), getUser(), "wrong_password", getIp(), getPort())
 
 	err := sut.Execute("SELECT version()")
 
