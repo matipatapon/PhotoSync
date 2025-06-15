@@ -106,3 +106,59 @@ func TestRegisterEndpointShouldReturnErrorWhenQueryFailed(t *testing.T) {
 	databaseMock.AssertAllExpectionsSatisfied()
 	passwordFacadeMock.AssertAllExpectionsSatisfied()
 }
+
+func TestRegisterEndpointShouldNotRegisterWhenNoUsernameGiven(t *testing.T) {
+	databaseMock := mock.NewDatabaseMock(t)
+	passwordFacadeMock := mock.NewPasswordFacadeMock(t)
+	sut := endpoint.NewRegisterEndpoint(&databaseMock, &passwordFacadeMock)
+	router, responseRecorder := prepareGin()
+
+	type InvalidRegisterData struct {
+		Password string `json:"password"`
+	}
+	registerData := InvalidRegisterData{PASSWORD}
+
+	registerDataBytes, err := json.Marshal(registerData)
+	if err != nil {
+		t.Error(err)
+	}
+
+	request := httptest.NewRequest(http.MethodPost, "/", io.NopCloser(bytes.NewReader(registerDataBytes)))
+	router.POST("/", sut.Post)
+	router.ServeHTTP(responseRecorder, request)
+
+	if responseRecorder.Code != 400 {
+		t.Error(responseRecorder.Code)
+	}
+
+	databaseMock.AssertAllExpectionsSatisfied()
+	passwordFacadeMock.AssertAllExpectionsSatisfied()
+}
+
+func TestRegisterEndpointShouldNotRegisterWhenNoPasswordGiven(t *testing.T) {
+	databaseMock := mock.NewDatabaseMock(t)
+	passwordFacadeMock := mock.NewPasswordFacadeMock(t)
+	sut := endpoint.NewRegisterEndpoint(&databaseMock, &passwordFacadeMock)
+	router, responseRecorder := prepareGin()
+
+	type InvalidRegisterData struct {
+		Username string `json:"username"`
+	}
+	registerData := InvalidRegisterData{USERNAME}
+
+	registerDataBytes, err := json.Marshal(registerData)
+	if err != nil {
+		t.Error(err)
+	}
+
+	request := httptest.NewRequest(http.MethodPost, "/", io.NopCloser(bytes.NewReader(registerDataBytes)))
+	router.POST("/", sut.Post)
+	router.ServeHTTP(responseRecorder, request)
+
+	if responseRecorder.Code != 400 {
+		t.Error(responseRecorder.Code)
+	}
+
+	databaseMock.AssertAllExpectionsSatisfied()
+	passwordFacadeMock.AssertAllExpectionsSatisfied()
+}

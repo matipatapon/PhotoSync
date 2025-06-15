@@ -34,8 +34,19 @@ func (re *RegisterEndpoint) Post(c *gin.Context) {
 	}
 
 	username := registerData.Username
-	password := registerData.Password
+	if username == "" {
+		re.logger.Printf("No username given")
+		c.Status(400)
+		return
+	}
 	re.logger.Printf("Attempting to register '%s'", username)
+
+	password := registerData.Password
+	if password == "" {
+		re.logger.Printf("No password given")
+		c.Status(400)
+		return
+	}
 
 	hash, err := re.passwordFacade.HashPassword(password)
 	if err != nil {
