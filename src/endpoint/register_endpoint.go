@@ -55,7 +55,7 @@ func (re *RegisterEndpoint) Post(c *gin.Context) {
 		return
 	}
 
-	err = re.db.Execute("INSERT INTO users VALUES($1, $2)", username, hash)
+	err = re.db.Execute("INSERT INTO users(username, password) VALUES($1, $2)", username, hash)
 	if err != nil {
 		re.logger.Printf("Execute failed with following error: '%s'", err.Error())
 		c.Status(400)

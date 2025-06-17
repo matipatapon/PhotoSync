@@ -18,7 +18,7 @@ var INVALID_PAYLOAD = []byte("non json data")
 
 func TestRegisterEndpointShouldRegisterNewUser(t *testing.T) {
 	databaseMock := mock.NewDatabaseMock(t)
-	databaseMock.ExpectExecute("INSERT INTO users VALUES($1, $2)", []any{USERNAME, HASH}, nil)
+	databaseMock.ExpectExecute("INSERT INTO users(username, password) VALUES($1, $2)", []any{USERNAME, HASH}, nil)
 	passwordFacadeMock := mock.NewPasswordFacadeMock(t)
 	passwordFacadeMock.ExpectHashPassword(PASSWORD, HASH, nil)
 	sut := endpoint.NewRegisterEndpoint(&databaseMock, &passwordFacadeMock)
@@ -84,7 +84,7 @@ func TestRegisterEndpointShouldReturnErrorWhenRequestHasInvalidPayload(t *testin
 
 func TestRegisterEndpointShouldReturnErrorWhenQueryFailed(t *testing.T) {
 	databaseMock := mock.NewDatabaseMock(t)
-	databaseMock.ExpectExecute("INSERT INTO users VALUES($1, $2)", []any{USERNAME, HASH}, ERROR)
+	databaseMock.ExpectExecute("INSERT INTO users(username, password) VALUES($1, $2)", []any{USERNAME, HASH}, ERROR)
 	passwordFacadeMock := mock.NewPasswordFacadeMock(t)
 	passwordFacadeMock.ExpectHashPassword(PASSWORD, HASH, nil)
 	sut := endpoint.NewRegisterEndpoint(&databaseMock, &passwordFacadeMock)

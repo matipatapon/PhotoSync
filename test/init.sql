@@ -1,3 +1,16 @@
+DROP TABLE IF EXISTS users;
+CREATE TABLE users
+(
+    id bigserial,
+    username text NOT NULL,
+    password text NOT NULL,
+    PRIMARY KEY (id),
+    CONSTRAINT "username is unique" UNIQUE (username)
+);
+
+ALTER TABLE IF EXISTS users
+    OWNER to postgres;
+
 DROP TABLE IF EXISTS postgres_database_test_empty_table;
 CREATE TABLE postgres_database_test_empty_table(
     id integer not null,

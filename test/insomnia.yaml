@@ -2,24 +2,24 @@ type: collection.insomnia.rest/5.0
 name: Scratch Pad
 meta:
   id: wrk_scratchpad
-  created: 1749857043831
-  modified: 1749857043831
+  created: 1749666536323
+  modified: 1749666536323
   description: ""
 collection:
   - name: ShouldRegisterAndLogin
     meta:
-      id: fld_8ebbf6bea5454f79a9ba7a254fe2a523
+      id: fld_db58bb6850744e70a9c4cd0c5b92ef97
       created: 1750000094851
-      modified: 1750013383415
+      modified: 1750153072138
       sortKey: -1750013044446
       description: ""
     children:
       - url: "{{host}}/register"
         name: Register user
         meta:
-          id: req_41503fc0fbe04752b9008c9acafa6b0e
+          id: req_e476f96fb39342a8921ccee90fc7446e
           created: 1749999403431
-          modified: 1750013291439
+          modified: 1750151652149
           isPrivate: false
           description: ""
           sortKey: -1750000100924
@@ -34,9 +34,9 @@ collection:
             value: insomnia/11.2.0
         scripts:
           preRequest: >
-            let userId = 1
+            let userId = parseInt(insomnia.environment.get("userId")) + 1
 
-            insomnia.environment.set("userId", 1)
+            insomnia.environment.set("userId", userId)
 
 
             const thisFolder =
@@ -47,18 +47,21 @@ collection:
             }
 
 
-            let username =  "username_" + insomnia.environment.get("userId")
+            let username =  "username_" + userId
 
             let password = "password123"
+
+
+            thisFolder.environment.set("username", username)
+
+            thisFolder.environment.set("password", password)
 
 
             let json = `
             	{
             		"username": "${username}",
             		"password": "${password}"
-            	}
-            `
-
+            	}`
 
             insomnia.request.body.update({
               mode: 'raw',
@@ -83,9 +86,9 @@ collection:
       - url: "{{host}}/login"
         name: Login user
         meta:
-          id: req_48f529511fdf4839a815c324e914a25c
+          id: req_bfe10f5617f84a7a8786510bc6d0e085
           created: 1749999403432
-          modified: 1750013007265
+          modified: 1750151600878
           isPrivate: false
           description: ""
           sortKey: -1750000100824
@@ -177,12 +180,12 @@ collection:
       - url: "{{host}}/register"
         name: Not register same user second time
         meta:
-          id: req_37d16254a31f454aa7f49cd187c42742
+          id: req_2a2dd675b9ba44b3bd841feb5c777d16
           created: 1750004702384
-          modified: 1750013221219
+          modified: 1750151690223
           isPrivate: false
           description: ""
-          sortKey: -1750000100724
+          sortKey: -1750000100811.5
         method: POST
         body:
           mimeType: application/json
@@ -238,9 +241,9 @@ collection:
       - url: "{{host}}/register"
         name: Not register user without username
         meta:
-          id: req_9381c1ad51df48d8b577aca433ed93b8
+          id: req_35ba36c2076047f9b8488f5c3c6261e9
           created: 1750004880996
-          modified: 1750013344759
+          modified: 1750151675456
           isPrivate: false
           description: ""
           sortKey: -1750000100761.5
@@ -284,7 +287,7 @@ collection:
       - url: "{{host}}/register"
         name: Not register user with empty username
         meta:
-          id: req_cfb9fba91a6a41fcafccab8099968433
+          id: req_c9f6755c3f074811874e75ba06f1411a
           created: 1750005579234
           modified: 1750013341610
           isPrivate: false
@@ -331,9 +334,9 @@ collection:
       - url: "{{host}}/register"
         name: Not register user without a password
         meta:
-          id: req_ee4c22f05305407796e7a97c0c0d781e
+          id: req_26a883ad8a32424ebc6ed12d505720ee
           created: 1750012173287
-          modified: 1750013343740
+          modified: 1750151421102
           isPrivate: false
           description: ""
           sortKey: -1750000100749
@@ -381,7 +384,7 @@ collection:
       - url: "{{host}}/register"
         name: Not register user with empty password
         meta:
-          id: req_173fde23bd6242b4845a96fae206af0d
+          id: req_2a88b06dac344210948bd9de2b64ee07
           created: 1750012856277
           modified: 1750013342608
           isPrivate: false
@@ -429,22 +432,243 @@ collection:
             send: true
             store: true
           rebuildPath: true
+      - url: "{{host}}/login"
+        name: Not login when invalid password
+        meta:
+          id: req_b8ae9660e0d44f348b0e4a66ba73fa64
+          created: 1750152533991
+          modified: 1750152636784
+          isPrivate: false
+          description: ""
+          sortKey: -1750000100649
+        method: GET
+        headers:
+          - name: User-Agent
+            value: insomnia/11.2.0
+        scripts:
+          preRequest: >
+            const thisFolder =
+            insomnia.parentFolders.get('ShouldRegisterAndLogin');
+
+            if (thisFolder === undefined) {
+            	throw Error('ShouldRegisterAndLogin not found');
+            }
+
+
+            let username = thisFolder.environment.get("username")
+
+            let password = "invalid password"
+
+            let json = `
+            	{
+            		"username": "${username}",
+            		"password": "${password}"
+            	}
+            `
+
+            insomnia.request.body.update({
+              mode: 'raw',
+              raw: json,
+            });
+          afterResponse: |
+            insomnia.test('Check if status is 400', () => {
+                insomnia.expect(insomnia.response.code).to.eql(400);
+            });
+
+            insomnia.test('Check if body is empty', () => {
+                insomnia.expect(insomnia.response.text()).to.eql("");
+            });
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: "{{host}}/login"
+        name: Not login when no password
+        meta:
+          id: req_ff14f324c2d04b1e9453a463cbd486d5
+          created: 1750152676941
+          modified: 1750152713192
+          isPrivate: false
+          description: ""
+          sortKey: -1750000100599
+        method: GET
+        headers:
+          - name: User-Agent
+            value: insomnia/11.2.0
+        scripts:
+          preRequest: >
+            const thisFolder =
+            insomnia.parentFolders.get('ShouldRegisterAndLogin');
+
+            if (thisFolder === undefined) {
+            	throw Error('ShouldRegisterAndLogin not found');
+            }
+
+
+            let username = thisFolder.environment.get("username")
+
+            let json = `
+            	{
+            		"username": "${username}"
+            	}
+            `
+
+            insomnia.request.body.update({
+              mode: 'raw',
+              raw: json,
+            });
+          afterResponse: |
+            insomnia.test('Check if status is 400', () => {
+                insomnia.expect(insomnia.response.code).to.eql(400);
+            });
+
+            insomnia.test('Check if body is empty', () => {
+                insomnia.expect(insomnia.response.text()).to.eql("");
+            });
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: "{{host}}/login"
+        name: Not login when user does not exist
+        meta:
+          id: req_7813c3ec1c6c4b598ffa7b298a0f36b3
+          created: 1750152747249
+          modified: 1750152869263
+          isPrivate: false
+          description: ""
+          sortKey: -1750000100549
+        method: GET
+        headers:
+          - name: User-Agent
+            value: insomnia/11.2.0
+        scripts:
+          preRequest: >
+            let userId = parseInt(insomnia.environment.get("userId")) + 1
+
+            insomnia.environment.set("userId", userId)
+
+
+            const thisFolder =
+            insomnia.parentFolders.get('ShouldRegisterAndLogin');
+
+            if (thisFolder === undefined) {
+            	throw Error('ShouldRegisterAndLogin not found');
+            }
+
+
+            let username = "username_" + userId
+
+            let password = thisFolder.environment.get("password")
+
+
+            let json = `
+            	{
+            		"username": "${username}",
+            		"password": "${password}"
+            	}
+            `
+
+            insomnia.request.body.update({
+              mode: 'raw',
+              raw: json,
+            });
+          afterResponse: |
+            insomnia.test('Check if status is 400', () => {
+                insomnia.expect(insomnia.response.code).to.eql(400);
+            });
+
+            insomnia.test('Check if body is empty', () => {
+                insomnia.expect(insomnia.response.text()).to.eql("");
+            });
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: "{{host}}/login"
+        name: Not login when no user
+        meta:
+          id: req_550ed63de4324560b979372e7ede04fc
+          created: 1750152881290
+          modified: 1750152888482
+          isPrivate: false
+          description: ""
+          sortKey: -1750000100499
+        method: GET
+        headers:
+          - name: User-Agent
+            value: insomnia/11.2.0
+        scripts:
+          preRequest: >
+            const thisFolder =
+            insomnia.parentFolders.get('ShouldRegisterAndLogin');
+
+            if (thisFolder === undefined) {
+            	throw Error('ShouldRegisterAndLogin not found');
+            }
+
+
+            let password = thisFolder.environment.get("password")
+
+
+            let json = `
+            	{
+            		"password": "${password}"
+            	}
+            `
+
+            insomnia.request.body.update({
+              mode: 'raw',
+              raw: json,
+            });
+          afterResponse: |
+            insomnia.test('Check if status is 400', () => {
+                insomnia.expect(insomnia.response.code).to.eql(400);
+            });
+
+            insomnia.test('Check if body is empty', () => {
+                insomnia.expect(insomnia.response.text()).to.eql("");
+            });
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+    scripts:
+      afterResponse: ""
+      preRequest: ""
     environment:
-      username: username_1
+      username: username_752
       password: password123
 cookieJar:
   name: Default Jar
   meta:
     id: jar_99d30891da4bdcebc63947a8fc17f076de878684
-    created: 1749857051813
-    modified: 1750013383414
+    created: 1749666552327
+    modified: 1750153072135
 environments:
   name: PhotoSync
   meta:
     id: env_99d30891da4bdcebc63947a8fc17f076de878684
-    created: 1749857051749
-    modified: 1750013383415
+    created: 1749666552254
+    modified: 1750153072136
     isPrivate: false
   data:
     host: http://localhost:8080
-    userId: 3
+    user_id: 31
+    userId: 755

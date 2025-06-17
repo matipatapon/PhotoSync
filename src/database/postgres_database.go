@@ -43,7 +43,6 @@ func (dbw PostgresDataBase) Execute(sql string, args ...any) error {
 	ctx, cancel := context.WithTimeout(context.Background(), TIMEOUT)
 	defer cancel()
 
-	logger.Printf("Connecting to '%s'", createConnectionUrl(dbw.db, dbw.user, "####", dbw.address, dbw.port))
 	conn, err := pgx.Connect(ctx, createConnectionUrl(dbw.db, dbw.user, dbw.password, dbw.address, dbw.port))
 	if err != nil {
 		logger.Print(err.Error())
@@ -51,11 +50,12 @@ func (dbw PostgresDataBase) Execute(sql string, args ...any) error {
 	}
 	defer conn.Close(ctx)
 
-	logger.Printf("Executing modifying query '%s'", sql)
 	_, err = conn.Exec(ctx, sql, args...)
 	if err != nil {
 		logger.Printf("Execution failed %s", err.Error())
 	}
+
+	logger.Printf("Executed modifying query '%s'", sql)
 	return err
 }
 
@@ -67,7 +67,6 @@ func (dbw PostgresDataBase) Query(sql string, args ...any) ([][]any, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), TIMEOUT)
 	defer cancel()
 
-	logger.Printf("Connecting to '%s'", createConnectionUrl(dbw.db, dbw.user, "####", dbw.address, dbw.port))
 	conn, err := pgx.Connect(ctx, createConnectionUrl(dbw.db, dbw.user, dbw.password, dbw.address, dbw.port))
 	if err != nil {
 		logger.Print(err.Error())
@@ -75,7 +74,6 @@ func (dbw PostgresDataBase) Query(sql string, args ...any) ([][]any, error) {
 	}
 	defer conn.Close(ctx)
 
-	logger.Printf("Executing non-modifying query '%s'", sql)
 	rows, err := conn.Query(ctx, sql, args...)
 	if err != nil {
 		logger.Print(err.Error())
@@ -84,7 +82,6 @@ func (dbw PostgresDataBase) Query(sql string, args ...any) ([][]any, error) {
 	defer rows.Close()
 
 	result := [][]any{}
-	logger.Print("Getting rows ...")
 	count := 0
 	for {
 		if !rows.Next() {
@@ -94,7 +91,8 @@ func (dbw PostgresDataBase) Query(sql string, args ...any) ([][]any, error) {
 		result = append(result, row)
 		count += 1
 	}
-	logger.Printf("Got %d rows", count)
+	logger.Printf("Executed non-modifying query '%s', returned '%d' rows", sql, count)
+
 	return result, nil
 }
 
