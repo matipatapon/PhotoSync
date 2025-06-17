@@ -50,8 +50,8 @@ func (re *RegisterEndpoint) Post(c *gin.Context) {
 
 	hash, err := re.passwordFacade.HashPassword(password)
 	if err != nil {
-		re.logger.Printf("Failed to hash password '%s', code 400 returned", err.Error())
-		c.Status(400)
+		re.logger.Printf("Failed to hash password '%s', code 500 returned", err.Error())
+		c.Status(500)
 		return
 	}
 

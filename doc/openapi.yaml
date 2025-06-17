@@ -2,7 +2,7 @@ openapi: 3.0.4
 info:
   title: Photo storage API
   description: API for uploading, editing and accessing photos.
-  version: 0.0.3
+  version: 0.1.0
   contact:
     name: Mateusz Piętka
     email: matipietka@gmail.com
@@ -11,153 +11,55 @@ servers:
     description: locally deployed server
 paths:
   /login:
-    summary: endpoint used for authentication
-    get:
-      summary: send login and hashed password to get authentication token
-      parameters:
-        - in: header
-          name: login
-          schema:
-            type: string
-          required: true
-        - in: header
-          name: password
-          description: hashed password
-          schema:
-            type: string
-          required: true
-      responses:
-        200:
-          description: ok
-          content:
-            text/plain:
-              schema:
-                description: authentication token
-                type: string
-  /register:
-    summary: endpoint used for creation of user account
     post:
-      summary: send username and password to create new user
+      summary: logins user into API
       requestBody:
+        description: user credentials
         required: true
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                username:
-                  type: string
-                password:
-                  type: string
+              $ref: "#/components/schemas/UserCredentials"
       responses:
-        201:
-          description: user account created
-  /photo:
-    summary: endpoint for accessing photos
-    get:
-      security:
-        - UserTokenAuth: []
-      summary: get metadata for all user photos
-      responses:
-        200:
-          description: returned metadata for all user photos
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    id:
-                      type: integer
-                    date:
-                      type: string
-                    name:
-                      type: string
-    post:
-      security:
-        - UserTokenAuth: []
-      summary: upload new photo to server
-      requestBody:
-        content:
-            multipart/form-data: 
-                schema:
-                  type: object
-                  properties:
-                    photo:
-                      $ref: "#/components/schemas/Image"
-                    metadata:
-                      properties:
-                        date:
-                          type: string
-                        name:
-                          type: string
-      responses:
-        201:
-          description: successfully saved photo on server
+        "200":
+          description: user successfully logged in
           content:
             text/plain:
               schema:
-                description: id of newly created photo
-                type: integer
+                type: string
+                description: JWT containing user details and expiration time
+                example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHBpcmF0aW9uX3RpbWUiOjE3NTAyNDI1NTMsInVzZXJuYW1lIjoidXNlcm5hbWVfNzY1In0.wDXirYK9DaQyzmWJ7O0b4yQ2ug8avLEAkNqy2QKNWgU
+        "400":
+          description: invalid request or user credentials
+        "500":
+          description: server error
 
-  /photo/{id}:
-    parameters:
-      - in: path
-        name: id
-        schema:
-          type: integer
-        required: true
-    get:
-      security:
-        - UserTokenAuth: []
-      summary: get image file from server
-      responses:
-        200:
-          description: ok
-          content:
-            image/*:
-              schema:
-                $ref: "#/components/schemas/Image"
-    delete:
-      security:
-        - UserTokenAuth: []
-      summary: delete photo from server
-      responses:
-        200:
-          description: ok
-    put:
-      security:
-        - UserTokenAuth: []
-      summary: update image file or metadata
+  /register:
+    post:
+      summary: registers user on the server
       requestBody:
+        description: user credentials
+        required: true
         content:
-            multipart/form-data: 
-                schema:
-                  type: object
-                  properties:
-                    photo:
-                      $ref: "#/components/schemas/Image"
-                    metadata:
-                      properties:
-                        date:
-                          type: string
-                        name:
-                          type: string
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserCredentials"
       responses:
-        200:
-          description: ok
+        "200":
+          description: user successfully registered
+        "400":
+          description: invalid request / user already exist / some other error
+        "500":
+          description: server error
 
 components:
   schemas:
-    Image:
-      type: string
-      format: binary
-      description: image file
-
-  securitySchemes:
-    UserTokenAuth:
-      type: apiKey
-      in: header
-      name: USER-TOKEN
-    
+    UserCredentials:
+      type: object
+      properties:
+        username:
+          type: string
+          example: username
+        password:
+          type: string
+          example: password

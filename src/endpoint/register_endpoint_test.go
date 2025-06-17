@@ -57,7 +57,7 @@ func TestRegisterEndpointShouldReturnErrorWhenFailedToHashPassword(t *testing.T)
 	router.POST("/", sut.Post)
 	router.ServeHTTP(responseRecorder, request)
 
-	if responseRecorder.Code != 400 {
+	if responseRecorder.Code != 500 {
 		t.Error(responseRecorder.Code)
 	}
 

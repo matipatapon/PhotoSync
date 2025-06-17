@@ -18,9 +18,9 @@ func main() {
 
 	router := gin.Default()
 	registerEndpoint := endpoint.NewRegisterEndpoint(db, passwordFacade)
-	router.POST("/register", registerEndpoint.Post)
+	router.POST("/v1/register", registerEndpoint.Post)
 
 	loginEndpoint := endpoint.NewLoginEndpoint(db, passwordFacade, &jwtManager, &timeHelper)
-	router.GET("/login", loginEndpoint.Post)
+	router.POST("/v1/login", loginEndpoint.Post)
 	router.Run()
 }

@@ -10,8 +10,8 @@ collection:
     meta:
       id: fld_db58bb6850744e70a9c4cd0c5b92ef97
       created: 1750000094851
-      modified: 1750153072138
-      sortKey: -1750013044446
+      modified: 1750157809230
+      sortKey: -1750153544951
       description: ""
     children:
       - url: "{{host}}/register"
@@ -88,11 +88,11 @@ collection:
         meta:
           id: req_bfe10f5617f84a7a8786510bc6d0e085
           created: 1749999403432
-          modified: 1750151600878
+          modified: 1750155762062
           isPrivate: false
           description: ""
           sortKey: -1750000100824
-        method: GET
+        method: POST
         body:
           mimeType: application/json
           text: ""
@@ -437,11 +437,11 @@ collection:
         meta:
           id: req_b8ae9660e0d44f348b0e4a66ba73fa64
           created: 1750152533991
-          modified: 1750152636784
+          modified: 1750155764996
           isPrivate: false
           description: ""
           sortKey: -1750000100649
-        method: GET
+        method: POST
         headers:
           - name: User-Agent
             value: insomnia/11.2.0
@@ -491,11 +491,11 @@ collection:
         meta:
           id: req_ff14f324c2d04b1e9453a463cbd486d5
           created: 1750152676941
-          modified: 1750152713192
+          modified: 1750155767404
           isPrivate: false
           description: ""
           sortKey: -1750000100599
-        method: GET
+        method: POST
         headers:
           - name: User-Agent
             value: insomnia/11.2.0
@@ -542,11 +542,11 @@ collection:
         meta:
           id: req_7813c3ec1c6c4b598ffa7b298a0f36b3
           created: 1750152747249
-          modified: 1750152869263
+          modified: 1750155769914
           isPrivate: false
           description: ""
           sortKey: -1750000100549
-        method: GET
+        method: POST
         headers:
           - name: User-Agent
             value: insomnia/11.2.0
@@ -602,11 +602,11 @@ collection:
         meta:
           id: req_550ed63de4324560b979372e7ede04fc
           created: 1750152881290
-          modified: 1750152888482
+          modified: 1750155772618
           isPrivate: false
           description: ""
           sortKey: -1750000100499
-        method: GET
+        method: POST
         headers:
           - name: User-Agent
             value: insomnia/11.2.0
@@ -653,22 +653,22 @@ collection:
       afterResponse: ""
       preRequest: ""
     environment:
-      username: username_752
+      username: username_769
       password: password123
 cookieJar:
   name: Default Jar
   meta:
     id: jar_99d30891da4bdcebc63947a8fc17f076de878684
     created: 1749666552327
-    modified: 1750153072135
+    modified: 1750157809227
 environments:
   name: PhotoSync
   meta:
     id: env_99d30891da4bdcebc63947a8fc17f076de878684
     created: 1749666552254
-    modified: 1750153072136
+    modified: 1750157809228
     isPrivate: false
   data:
-    host: http://localhost:8080
-    user_id: 31
-    userId: 755
+    host: http://localhost:8080/v1
+    user_id: "31"
+    userId: 772
