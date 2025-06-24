@@ -52,6 +52,38 @@ paths:
         "500":
           description: server error
 
+  /upload:
+    post:
+      summary: uploads a photo to a server 
+      requestBody:
+        description: contains the filename and modification date from the client's file system and the file itself
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                filename:
+                  type: string
+                  example: cat.jpg
+                modification_date:
+                  $ref: "#/components/schemas/Date"
+                file:
+                  type: string
+                  format: binary
+            encoding:
+              file:
+                contentType: image/jpeg
+      responses:
+        "200":
+          description: photo successfully uploaded
+          content:
+            text/plain:
+              schema:
+                type: integer
+                description: identifier of the photo on the server
+                example: 102
+
 components:
   schemas:
     UserCredentials:
@@ -63,3 +95,24 @@ components:
         password:
           type: string
           example: password
+    Date:
+      type: object
+      properties:
+        year:
+          type: integer
+          example: 2025
+        month:
+          type: integer
+          example: 5
+        day:
+          type: integer
+          example: 16
+        hour:
+          type: integer
+          example: 12
+        minute:
+          type: integer
+          example: 30
+        second:
+          type: integer
+          example: 15

@@ -53,6 +53,7 @@ func (dbw PostgresDataBase) Execute(sql string, args ...any) error {
 	_, err = conn.Exec(ctx, sql, args...)
 	if err != nil {
 		logger.Printf("Execution failed %s", err.Error())
+		return err
 	}
 
 	logger.Printf("Executed modifying query '%s'", sql)
