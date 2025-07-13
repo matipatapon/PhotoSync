@@ -66,10 +66,7 @@ func (me *RawMetadataExtractor) Extract(file []byte) (map[string]any, error) {
 		return make(map[string]any), nil
 	}
 
-	me.logger.Printf("Successfully harvested following metadata from file")
-	for key, value := range metadata[0] {
-		me.logger.Println(key, " : ", value)
-	}
+	me.logger.Printf("Successfully harvested metadata from file")
 
 	return metadata[0], nil
 }
