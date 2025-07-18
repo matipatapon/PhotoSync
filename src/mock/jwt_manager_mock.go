@@ -51,7 +51,7 @@ func (jm *JwtManagerMock) Decode(tokenString string) (jwt.JwtPayload, error) {
 	jm.expectedDecodeToken = jm.expectedDecodeToken[:len(jm.expectedDecodeToken)-1]
 
 	if tokenString != expectedToken {
-		fmt.Print("Unexpected Token! Expected '%s', Got '%s'", expectedToken, tokenString)
+		fmt.Printf("Unexpected Token! Expected '%s', Got '%s'", expectedToken, tokenString)
 		jm.t.FailNow()
 	}
 
