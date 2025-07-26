@@ -1,6 +1,7 @@
 package main
 
 import (
+	"os"
 	"photosync/src/database"
 	"photosync/src/endpoint"
 	"photosync/src/helper"
@@ -22,5 +23,11 @@ func main() {
 
 	loginEndpoint := endpoint.NewLoginEndpoint(db, passwordFacade, &jwtManager, &timeHelper)
 	router.POST("/v1/login", loginEndpoint.Post)
+
+	if len(os.Args) == 2 && os.Args[1] == "--testing" {
+		exitEndpoint := endpoint.NewExitEndpoint()
+		router.POST("/v1/exit", exitEndpoint.Post)
+	}
+
 	router.Run()
 }

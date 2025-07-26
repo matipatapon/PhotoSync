@@ -1,0 +1,21 @@
+meta {
+  name: NotLoginNotExistingUser
+  type: http
+  seq: 10
+}
+
+post {
+  url: {{host}}/login
+  body: json
+  auth: inherit
+}
+
+assert {
+  res.status: eq 400
+  res.body: eq ""
+}
+
+script:pre-request {
+  var password = bru.getFolderVar("password")
+  req.setBody(`{"username": "notexistinguser", "password": "${password}"}`)
+}

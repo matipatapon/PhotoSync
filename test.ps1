@@ -1,10 +1,10 @@
 param([String]$type="wrong_parameter", [String]$package="...", [String]$test=".")
 
-if($type -ne "ut" -and $type -ne "clean-run" -and $type -ne "all"){
+if($type -ne "ut" -and $type -ne "ft" -and $type -ne "all"){
     "test.ps1 -type ut | will run unit tests"
     "test.ps1 -type ut -package package | will run UTies only for specific package"
     "test.ps1 -type ut -test regex | will run test which matches given regex"
-    "test.ps1 -type clean-run | will clear data then start application"
+    "test.ps1 -type ft | will start application with additional endpoints for functional testing"
     exit 1
 }
 
@@ -21,7 +21,7 @@ function UnitTests(){
         exit 1
     }
     
-    psql -U $Env:PGUSER -d $Env:PGDB -a -f ./test/init.sql
+    psql -U $Env:PGUSER -d $Env:PGDB -a -f ./test/init_ut.sql
     if($LASTEXITCODE -ne 0){
         "failed to initialize database"
         exit 1
@@ -42,15 +42,17 @@ function UnitTests(){
     }
 }
 
-function CleanRun(){    
-    psql -U $Env:PGUSER -d $Env:PGDB -a -f ./test/init.sql
-    if($LASTEXITCODE -ne 0){
-        "failed to initialize database"
-        exit 1
-    }
-    Clear-Host
+function FunctionalTests(){
+    do {
+        psql -U $Env:PGUSER -d $Env:PGDB -a -f ./test/init_ft.sql
+        if($LASTEXITCODE -ne 0){
+            "failed to initialize database"
+            exit 1
+        }
+        Clear-Host
 
-    go run .\main.go
+        go run .\main.go --testing
+    } while(1)
 }
 
 if($type -eq "ut" -or $type -eq "all"){
@@ -58,7 +60,7 @@ if($type -eq "ut" -or $type -eq "all"){
     UnitTests
 }
 
-if($type -eq "clean-run" -or $type -eq "all"){
-    "Clean run"
-    CleanRun
+if($type -eq "ft" -or $type -eq "all"){
+    "Starting app for functional testing"
+    FunctionalTests
 }

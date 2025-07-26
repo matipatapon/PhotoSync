@@ -1,0 +1,22 @@
+meta {
+  name: NotRegisterExistingUser
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{host}}/register
+  body: json
+  auth: inherit
+}
+
+assert {
+  res.status: eq 400
+  res.body: eq ""
+}
+
+script:pre-request {
+  var username = bru.getFolderVar("username")
+  var password = bru.getFolderVar("password")
+  req.setBody(`{"username": "${username}", "password": "${password}"}`)
+}
