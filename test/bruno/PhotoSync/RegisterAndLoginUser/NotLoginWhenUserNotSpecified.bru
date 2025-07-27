@@ -16,6 +16,6 @@ assert {
 }
 
 script:pre-request {
-  var password = bru.getFolderVar("password")
+  var password = bru.getCollectionVar("password")
   req.setBody(`{"password": "${password}"}`)
 }

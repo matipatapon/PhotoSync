@@ -1,0 +1,21 @@
+meta {
+  name: UploadJpg
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{host}}/upload
+  body: multipartForm
+  auth: inherit
+}
+
+body:multipart-form {
+  filename: dog.jpg
+  modificationDate: 2025.05.16 21:37:45
+  file: @file(C:\Users\itam\Desktop\PhotoSync\test\images\exif.jpg)
+}
+
+settings {
+  encodeUrl: true
+}

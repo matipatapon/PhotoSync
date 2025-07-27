@@ -15,4 +15,5 @@ type UploadEndpoint struct {
 }
 
 func (le *UploadEndpoint) Post(c *gin.Context) {
+
 }

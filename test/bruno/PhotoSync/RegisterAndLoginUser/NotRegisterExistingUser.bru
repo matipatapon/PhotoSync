@@ -16,7 +16,7 @@ assert {
 }
 
 script:pre-request {
-  var username = bru.getFolderVar("username")
-  var password = bru.getFolderVar("password")
+  var username = bru.getCollectionVar("username")
+  var password = bru.getCollectionVar("password")
   req.setBody(`{"username": "${username}", "password": "${password}"}`)
 }
