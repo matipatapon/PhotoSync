@@ -1,5 +1,9 @@
 package metadata
 
+/*
+TODO Error handling !!!!!!!!
+*/
+
 type MetadataExtractor struct {
 	rme IRawMetadataExtractor
 }
@@ -8,24 +12,17 @@ func NewMetadataExtractor(rme IRawMetadataExtractor) MetadataExtractor {
 	return MetadataExtractor{rme: rme}
 }
 
-func (me *MetadataExtractor) Extract(file []byte) *Metadata {
+func (me *MetadataExtractor) Extract(file []byte) Metadata {
 	meta, _ := me.rme.Extract(file)
-
-	if len(meta) == 0 {
-		return nil
-	}
-
-	location, _ := NewGPS(meta["Composite:GPSPosition"].(string))
-
-	return &Metadata{CreationDate: extractCreationDate(meta), Location: location, MIMEType: JPG}
+	return Metadata{CreationDate: extractCreationDate(meta), Location: extractLocation(meta), MIMEType: extractMIMeType(meta)}
 }
 
 func extractCreationDate(meta map[string]any) *Date {
 	dateTags := []string{
+		"Composite:DateTimeOriginal",
 		"EXIF:DateTimeOriginal",
 		"XMP:CreateDate",
 		"QuickTime:CreateDate",
-		"Composite:DateTimeOriginal",
 	}
 
 	for _, dateTag := range dateTags {
@@ -36,4 +33,21 @@ func extractCreationDate(meta map[string]any) *Date {
 		}
 	}
 	return nil
+}
+
+func extractLocation(meta map[string]any) *GPS {
+	locationRaw, ok := meta["Composite:GPSPosition"]
+	if ok {
+		location, _ := NewGPS(locationRaw.(string))
+		return &location
+	}
+	return nil
+}
+
+func extractMIMeType(meta map[string]any) MIMEType {
+	mimeType, ok := meta["File:MIMEType"]
+	if ok && mimeType == "image/jpeg" {
+		return JPG
+	}
+	return UNKNOWN
 }

@@ -9,6 +9,6 @@ const (
 
 type Metadata struct {
 	CreationDate *Date
-	Location     GPS
+	Location     *GPS
 	MIMEType     MIMEType
 }
