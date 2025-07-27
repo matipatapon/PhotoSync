@@ -24,6 +24,9 @@ func main() {
 	loginEndpoint := endpoint.NewLoginEndpoint(db, passwordFacade, &jwtManager, &timeHelper)
 	router.POST("/v1/login", loginEndpoint.Post)
 
+	uploadEndpoint := endpoint.NewUploadEndpoint()
+	router.POST("/v1/upload", uploadEndpoint.Post)
+
 	if len(os.Args) == 2 && os.Args[1] == "--testing" {
 		exitEndpoint := endpoint.NewExitEndpoint()
 		router.POST("/v1/exit", exitEndpoint.Post)
