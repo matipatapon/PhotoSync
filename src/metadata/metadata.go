@@ -3,8 +3,8 @@ package metadata
 type MIMEType int
 
 const (
-	JPG     MIMEType = iota
 	UNKNOWN MIMEType = iota
+	JPG     MIMEType = iota
 )
 
 type Metadata struct {
