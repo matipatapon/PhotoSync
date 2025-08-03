@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"photosync/src/helper"
+	"strconv"
 
 	ejwt "github.com/golang-jwt/jwt/v5"
 )
@@ -34,8 +35,9 @@ func (jm *JwtManager) Create(data JwtPayload) (string, error) {
 	claims := ejwt.NewWithClaims(
 		ejwt.SigningMethodHS256,
 		ejwt.MapClaims{
+			"user_id":         strconv.FormatInt(data.UserId, 10),
 			"username":        data.Username,
-			"expiration_time": data.ExpirationTime,
+			"expiration_time": strconv.FormatInt(data.ExpirationTime, 10),
 		})
 	tokenString, err := claims.SignedString(jm.secretKey)
 	if err != nil {
@@ -58,12 +60,15 @@ func (jm *JwtManager) Decode(tokenString string) (JwtPayload, error) {
 	claimsMap := token.Claims.(ejwt.MapClaims)
 	jp := JwtPayload{}
 
-	jp.ExpirationTime = int64(claimsMap["expiration_time"].(float64))
-	if jp.ExpirationTime < jm.th.TimeNow() {
-		logger.Print("Token expired")
+	jp.ExpirationTime, _ = strconv.ParseInt(claimsMap["expiration_time"].(string), 10, 64)
+	currentTime := jm.th.TimeNow()
+	if jp.ExpirationTime < currentTime {
+		logger.Printf("Token expired, expiration time '%d', current time '%d'", jp.ExpirationTime, currentTime)
 		return jp, errors.New("token expired")
 	}
 
 	jp.Username = claimsMap["username"].(string)
+	jp.UserId, _ = strconv.ParseInt(claimsMap["user_id"].(string), 10, 64)
+
 	return jp, nil
 }
