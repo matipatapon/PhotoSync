@@ -46,20 +46,22 @@ func (le *LoginEndpoint) Post(c *gin.Context) {
 		return
 	}
 
-	result, _ := le.db.Query("SELECT password FROM users WHERE username = $1", loginData.Username)
+	result, _ := le.db.Query("SELECT id, password FROM users WHERE username = $1", loginData.Username)
 	if len(result) == 0 || len(result[0]) == 0 {
 		le.logger.Printf("User '%s' does not exist in db", loginData.Username)
 		c.Status(400)
 		return
 	}
+	userId := result[0][0].(int64)
+	hashedPassword := result[0][1].(string)
 
-	if !le.pf.MatchHashToPassword(result[0][0].(string), loginData.Password) {
+	if !le.pf.MatchHashToPassword(hashedPassword, loginData.Password) {
 		le.logger.Printf("Password mismatch for '%s'", loginData.Username)
 		c.Status(400)
 		return
 	}
 
-	tokenString, err := le.jm.Create(jwt.JwtPayload{Username: loginData.Username, ExpirationTime: le.th.TimeIn(60 * 60 * 24)})
+	tokenString, err := le.jm.Create(jwt.JwtPayload{UserId: userId, Username: loginData.Username, ExpirationTime: le.th.TimeIn(60 * 60 * 24)})
 	if err != nil {
 		le.logger.Printf("Failed to create token")
 		c.Status(500)

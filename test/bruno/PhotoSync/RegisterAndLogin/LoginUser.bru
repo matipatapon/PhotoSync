@@ -37,6 +37,10 @@ tests {
   	expect(token).to.have.property('username');
   	expect(token.username).to.eql(expectedUsername);
   })
+  test('Check if jwt has correct user_id', () => {
+  	expect(token).to.have.property('user_id');
+  	expect(token.user_id).to.eql("1");
+  })
   test('Check if jwt has exipartion time set to one day from now', () => {
   	expect(token).to.have.property('expiration_time');
   	let roundedExpectedTime = (Date.now() / 1000) + 60 * 60 * 24
@@ -46,5 +50,6 @@ tests {
   		throw new Error("Expiration time differs too much from expected one!")
   	}
   })
+  bru.setVar("TOKEN", res.getBody())
   
 }

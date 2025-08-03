@@ -1,5 +1,5 @@
 meta {
-  name: Upload
+  name: UploadExifJpg
   type: http
   seq: 1
 }
@@ -10,10 +10,19 @@ post {
   auth: inherit
 }
 
+headers {
+  Authorization: {{TOKEN}}
+}
+
 body:multipart-form {
   filename: dog.jpg
   modification_date: 2025.07.05 12:32:59
   file: @file(C:\Users\itam\Desktop\PhotoSync\test\images\exif.jpg)
+}
+
+assert {
+  res.status: eq 200
+  res.body: eq 1
 }
 
 settings {

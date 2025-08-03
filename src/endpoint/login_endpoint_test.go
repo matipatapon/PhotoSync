@@ -13,8 +13,7 @@ import (
 	"testing"
 )
 
-var TOKEN_STRING string = "TOKEN_STRING"
-var EXPIRATION_TIME = 102
+var LOGIN_SQL string = "SELECT id, password FROM users WHERE username = $1"
 var ONE_DAY int64 = 60 * 60 * 24
 
 type FakeReader struct {
@@ -39,10 +38,10 @@ func TestLoginEndpointShouldSendJwtWhenCredentialsAreCorrect(t *testing.T) {
 	if err != nil {
 		t.FailNow()
 	}
-	jwtPayload := jwt.JwtPayload{Username: USERNAME, ExpirationTime: int64(EXPIRATION_TIME)}
+	jwtPayload := jwt.JwtPayload{UserId: USER_ID, Username: USERNAME, ExpirationTime: int64(EXPIRATION_TIME)}
 
 	pfMock.ExpectMatchHashToPassword(HASH, PASSWORD, true)
-	dbMock.ExpectQuery("SELECT password FROM users WHERE username = $1", [][]any{{HASH}}, []any{USERNAME}, nil)
+	dbMock.ExpectQuery(LOGIN_SQL, [][]any{{USER_ID, HASH}}, []any{USERNAME}, nil)
 	jmMock.ExpectCreate(jwtPayload, TOKEN_STRING, nil)
 	thMock.ExpectTimeIn(ONE_DAY, int64(EXPIRATION_TIME))
 
@@ -133,7 +132,7 @@ func TestLoginEndpointShouldReturn400WhenUserDoesNotExistNoRowsReturned(t *testi
 		t.FailNow()
 	}
 
-	dbMock.ExpectQuery("SELECT password FROM users WHERE username = $1", [][]any{}, []any{USERNAME}, nil)
+	dbMock.ExpectQuery(LOGIN_SQL, [][]any{}, []any{USERNAME}, nil)
 
 	router, responseRecorder := prepareGin()
 	request := httptest.NewRequest(http.MethodPost, "/", io.NopCloser(bytes.NewReader(loginDataBytes)))
@@ -165,7 +164,7 @@ func TestLoginEndpointShouldReturn400WhenUserDoesNotExistEmptyRowReturned(t *tes
 		t.FailNow()
 	}
 
-	dbMock.ExpectQuery("SELECT password FROM users WHERE username = $1", [][]any{{}}, []any{USERNAME}, nil)
+	dbMock.ExpectQuery(LOGIN_SQL, [][]any{{}}, []any{USERNAME}, nil)
 
 	router, responseRecorder := prepareGin()
 	request := httptest.NewRequest(http.MethodPost, "/", io.NopCloser(bytes.NewReader(loginDataBytes)))
@@ -198,7 +197,7 @@ func TestLoginEndpointShouldReturn400WhenPasswordIsInvalid(t *testing.T) {
 	}
 
 	pfMock.ExpectMatchHashToPassword(HASH, PASSWORD, false)
-	dbMock.ExpectQuery("SELECT password FROM users WHERE username = $1", [][]any{{HASH}}, []any{USERNAME}, nil)
+	dbMock.ExpectQuery(LOGIN_SQL, [][]any{{USER_ID, HASH}}, []any{USERNAME}, nil)
 
 	router, responseRecorder := prepareGin()
 	request := httptest.NewRequest(http.MethodPost, "/", io.NopCloser(bytes.NewReader(loginDataBytes)))
@@ -229,10 +228,10 @@ func TestLoginEndpointShouldReturn500WhenFailedToCreateToken(t *testing.T) {
 	if err != nil {
 		t.FailNow()
 	}
-	jwtPayload := jwt.JwtPayload{Username: USERNAME, ExpirationTime: int64(EXPIRATION_TIME)}
+	jwtPayload := jwt.JwtPayload{UserId: USER_ID, Username: USERNAME, ExpirationTime: int64(EXPIRATION_TIME)}
 
 	pfMock.ExpectMatchHashToPassword(HASH, PASSWORD, true)
-	dbMock.ExpectQuery("SELECT password FROM users WHERE username = $1", [][]any{{HASH}}, []any{USERNAME}, nil)
+	dbMock.ExpectQuery(LOGIN_SQL, [][]any{{USER_ID, HASH}}, []any{USERNAME}, nil)
 	jmMock.ExpectCreate(jwtPayload, TOKEN_STRING, errors.New("error"))
 	thMock.ExpectTimeIn(ONE_DAY, int64(EXPIRATION_TIME))
 
