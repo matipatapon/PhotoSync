@@ -5,6 +5,10 @@ import (
 	"os"
 )
 
+type IMetadataExtractor interface {
+	Extract(file []byte) Metadata
+}
+
 type MetadataExtractor struct {
 	rme    IRawMetadataExtractor
 	logger *log.Logger
