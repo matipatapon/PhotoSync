@@ -43,9 +43,7 @@ func (me *RawMetadataExtractor) Extract(file []byte) (map[string]any, error) {
 		"perl",
 		me.exiftoolPath,
 		"-j",                // output in json
-		"-G0",               // add group prefix to key e.g. EXIF:GPSLongitude
-		"-c",                // format gps
-		"%d %d %.2f",        // gps format
+		"-G0",               // add group prefix to key e.g. EXIF:DateTimeOriginal
 		"-d",                // format date
 		"%Y.%m.%d %H:%M:%S", // date format
 		filename).Output()

@@ -29,7 +29,6 @@ func (me *MetadataExtractor) Extract(file []byte) Metadata {
 	}
 	return Metadata{
 		CreationDate: me.extractCreationDate(meta),
-		Location:     me.extractLocation(meta),
 		MIMEType:     me.extractMIMeType(meta),
 	}
 }
@@ -55,20 +54,6 @@ func (me *MetadataExtractor) extractCreationDate(meta map[string]any) *Date {
 		}
 	}
 	me.logger.Print("Tag with creation date is missing")
-	return nil
-}
-
-func (me *MetadataExtractor) extractLocation(meta map[string]any) *GPS {
-	locationRaw, ok := meta["Composite:GPSPosition"]
-	if ok {
-		location, err := NewGPS(locationRaw.(string))
-		if err == nil {
-			me.logger.Printf("Extracted location '%s' from 'Composite:GPSPosition'", locationRaw)
-			return &location
-		}
-		me.logger.Printf("Tag 'Composite:GPSPosition' contains invalid location '%s'", locationRaw)
-	}
-	me.logger.Printf("Tag with location is missing")
 	return nil
 }
 

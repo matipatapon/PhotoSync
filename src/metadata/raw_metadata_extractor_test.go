@@ -45,7 +45,6 @@ func TestShouldReturnExifMetadataFromJpgFile(t *testing.T) {
 	result := runTest("../../test/images/exif.jpg", t)
 	expectThatContainsSpecificTag(result, "File:MIMEType", "image/jpeg", t)
 	expectThatContainsSpecificTag(result, "EXIF:DateTimeOriginal", "2023.06.07 12:30:45", t)
-	expectThatContainsSpecificTag(result, "Composite:GPSPosition", "51 6 32.29 N, 17 1 59.30 E", t)
 }
 
 func TestShouldReturnIptcMetadataFromJpgFile(t *testing.T) {
@@ -58,17 +57,10 @@ func TestShouldReturnXmpMetadataFromJpgFile(t *testing.T) {
 	result := runTest("../../test/images/xmp.jpg", t)
 	expectThatContainsSpecificTag(result, "File:MIMEType", "image/jpeg", t)
 	expectThatContainsSpecificTag(result, "XMP:CreateDate", "2007.12.20 00:24:13", t)
-	expectThatContainsSpecificTag(result, "XMP:GPSLatitude", "35 39 10.20 N", t)
-	expectThatContainsSpecificTag(result, "XMP:GPSLongitude", "139 50 22.12 E", t)
-	expectThatContainsSpecificTag(result, "XMP:LocationCreatedGPSLatitude", "35 39 10.20 N", t)
-	expectThatContainsSpecificTag(result, "XMP:LocationCreatedGPSLongitude", "139 50 22.12 E", t)
-	expectThatContainsSpecificTag(result, "Composite:GPSPosition", "35 39 10.20 N, 139 50 22.12 E", t)
 }
 
 func TestShouldReturnQuickTimeMetadataFromMp4File(t *testing.T) {
 	result := runTest("../../test/images/quick_time.mp4", t)
 	expectThatContainsSpecificTag(result, "File:MIMEType", "video/mp4", t)
 	expectThatContainsSpecificTag(result, "QuickTime:CreateDate", "2021.06.30 12:55:13", t)
-	expectThatContainsSpecificTag(result, "QuickTime:GPSCoordinates", "35 39 10.20 N, 139 50 22.12 E", t)
-	expectThatContainsSpecificTag(result, "Composite:GPSPosition", "35 39 10.20 N, 139 50 22.12 E", t)
 }
