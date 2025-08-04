@@ -1,0 +1,30 @@
+meta {
+  name: UploadWithInvalidToken
+  type: http
+  seq: 5
+}
+
+post {
+  url: {{host}}/upload
+  body: multipartForm
+  auth: inherit
+}
+
+headers {
+  Authorization: {{invalid_token}}
+}
+
+body:multipart-form {
+  filename: dog.jpg
+  modification_date: 2025.07.05 12:32:59
+  file: @file(C:\Users\itam\Desktop\PhotoSync\test\images\exif.jpg)
+}
+
+assert {
+  res.status: eq 403
+  res.body: eq ""
+}
+
+settings {
+  encodeUrl: true
+}

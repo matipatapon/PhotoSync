@@ -16,7 +16,7 @@ import (
 	"testing"
 )
 
-var UPLOAD_SQL string = "INSERT INTO files(user_id, creation_date, filename, file, hash, size) VALUES($1, TO_TIMESTAMP($2, 'YYYY.MM.DD HH24:MI:SS'), $3, $4, $5, $6) RETURNING id"
+var UPLOAD_SQL string = "INSERT INTO files(user_id, creation_date, filename, mime_type, file, hash, size) VALUES($1, TO_TIMESTAMP($2, 'YYYY.MM.DD HH24:MI:SS'), $3, $4, $5, $6, $7) RETURNING id"
 
 func createRequest(fields map[string][]byte, token string) *http.Request {
 	var body bytes.Buffer
@@ -34,14 +34,14 @@ func createRequest(fields map[string][]byte, token string) *http.Request {
 	return request
 }
 
-func TestUploadEndpointShouldReturn402WhenImageAlreadyExistsInDb(t *testing.T) {
+func TestUploadEndpointShouldReturn202WhenImageAlreadyExistsInDb(t *testing.T) {
 	queryResults := [][][]any{
 		{},
 		{{}},
 	}
 	for _, queryResult := range queryResults {
 		databaseMock := mock.NewDatabaseMock(t)
-		databaseMock.ExpectQuery(UPLOAD_SQL, queryResult, []any{USER_ID, MODIFICATION_DATE, FILENAME, FILE, HASH, len(FILE)}, nil)
+		databaseMock.ExpectQuery(UPLOAD_SQL, queryResult, []any{USER_ID, MODIFICATION_DATE, FILENAME, metadata.JPG, FILE, HASH, len(FILE)}, nil)
 		defer databaseMock.AssertAllExpectionsSatisfied()
 
 		metadataExtractorMock := mock.NewMetadataExtractorMock(t)
@@ -71,7 +71,7 @@ func TestUploadEndpointShouldReturn402WhenImageAlreadyExistsInDb(t *testing.T) {
 		router.POST("/", sut.Post)
 		router.ServeHTTP(responseRecorder, request)
 
-		if responseRecorder.Code != 402 {
+		if responseRecorder.Code != 202 {
 			t.Error(responseRecorder.Code)
 		}
 		if responseRecorder.Body.String() != "" {
@@ -161,7 +161,7 @@ func TestUploadEndpointShouldReturn400WhenModificationDateIsInvalid(t *testing.T
 
 func TestUploadEndpointShouldPrioritizeCreationDateFromMetadata(t *testing.T) {
 	databaseMock := mock.NewDatabaseMock(t)
-	databaseMock.ExpectQuery(UPLOAD_SQL, [][]any{{FILE_ID}}, []any{USER_ID, CREATION_DATE, FILENAME, FILE, HASH, len(FILE)}, nil)
+	databaseMock.ExpectQuery(UPLOAD_SQL, [][]any{{FILE_ID}}, []any{USER_ID, CREATION_DATE, FILENAME, metadata.JPG, FILE, HASH, len(FILE)}, nil)
 	defer databaseMock.AssertAllExpectionsSatisfied()
 
 	creationDate, _ := metadata.NewDate(CREATION_DATE)
@@ -203,7 +203,7 @@ func TestUploadEndpointShouldPrioritizeCreationDateFromMetadata(t *testing.T) {
 
 func TestUploadEndpointShouldReturn500WhenFailedToSaveFileInDatabase(t *testing.T) {
 	databaseMock := mock.NewDatabaseMock(t)
-	databaseMock.ExpectQuery(UPLOAD_SQL, [][]any{}, []any{USER_ID, MODIFICATION_DATE, FILENAME, FILE, HASH, len(FILE)}, errors.New("DB error"))
+	databaseMock.ExpectQuery(UPLOAD_SQL, [][]any{}, []any{USER_ID, MODIFICATION_DATE, FILENAME, metadata.JPG, FILE, HASH, len(FILE)}, errors.New("DB error"))
 	defer databaseMock.AssertAllExpectionsSatisfied()
 
 	metadataExtractorMock := mock.NewMetadataExtractorMock(t)
@@ -368,7 +368,7 @@ func TestUploadEndpointShouldReturn403WhenInvalidJwt(t *testing.T) {
 	}
 }
 
-func TestUploadEndpointShouldReturn400ForEmptyRequest(t *testing.T) {
+func TestUploadEndpointShouldReturn400ForEmptyRequestBody(t *testing.T) {
 	databaseMock := mock.NewDatabaseMock(t)
 	defer databaseMock.AssertAllExpectionsSatisfied()
 	metadataExtractorMock := mock.NewMetadataExtractorMock(t)
@@ -376,10 +376,13 @@ func TestUploadEndpointShouldReturn400ForEmptyRequest(t *testing.T) {
 	hasherMock := mock.NewHasherMock(t)
 	defer hasherMock.AssertAllExpectionsSatisfied()
 	jwtManagerMock := mock.NewJwtManagerMock(t)
+	jwtManagerMock.ExpectDecode(TOKEN_STRING, jwt.JwtPayload{UserId: USER_ID, Username: USERNAME, ExpirationTime: EXPIRATION_TIME}, nil)
 	defer jwtManagerMock.AssertAllExpectionsSatisfied()
 	sut := endpoint.NewUploadEndpoint(&databaseMock, &metadataExtractorMock, &hasherMock, &jwtManagerMock)
 
 	request := httptest.NewRequest(http.MethodPost, "/", io.NopCloser(bytes.NewReader([]byte{})))
+	request.Header.Set("Authorization", TOKEN_STRING)
+
 	router, responseRecorder := prepareGin()
 	router.POST("/", sut.Post)
 	router.ServeHTTP(responseRecorder, request)
@@ -395,7 +398,7 @@ func TestUploadEndpointShouldReturn400ForEmptyRequest(t *testing.T) {
 
 func TestUploadEndpointShouldSaveGivenImageToDb(t *testing.T) {
 	databaseMock := mock.NewDatabaseMock(t)
-	databaseMock.ExpectQuery(UPLOAD_SQL, [][]any{{FILE_ID}}, []any{USER_ID, MODIFICATION_DATE, FILENAME, FILE, HASH, len(FILE)}, nil)
+	databaseMock.ExpectQuery(UPLOAD_SQL, [][]any{{FILE_ID}}, []any{USER_ID, MODIFICATION_DATE, FILENAME, metadata.JPG, FILE, HASH, len(FILE)}, nil)
 	defer databaseMock.AssertAllExpectionsSatisfied()
 
 	metadataExtractorMock := mock.NewMetadataExtractorMock(t)
@@ -436,7 +439,7 @@ func TestUploadEndpointShouldSaveGivenImageToDb(t *testing.T) {
 
 func TestUploadEndpointShouldHandleRequestPartsInDifferentOrder(t *testing.T) {
 	databaseMock := mock.NewDatabaseMock(t)
-	databaseMock.ExpectQuery(UPLOAD_SQL, [][]any{{FILE_ID}}, []any{USER_ID, MODIFICATION_DATE, FILENAME, FILE, HASH, len(FILE)}, nil)
+	databaseMock.ExpectQuery(UPLOAD_SQL, [][]any{{FILE_ID}}, []any{USER_ID, MODIFICATION_DATE, FILENAME, metadata.JPG, FILE, HASH, len(FILE)}, nil)
 	defer databaseMock.AssertAllExpectionsSatisfied()
 
 	metadataExtractorMock := mock.NewMetadataExtractorMock(t)

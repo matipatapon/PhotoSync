@@ -65,7 +65,8 @@ func (me *MetadataExtractor) extractMIMeType(meta map[string]any) MIMEType {
 			return JPG
 		}
 		me.logger.Printf("Unknown MIMEType")
+	} else {
+		me.logger.Printf("Tag with MIMEType is missing")
 	}
-	me.logger.Printf("Tag with MIMEType is missing")
 	return UNKNOWN
 }

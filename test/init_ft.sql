@@ -7,6 +7,7 @@ CREATE TABLE files
     user_id bigint REFERENCES users(id) NOT NULL,
     creation_date timestamp NOT NULL,
     filename text NOT NULL,
+    mime_type smallint NOT NULL,
     file bytea NOT NULL,
     hash text NOT NULL,
     size bigint NOT NULL,

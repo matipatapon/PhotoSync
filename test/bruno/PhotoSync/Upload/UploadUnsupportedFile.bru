@@ -1,0 +1,30 @@
+meta {
+  name: UploadUnsupportedFile
+  type: http
+  seq: 6
+}
+
+post {
+  url: {{host}}/upload
+  body: multipartForm
+  auth: inherit
+}
+
+headers {
+  Authorization: {{TOKEN}}
+}
+
+body:multipart-form {
+  filename: img.jpg
+  modification_date: 2022.03.12 22:45:43
+  file: @file(C:\Users\itam\Desktop\PhotoSync\test\images\img.pdf)
+}
+
+assert {
+  res.status: eq 401
+  res.body: eq ""
+}
+
+settings {
+  encodeUrl: true
+}

@@ -1,6 +1,7 @@
 package endpoint
 
 import (
+	"errors"
 	"io"
 	"log"
 	"os"
@@ -32,14 +33,7 @@ func NewUploadEndpoint(db database.IDataBase, me metadata.IMetadataExtractor, h 
 }
 
 func (ue *UploadEndpoint) Post(c *gin.Context) {
-	reader, err := c.Request.MultipartReader()
-	if err != nil {
-		ue.logger.Printf("Failed to read request: '%s'", err.Error())
-		c.Status(400)
-		return
-	}
-
-	jwt, err := ue.jm.Decode(c.Request.Header.Get("Authorization"))
+	jwt, err := ue.authorize(c)
 	if err != nil {
 		ue.logger.Print("Token is invalid")
 		c.Status(403)
@@ -47,55 +41,9 @@ func (ue *UploadEndpoint) Post(c *gin.Context) {
 	}
 	ue.logger.Printf("User '%s' authorized for upload", jwt.Username)
 
-	var filename string
-	var file []byte
-	var modificationDate *metadata.Date
-
-	for {
-		p, err := reader.NextPart()
-		if err == io.EOF {
-			break
-		} else if err != nil {
-			ue.logger.Printf("Error occured during reading parts: '%s'", err.Error()) // untested in fties / uties
-			c.Status(500)
-			return
-		}
-
-		bytes, err := io.ReadAll(p) // untested in fties / uties
-		if err != nil {
-			ue.logger.Printf("Error occured during reading part: '%s'", err.Error())
-			c.Status(500)
-			return
-		}
-
-		switch p.FormName() {
-		case "filename":
-			filename = string(bytes)
-		case "modification_date":
-			date, err := metadata.NewDate(string(bytes))
-			modificationDate = &date
-			if err != nil {
-				ue.logger.Printf("Invalid modification date: '%s'", err.Error())
-				c.Status(400)
-				return
-			}
-		case "file":
-			file = bytes
-		}
-	}
-
-	if filename == "" {
-		ue.logger.Print("Filename is missing")
-		c.Status(400)
-		return
-	}
-	if modificationDate == nil {
-		ue.logger.Print("Modification date is missing")
-		c.Status(400)
-		return
-	}
-	if len(file) == 0 {
-		ue.logger.Print("File is missing")
+	filename, modificationDate, file, err := ue.tryToGetDataFromBody(c)
+	if err != nil {
+		ue.logger.Printf("Failed to extract data from request body: '%s'", err.Error())
 		c.Status(400)
 		return
 	}
@@ -113,16 +61,16 @@ func (ue *UploadEndpoint) Post(c *gin.Context) {
 		c.Status(401)
 		return
 	}
-
 	if meta.CreationDate != nil {
 		modificationDate = meta.CreationDate
 	}
 
 	result, err := ue.db.Query(
-		"INSERT INTO files(user_id, creation_date, filename, file, hash, size) VALUES($1, TO_TIMESTAMP($2, 'YYYY.MM.DD HH24:MI:SS'), $3, $4, $5, $6) RETURNING id",
+		"INSERT INTO files(user_id, creation_date, filename, mime_type, file, hash, size) VALUES($1, TO_TIMESTAMP($2, 'YYYY.MM.DD HH24:MI:SS'), $3, $4, $5, $6, $7) RETURNING id",
 		jwt.UserId,
 		modificationDate.ToString(),
 		filename,
+		meta.MIMEType,
 		file,
 		hash,
 		len(file),
@@ -134,10 +82,71 @@ func (ue *UploadEndpoint) Post(c *gin.Context) {
 	}
 	if len(result) == 0 || len(result[0]) == 0 {
 		ue.logger.Print("File already exists")
-		c.Status(402)
+		c.Status(202)
 		return
 	}
 
 	ue.logger.Print("Sucessfully saved a file")
 	c.String(200, strconv.FormatInt(result[0][0].(int64), 10))
+}
+
+func (ue *UploadEndpoint) authorize(c *gin.Context) (jwt.JwtPayload, error) {
+	return ue.jm.Decode(c.Request.Header.Get("Authorization"))
+}
+
+func (ue *UploadEndpoint) tryToGetDataFromBody(c *gin.Context) (string, *metadata.Date, []byte, error) {
+	var filename string
+	var modificationDate *metadata.Date
+	var file []byte
+
+	reader, err := c.Request.MultipartReader()
+	if err != nil {
+		ue.logger.Printf("Failed to read request: '%s'", err.Error())
+		return "", nil, []byte{}, err
+	}
+
+	for {
+		p, err := reader.NextPart()
+		if err == io.EOF {
+			break
+		} else if err != nil {
+			ue.logger.Printf("Error occured during reading parts: '%s'", err.Error()) // untested, shouldn't happen
+			return "", nil, []byte{}, err
+		}
+
+		bytes, err := io.ReadAll(p)
+		if err != nil {
+			ue.logger.Printf("Error occured during reading part: '%s'", err.Error()) // untested, shouldn't happen
+			return "", nil, []byte{}, err
+		}
+
+		switch p.FormName() {
+		case "filename":
+			filename = string(bytes)
+		case "modification_date":
+			date, err := metadata.NewDate(string(bytes))
+			if err != nil {
+				ue.logger.Printf("Invalid modification date: '%s'", err.Error())
+				return "", nil, []byte{}, err
+			}
+			modificationDate = &date
+		case "file":
+			file = bytes
+		}
+	}
+
+	if filename == "" {
+		ue.logger.Print("Filename is missing")
+		return "", nil, []byte{}, errors.New("filename is missing")
+	}
+	if modificationDate == nil {
+		ue.logger.Print("Modification date is missing")
+		return "", nil, []byte{}, errors.New("modification date is missing")
+	}
+	if len(file) == 0 {
+		ue.logger.Print("File is missing")
+		return "", nil, []byte{}, errors.New("file is missing")
+	}
+
+	return filename, modificationDate, file, nil
 }

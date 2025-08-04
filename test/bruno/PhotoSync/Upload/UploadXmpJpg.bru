@@ -1,0 +1,30 @@
+meta {
+  name: UploadXmpJpg
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{host}}/upload
+  body: multipartForm
+  auth: inherit
+}
+
+headers {
+  Authorization: {{TOKEN}}
+}
+
+body:multipart-form {
+  filename: cat.jpg
+  modification_date: 2022.03.12 22:45:43
+  file: @file(C:\Users\itam\Desktop\PhotoSync\test\images\xmp.jpg)
+}
+
+assert {
+  res.status: eq 200
+  res.body: eq 3
+}
+
+settings {
+  encodeUrl: true
+}
