@@ -71,7 +71,7 @@ func TestUploadEndpointShouldReturn202WhenImageAlreadyExistsInDb(t *testing.T) {
 		router.POST("/", sut.Post)
 		router.ServeHTTP(responseRecorder, request)
 
-		if responseRecorder.Code != 202 {
+		if responseRecorder.Code != 402 {
 			t.Error(responseRecorder.Code)
 		}
 		if responseRecorder.Body.String() != "" {

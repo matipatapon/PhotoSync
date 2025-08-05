@@ -82,7 +82,7 @@ func (ue *UploadEndpoint) Post(c *gin.Context) {
 	}
 	if len(result) == 0 || len(result[0]) == 0 {
 		ue.logger.Print("File already exists")
-		c.Status(202)
+		c.Status(402)
 		return
 	}
 
