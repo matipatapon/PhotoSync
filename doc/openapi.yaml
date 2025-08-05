@@ -1,6 +1,6 @@
 openapi: 3.0.4
 info:
-  title: Photo storage API
+  title: PhotoSync API
   description: API for uploading, editing and accessing photos.
   version: 0.1.0
   contact:
@@ -30,7 +30,9 @@ paths:
                 description: JWT containing user details and expiration time
                 example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHBpcmF0aW9uX3RpbWUiOjE3NTAyNDI1NTMsInVzZXJuYW1lIjoidXNlcm5hbWVfNzY1In0.wDXirYK9DaQyzmWJ7O0b4yQ2ug8avLEAkNqy2QKNWgU
         "400":
-          description: invalid request or user credentials
+          description: invalid request
+        "401":
+          description: user does not exist or invalid password was given
         "500":
           description: server error
 
@@ -48,7 +50,9 @@ paths:
         "200":
           description: user successfully registered
         "400":
-          description: invalid request / user already exist / some other error
+          description: invalid request
+        "401":
+          description: user already exists
         "500":
           description: server error
 
@@ -67,7 +71,8 @@ paths:
                   type: string
                   example: cat.jpg
                 modification_date:
-                  $ref: "#/components/schemas/Date"
+                  type: string
+                  example: "2025.05.16 12:30:45"
                 file:
                   type: string
                   format: binary
@@ -95,24 +100,3 @@ components:
         password:
           type: string
           example: password
-    Date:
-      type: object
-      properties:
-        year:
-          type: integer
-          example: 2025
-        month:
-          type: integer
-          example: 5
-        day:
-          type: integer
-          example: 16
-        hour:
-          type: integer
-          example: 12
-        minute:
-          type: integer
-          example: 30
-        second:
-          type: integer
-          example: 15

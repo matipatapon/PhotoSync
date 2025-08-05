@@ -55,13 +55,18 @@ func (re *RegisterEndpoint) Post(c *gin.Context) {
 		return
 	}
 
-	err = re.db.Execute("INSERT INTO users(username, password) VALUES($1, $2)", username, hash)
+	result, err := re.db.Query("INSERT INTO users(username, password) VALUES($1, $2) RETURNING id", username, hash)
 	if err != nil {
-		re.logger.Printf("Execute failed with following error: '%s'", err.Error())
-		c.Status(400)
+		re.logger.Printf("Query failed with following error: '%s'", err.Error())
+		c.Status(500)
+		return
+	}
+	if len(result) == 0 || len(result[0]) == 0 {
+		re.logger.Printf("User '%s' already exists", username)
+		c.Status(401)
 		return
 	}
 
-	re.logger.Printf("Registered '%s'", username)
+	re.logger.Printf("Registered '%s' with id '%d'", username, result[0][0].(int64))
 	c.Status(200)
 }

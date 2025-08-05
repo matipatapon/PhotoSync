@@ -35,7 +35,7 @@ func (le *LoginEndpoint) Post(c *gin.Context) {
 	bodyBytes, err := io.ReadAll(c.Request.Body)
 	if err != nil {
 		le.logger.Printf("Failed to read request body: '%s'", err.Error())
-		c.Status(500)
+		c.Status(400)
 		return
 	}
 
@@ -49,7 +49,7 @@ func (le *LoginEndpoint) Post(c *gin.Context) {
 	result, _ := le.db.Query("SELECT id, password FROM users WHERE username = $1", loginData.Username)
 	if len(result) == 0 || len(result[0]) == 0 {
 		le.logger.Printf("User '%s' does not exist in db", loginData.Username)
-		c.Status(400)
+		c.Status(401)
 		return
 	}
 	userId := result[0][0].(int64)
@@ -57,7 +57,7 @@ func (le *LoginEndpoint) Post(c *gin.Context) {
 
 	if !le.pf.MatchHashToPassword(hashedPassword, loginData.Password) {
 		le.logger.Printf("Password mismatch for '%s'", loginData.Username)
-		c.Status(400)
+		c.Status(401)
 		return
 	}
 

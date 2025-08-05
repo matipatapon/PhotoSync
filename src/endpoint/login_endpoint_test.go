@@ -63,7 +63,7 @@ func TestLoginEndpointShouldSendJwtWhenCredentialsAreCorrect(t *testing.T) {
 	thMock.AssertAllExpectionsSatisfied()
 }
 
-func TestLoginEndpointShouldReturn500WhenFailedToReadRequestBody(t *testing.T) {
+func TestLoginEndpointShouldReturn400WhenFailedToReadRequestBody(t *testing.T) {
 	dbMock := mock.NewDatabaseMock(t)
 	pfMock := mock.NewPasswordFacadeMock(t)
 	jmMock := mock.NewJwtManagerMock(t)
@@ -81,7 +81,7 @@ func TestLoginEndpointShouldReturn500WhenFailedToReadRequestBody(t *testing.T) {
 
 	router.ServeHTTP(responseRecorder, request)
 
-	if responseRecorder.Code != 500 {
+	if responseRecorder.Code != 400 {
 		t.Error(responseRecorder.Code)
 	}
 	if responseRecorder.Body.String() != "" {
@@ -120,7 +120,7 @@ func TestLoginEndpointShouldReturn400WhenInvalidRequestBody(t *testing.T) {
 	thMock.AssertAllExpectionsSatisfied()
 }
 
-func TestLoginEndpointShouldReturn400WhenUserDoesNotExistNoRowsReturned(t *testing.T) {
+func TestLoginEndpointShouldReturn401WhenUserDoesNotExistNoRowsReturned(t *testing.T) {
 	dbMock := mock.NewDatabaseMock(t)
 	pfMock := mock.NewPasswordFacadeMock(t)
 	jmMock := mock.NewJwtManagerMock(t)
@@ -139,7 +139,7 @@ func TestLoginEndpointShouldReturn400WhenUserDoesNotExistNoRowsReturned(t *testi
 	router.POST("/", sut.Post)
 	router.ServeHTTP(responseRecorder, request)
 
-	if responseRecorder.Code != 400 {
+	if responseRecorder.Code != 401 {
 		t.Error(responseRecorder.Code)
 	}
 	if responseRecorder.Body.String() != "" {
@@ -171,7 +171,7 @@ func TestLoginEndpointShouldReturn400WhenUserDoesNotExistEmptyRowReturned(t *tes
 	router.POST("/", sut.Post)
 	router.ServeHTTP(responseRecorder, request)
 
-	if responseRecorder.Code != 400 {
+	if responseRecorder.Code != 401 {
 		t.Error(responseRecorder.Code)
 	}
 	if responseRecorder.Body.String() != "" {
@@ -184,7 +184,7 @@ func TestLoginEndpointShouldReturn400WhenUserDoesNotExistEmptyRowReturned(t *tes
 	thMock.AssertAllExpectionsSatisfied()
 }
 
-func TestLoginEndpointShouldReturn400WhenPasswordIsInvalid(t *testing.T) {
+func TestLoginEndpointShouldReturn401WhenPasswordIsInvalid(t *testing.T) {
 	dbMock := mock.NewDatabaseMock(t)
 	pfMock := mock.NewPasswordFacadeMock(t)
 	jmMock := mock.NewJwtManagerMock(t)
@@ -204,7 +204,7 @@ func TestLoginEndpointShouldReturn400WhenPasswordIsInvalid(t *testing.T) {
 	router.POST("/", sut.Post)
 	router.ServeHTTP(responseRecorder, request)
 
-	if responseRecorder.Code != 400 {
+	if responseRecorder.Code != 401 {
 		t.Error(responseRecorder.Code)
 	}
 	if responseRecorder.Body.String() != "" {
