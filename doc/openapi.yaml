@@ -104,7 +104,53 @@ paths:
           description: token expired or is invalid
         "500":
           description: server error
-
+  /file:
+    get:
+      summary: |
+        Returns list of metadata.
+        List is sorted by creation date in descending order.
+      parameters:
+        - in: query
+          name: offset
+          schema:
+            type: integer
+            description: where metadata collection should begin
+            example: 50
+          required: true
+        - in: query
+          name: count
+          schema:
+            type: integer
+            description: how many metadata should be returned
+            example: 100
+          required: true
+      responses:
+        "200":
+          description: returned file metadata
+          content:
+            application/json:
+              schema:
+                description: metadata of the files
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: string
+                      example: 102
+                    filename:
+                      type: string
+                      example: cute_dog.jpg
+                    creation_date:
+                      type: string
+                      example: "2025.05.16 16:45:00"
+                    mime_type:
+                      type: string
+                      example: "image/jpeg"
+                    size:
+                      type: string
+                      description: size of the file in bytes
+                      example: "2520424"
 components:
   schemas:
     UserCredentials:
