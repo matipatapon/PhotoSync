@@ -42,6 +42,9 @@ func main() {
 	uploadEndpoint := endpoint.NewUploadEndpoint(db, &metadataExtractor, &hasher, &jwtManager)
 	router.POST("/v1/upload", uploadEndpoint.Post)
 
+	fileDataEndpoint := endpoint.NewFileDataEndpoint(db, &jwtManager)
+	router.GET("/v1/file_data", fileDataEndpoint.Get)
+
 	if len(os.Args) == 2 && os.Args[1] == "--testing" {
 		exitEndpoint := endpoint.NewExitEndpoint()
 		router.POST("/v1/exit", exitEndpoint.Post)

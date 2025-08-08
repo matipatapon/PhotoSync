@@ -104,7 +104,7 @@ paths:
           description: token expired or is invalid
         "500":
           description: server error
-  /file:
+  /file_data:
     get:
       summary: |
         Returns list of metadata.
