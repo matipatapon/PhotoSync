@@ -1,0 +1,30 @@
+meta {
+  name: NotAllowUploadWhenTokenIsInvalid
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{HOST}}/upload
+  body: multipartForm
+  auth: inherit
+}
+
+headers {
+  Authorization: {{INVALID_TOKEN}}
+}
+
+body:multipart-form {
+  filename: raw.jpg
+  modification_date: 2025.08.11 15:40:00
+  file: @file(../../images/raw.jpg)
+}
+
+assert {
+  res.status: eq 403
+  res.body: eq
+}
+
+settings {
+  encodeUrl: true
+}

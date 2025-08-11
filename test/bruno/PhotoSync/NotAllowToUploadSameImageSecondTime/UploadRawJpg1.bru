@@ -1,11 +1,11 @@
 meta {
-  name: UploadXmpJpg
+  name: UploadRawJpg1
   type: http
-  seq: 5
+  seq: 4
 }
 
 post {
-  url: {{host}}/upload
+  url: {{HOST}}/upload
   body: multipartForm
   auth: inherit
 }
@@ -15,14 +15,14 @@ headers {
 }
 
 body:multipart-form {
-  filename: cat.jpg
-  modification_date: 2022.03.12 22:45:43
-  file: @file(C:\Users\itam\Desktop\PhotoSync\test\images\xmp.jpg)
+  filename: raw1.jpg
+  modification_date: 2025.08.11 15:40:00
+  file: @file(../../images/raw.jpg)
 }
 
 assert {
   res.status: eq 200
-  res.body: eq 3
+  res.body: eq 1
 }
 
 settings {

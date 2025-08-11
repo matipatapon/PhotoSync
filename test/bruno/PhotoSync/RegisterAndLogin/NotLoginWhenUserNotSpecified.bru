@@ -1,11 +1,11 @@
 meta {
   name: NotLoginWhenUserNotSpecified
   type: http
-  seq: 11
+  seq: 12
 }
 
 post {
-  url: {{host}}/login
+  url: {{HOST}}/login
   body: json
   auth: inherit
 }
@@ -16,6 +16,6 @@ assert {
 }
 
 script:pre-request {
-  var password = bru.getCollectionVar("password")
+  var password = bru.getCollectionVar("PASSWORD")
   req.setBody(`{"password": "${password}"}`)
 }

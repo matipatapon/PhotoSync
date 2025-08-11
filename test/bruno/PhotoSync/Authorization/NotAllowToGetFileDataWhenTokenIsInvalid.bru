@@ -1,0 +1,29 @@
+meta {
+  name: NotAllowToGetFileDataWhenTokenIsInvalid
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{HOST}}/file_data?offset=0&count=10
+  body: none
+  auth: inherit
+}
+
+params:query {
+  offset: 0
+  count: 10
+}
+
+headers {
+  Authorization: {{INVALID_TOKEN}}
+}
+
+assert {
+  res.status: eq 403
+  res.body: 
+}
+
+settings {
+  encodeUrl: true
+}

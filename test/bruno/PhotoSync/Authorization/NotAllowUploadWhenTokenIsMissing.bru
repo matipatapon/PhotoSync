@@ -1,0 +1,26 @@
+meta {
+  name: NotAllowUploadWhenTokenIsMissing
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{HOST}}/upload
+  body: multipartForm
+  auth: inherit
+}
+
+body:multipart-form {
+  filename: raw.jpg
+  modification_date: 2025.08.11 15:40:00
+  file: @file(../../images/raw.jpg)
+}
+
+assert {
+  res.status: eq 403
+  res.body: eq
+}
+
+settings {
+  encodeUrl: true
+}

@@ -1,0 +1,29 @@
+meta {
+  name: UploadWithMissingFile
+  type: http
+  seq: 6
+}
+
+post {
+  url: {{HOST}}/upload
+  body: multipartForm
+  auth: inherit
+}
+
+headers {
+  Authorization: {{TOKEN}}
+}
+
+body:multipart-form {
+  filename: raw.jpg
+  modification_date: 2025.08.11 15:40:00
+}
+
+assert {
+  res.status: eq 400
+  res.body: eq
+}
+
+settings {
+  encodeUrl: true
+}

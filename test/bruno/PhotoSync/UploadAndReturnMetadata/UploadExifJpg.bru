@@ -1,11 +1,11 @@
 meta {
   name: UploadExifJpg
   type: http
-  seq: 2
+  seq: 5
 }
 
 post {
-  url: {{host}}/upload
+  url: {{HOST}}/upload
   body: multipartForm
   auth: inherit
 }
@@ -15,14 +15,14 @@ headers {
 }
 
 body:multipart-form {
-  filename: dog.jpg
+  filename: exif.jpg
   modification_date: 2025.07.05 12:32:59
-  file: @file(C:\Users\itam\Desktop\PhotoSync\test\images\exif.jpg)
+  file: @file(../../images/exif.jpg)
 }
 
 assert {
   res.status: eq 200
-  res.body: eq 1
+  res.body: eq 2
 }
 
 settings {

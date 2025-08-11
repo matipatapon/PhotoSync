@@ -1,0 +1,30 @@
+meta {
+  name: UploadRawJpg2
+  type: http
+  seq: 5
+}
+
+post {
+  url: {{HOST}}/upload
+  body: multipartForm
+  auth: inherit
+}
+
+headers {
+  Authorization: {{TOKEN}}
+}
+
+body:multipart-form {
+  filename: raw2.jpg
+  modification_date: 2024.08.11 15:40:00
+  file: @file(../../images/raw.jpg)
+}
+
+assert {
+  res.status: eq 402
+  res.body: eq
+}
+
+settings {
+  encodeUrl: true
+}

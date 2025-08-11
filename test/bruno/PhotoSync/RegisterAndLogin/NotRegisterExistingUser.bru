@@ -1,11 +1,11 @@
 meta {
   name: NotRegisterExistingUser
   type: http
-  seq: 3
+  seq: 4
 }
 
 post {
-  url: {{host}}/register
+  url: {{HOST}}/register
   body: json
   auth: inherit
 }
@@ -16,7 +16,7 @@ assert {
 }
 
 script:pre-request {
-  var username = bru.getCollectionVar("username")
-  var password = bru.getCollectionVar("password")
+  var username = bru.getCollectionVar("USERNAME")
+  var password = bru.getCollectionVar("PASSWORD")
   req.setBody(`{"username": "${username}", "password": "${password}"}`)
 }

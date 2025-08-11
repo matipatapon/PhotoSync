@@ -1,11 +1,11 @@
 meta {
-  name: UploadUnsupportedFile
+  name: UploadPdf
   type: http
-  seq: 6
+  seq: 4
 }
 
 post {
-  url: {{host}}/upload
+  url: {{HOST}}/upload
   body: multipartForm
   auth: inherit
 }
@@ -15,9 +15,9 @@ headers {
 }
 
 body:multipart-form {
-  filename: img.jpg
-  modification_date: 2022.03.12 22:45:43
-  file: @file(C:\Users\itam\Desktop\PhotoSync\test\images\img.pdf)
+  filename: img.pdf
+  modification_date: 2025.07.05 12:32:59
+  file: @file(../../images/img.pdf)
 }
 
 assert {

@@ -1,11 +1,11 @@
 meta {
-  name: UploadSameImageSecondTime
+  name: UploadXmpJpg
   type: http
-  seq: 3
+  seq: 6
 }
 
 post {
-  url: {{host}}/upload
+  url: {{HOST}}/upload
   body: multipartForm
   auth: inherit
 }
@@ -15,14 +15,14 @@ headers {
 }
 
 body:multipart-form {
-  filename: dog.jpg
+  filename: xmp.jpg
   modification_date: 2025.07.05 12:32:59
-  file: @file(C:\Users\itam\Desktop\PhotoSync\test\images\exif.jpg)
+  file: @file(../../images/xmp.jpg)
 }
 
 assert {
-  res.status: eq 402
-  res.body: eq ""
+  res.status: eq 200
+  res.body: eq 3
 }
 
 settings {

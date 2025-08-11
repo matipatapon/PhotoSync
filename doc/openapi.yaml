@@ -151,6 +151,12 @@ paths:
                       type: string
                       description: size of the file in bytes
                       example: "2520424"
+        "400":
+          description: bad request
+        "403":
+          description: missing or invalid token
+        "500":
+          description: server error
 components:
   schemas:
     UserCredentials:

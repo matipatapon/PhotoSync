@@ -47,7 +47,8 @@ func main() {
 
 	if len(os.Args) == 2 && os.Args[1] == "--testing" {
 		exitEndpoint := endpoint.NewExitEndpoint()
-		router.POST("/v1/exit", exitEndpoint.Post)
+		router.POST("/v1/restart", exitEndpoint.Post)
+		router.HEAD("/v1/restart", exitEndpoint.Head)
 	}
 
 	router.Run()
