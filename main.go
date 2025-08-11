@@ -46,9 +46,9 @@ func main() {
 	router.GET("/v1/file_data", fileDataEndpoint.Get)
 
 	if len(os.Args) == 2 && os.Args[1] == "--testing" {
-		exitEndpoint := endpoint.NewExitEndpoint()
-		router.POST("/v1/restart", exitEndpoint.Post)
-		router.HEAD("/v1/restart", exitEndpoint.Head)
+		restartEndpoint := endpoint.NewRestartEndpoint()
+		router.POST("/v1/restart", restartEndpoint.Post)
+		router.HEAD("/v1/restart", restartEndpoint.Head)
 	}
 
 	router.Run()
