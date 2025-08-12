@@ -45,6 +45,9 @@ func main() {
 	fileDataEndpoint := endpoint.NewFileDataEndpoint(db, &jwtManager)
 	router.GET("/v1/file_data", fileDataEndpoint.Get)
 
+	fileEndpoint := endpoint.NewFileEndpoint(db, &jwtManager)
+	router.GET("/v1/file", fileEndpoint.Get)
+
 	if len(os.Args) == 2 && os.Args[1] == "--testing" {
 		restartEndpoint := endpoint.NewRestartEndpoint()
 		router.POST("/v1/restart", restartEndpoint.Post)

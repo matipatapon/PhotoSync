@@ -12,8 +12,6 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// TODO fties + docs
-
 type FileData struct {
 	Id           string `json:"id"`
 	Filename     string `json:"filename"`
