@@ -1,0 +1,23 @@
+meta {
+  name: LoginUserA
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{HOST}}/login
+  body: none
+  auth: inherit
+}
+
+assert {
+  res.status: eq 200
+}
+
+script:pre-request {
+  req.setBody(`{"username": "${bru.getCollectionVar("USERNAME")}", "password": "${bru.getCollectionVar("PASSWORD")}"}`)
+}
+
+script:post-response {
+  bru.setVar("TOKENA", res.body)
+}

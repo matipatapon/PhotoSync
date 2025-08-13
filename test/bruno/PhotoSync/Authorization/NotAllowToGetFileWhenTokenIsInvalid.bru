@@ -1,18 +1,17 @@
 meta {
-  name: NotAllowToGetFileDataWhenTokenIsInvalid
+  name: NotAllowToGetFileWhenTokenIsInvalid
   type: http
-  seq: 4
+  seq: 1
 }
 
 get {
-  url: {{HOST}}/file_data?offset=0&count=10
+  url: {{HOST}}/file?id=1
   body: none
   auth: inherit
 }
 
 params:query {
-  offset: 0
-  count: 10
+  id: 1
 }
 
 headers {

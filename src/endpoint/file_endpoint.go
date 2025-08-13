@@ -21,7 +21,6 @@ func NewFileEndpoint(db database.IDataBase, jm jwt.IJwtManager) FileEndpoint {
 	return FileEndpoint{db: db, jm: jm, logger: log.New(os.Stdout, "[FileEndpoint]: ", log.LstdFlags)}
 }
 
-// TODO docs & fties
 func (fe *FileEndpoint) Get(c *gin.Context) {
 	id, err := strconv.ParseInt(c.Query("id"), 10, 64)
 	if err != nil || id < 0 {

@@ -1,0 +1,28 @@
+meta {
+  name: NotAllowUserBToGetUserAFile
+  type: http
+  seq: 13
+}
+
+get {
+  url: {{HOST}}/file?id=1
+  body: none
+  auth: inherit
+}
+
+params:query {
+  id: 1
+}
+
+headers {
+  Authorization: {{TOKENB}}
+}
+
+assert {
+  res.status: eq 404
+  res.body: eq
+}
+
+settings {
+  encodeUrl: true
+}

@@ -109,6 +109,8 @@ paths:
       summary: |
         Returns list of metadata.
         List is sorted by creation date in descending order.
+      security:
+        - tokenAuth: []
       parameters:
         - in: query
           name: offset
@@ -155,6 +157,36 @@ paths:
           description: bad request
         "403":
           description: missing or invalid token
+        "500":
+          description: server error
+  /file:
+    get:
+      summary: returns file with given id
+      security:
+        - tokenAuth: []
+      parameters:
+        - in: query
+          name: id
+          schema:
+            type: integer
+            description: id of wanted file
+            example: 102
+          required: true
+      responses:
+        "200":
+          description: file successfully returned
+          content:
+            image/jpeg:
+              schema:
+                type: string
+                description: file
+                format: binary
+        "400":
+          description: bad request
+        "403":
+          description: missing or invalid token
+        "404":
+          description: file with given id not found
         "500":
           description: server error
 components:
