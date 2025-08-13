@@ -14,7 +14,13 @@ import (
 	"testing"
 )
 
-var FILE_ENDPOINT_SQL string = "SELECT file FROM files WHERE id = $1 AND user_id = $2"
+var GET string = "GET"
+var DELETE string = "DELETE"
+var METHOD_TO_FILE_ENDPOINT_SQL = map[string]string{
+	GET:    "SELECT file FROM files WHERE id = $1 AND user_id = $2",
+	DELETE: "DELETE FROM files WHERE id = $1 AND user_id = $2 RETURNING id",
+}
+var METHODS []string = []string{GET, DELETE}
 
 func prepareGetFileRequest(id *int64) *http.Request {
 	var query string
@@ -33,9 +39,40 @@ func TestFileEndpointShouldReturn404WhenImageNotExists(t *testing.T) {
 		{},
 		{{}},
 	}
-	for _, request := range requests {
+	for _, method := range METHODS {
+		for _, request := range requests {
+			databaseMock := mock.NewDatabaseMock(t)
+			databaseMock.ExpectQuery(METHOD_TO_FILE_ENDPOINT_SQL[method], request, []any{FILE_ID, USER_ID}, nil)
+			defer databaseMock.AssertAllExpectionsSatisfied()
+
+			jwtManagerMock := mock.NewJwtManagerMock(t)
+			jwtManagerMock.ExpectDecode(TOKEN_STRING, jwt.JwtPayload{UserId: USER_ID}, nil)
+			defer jwtManagerMock.AssertAllExpectionsSatisfied()
+
+			sut := endpoint.NewFileEndpoint(&databaseMock, &jwtManagerMock)
+
+			router, responseRecorder := prepareGin()
+			if method == GET {
+				router.GET("/", sut.Get)
+			} else if method == DELETE {
+				router.GET("/", sut.Delete)
+			}
+			router.ServeHTTP(responseRecorder, prepareGetFileRequest(&FILE_ID))
+
+			if responseRecorder.Code != 404 {
+				t.Error(responseRecorder.Code)
+			}
+			if responseRecorder.Body.Len() != 0 {
+				t.Error("Expected empty response")
+			}
+		}
+	}
+}
+
+func TestFileEndpointShouldReturn500WhenQueryFailed(t *testing.T) {
+	for _, method := range METHODS {
 		databaseMock := mock.NewDatabaseMock(t)
-		databaseMock.ExpectQuery(FILE_ENDPOINT_SQL, request, []any{FILE_ID, USER_ID}, nil)
+		databaseMock.ExpectQuery(METHOD_TO_FILE_ENDPOINT_SQL[method], [][]any{{FILE}}, []any{FILE_ID, USER_ID}, errors.New("query error"))
 		defer databaseMock.AssertAllExpectionsSatisfied()
 
 		jwtManagerMock := mock.NewJwtManagerMock(t)
@@ -45,10 +82,14 @@ func TestFileEndpointShouldReturn404WhenImageNotExists(t *testing.T) {
 		sut := endpoint.NewFileEndpoint(&databaseMock, &jwtManagerMock)
 
 		router, responseRecorder := prepareGin()
-		router.GET("/", sut.Get)
+		if method == GET {
+			router.GET("/", sut.Get)
+		} else if method == DELETE {
+			router.GET("/", sut.Delete)
+		}
 		router.ServeHTTP(responseRecorder, prepareGetFileRequest(&FILE_ID))
 
-		if responseRecorder.Code != 404 {
+		if responseRecorder.Code != 500 {
 			t.Error(responseRecorder.Code)
 		}
 		if responseRecorder.Body.Len() != 0 {
@@ -57,54 +98,37 @@ func TestFileEndpointShouldReturn404WhenImageNotExists(t *testing.T) {
 	}
 }
 
-func TestFileEndpointShouldReturn500WhenQueryFailed(t *testing.T) {
-	databaseMock := mock.NewDatabaseMock(t)
-	databaseMock.ExpectQuery(FILE_ENDPOINT_SQL, [][]any{{FILE}}, []any{FILE_ID, USER_ID}, errors.New("query error"))
-	defer databaseMock.AssertAllExpectionsSatisfied()
-
-	jwtManagerMock := mock.NewJwtManagerMock(t)
-	jwtManagerMock.ExpectDecode(TOKEN_STRING, jwt.JwtPayload{UserId: USER_ID}, nil)
-	defer jwtManagerMock.AssertAllExpectionsSatisfied()
-
-	sut := endpoint.NewFileEndpoint(&databaseMock, &jwtManagerMock)
-
-	router, responseRecorder := prepareGin()
-	router.GET("/", sut.Get)
-	router.ServeHTTP(responseRecorder, prepareGetFileRequest(&FILE_ID))
-
-	if responseRecorder.Code != 500 {
-		t.Error(responseRecorder.Code)
-	}
-	if responseRecorder.Body.Len() != 0 {
-		t.Error("Expected empty response")
-	}
-}
-
 func TestFileEndpointShouldReturn403WhenTokenIsInvalid(t *testing.T) {
-	databaseMock := mock.NewDatabaseMock(t)
-	defer databaseMock.AssertAllExpectionsSatisfied()
+	for _, method := range METHODS {
+		databaseMock := mock.NewDatabaseMock(t)
+		defer databaseMock.AssertAllExpectionsSatisfied()
 
-	jwtManagerMock := mock.NewJwtManagerMock(t)
-	jwtManagerMock.ExpectDecode(TOKEN_STRING, jwt.JwtPayload{UserId: USER_ID}, errors.New("invalid token"))
-	defer jwtManagerMock.AssertAllExpectionsSatisfied()
+		jwtManagerMock := mock.NewJwtManagerMock(t)
+		jwtManagerMock.ExpectDecode(TOKEN_STRING, jwt.JwtPayload{UserId: USER_ID}, errors.New("invalid token"))
+		defer jwtManagerMock.AssertAllExpectionsSatisfied()
 
-	sut := endpoint.NewFileEndpoint(&databaseMock, &jwtManagerMock)
+		sut := endpoint.NewFileEndpoint(&databaseMock, &jwtManagerMock)
 
-	router, responseRecorder := prepareGin()
-	router.GET("/", sut.Get)
-	router.ServeHTTP(responseRecorder, prepareGetFileRequest(&FILE_ID))
+		router, responseRecorder := prepareGin()
+		if method == GET {
+			router.GET("/", sut.Get)
+		} else if method == DELETE {
+			router.GET("/", sut.Delete)
+		}
+		router.ServeHTTP(responseRecorder, prepareGetFileRequest(&FILE_ID))
 
-	if responseRecorder.Code != 403 {
-		t.Error(responseRecorder.Code)
-	}
-	if responseRecorder.Body.Len() != 0 {
-		t.Error("Expected empty response")
+		if responseRecorder.Code != 403 {
+			t.Error(responseRecorder.Code)
+		}
+		if responseRecorder.Body.Len() != 0 {
+			t.Error("Expected empty response")
+		}
 	}
 }
 
 func TestFileEndpointShouldReturnFile(t *testing.T) {
 	databaseMock := mock.NewDatabaseMock(t)
-	databaseMock.ExpectQuery(FILE_ENDPOINT_SQL, [][]any{{FILE}}, []any{FILE_ID, USER_ID}, nil)
+	databaseMock.ExpectQuery(METHOD_TO_FILE_ENDPOINT_SQL[GET], [][]any{{FILE}}, []any{FILE_ID, USER_ID}, nil)
 	defer databaseMock.AssertAllExpectionsSatisfied()
 
 	jwtManagerMock := mock.NewJwtManagerMock(t)
@@ -125,23 +149,52 @@ func TestFileEndpointShouldReturnFile(t *testing.T) {
 	}
 }
 
-func TestFileEndpointShouldReturn400WhenIdNotSpecified(t *testing.T) {
+func TestFileEndpointShouldRemoveFile(t *testing.T) {
 	databaseMock := mock.NewDatabaseMock(t)
+	databaseMock.ExpectQuery(METHOD_TO_FILE_ENDPOINT_SQL[DELETE], [][]any{{FILE}}, []any{FILE_ID, USER_ID}, nil)
 	defer databaseMock.AssertAllExpectionsSatisfied()
 
 	jwtManagerMock := mock.NewJwtManagerMock(t)
+	jwtManagerMock.ExpectDecode(TOKEN_STRING, jwt.JwtPayload{UserId: USER_ID}, nil)
 	defer jwtManagerMock.AssertAllExpectionsSatisfied()
 
 	sut := endpoint.NewFileEndpoint(&databaseMock, &jwtManagerMock)
 
 	router, responseRecorder := prepareGin()
-	router.GET("/", sut.Get)
-	router.ServeHTTP(responseRecorder, prepareGetFileRequest(nil))
+	router.GET("/", sut.Delete)
+	router.ServeHTTP(responseRecorder, prepareGetFileRequest(&FILE_ID))
 
-	if responseRecorder.Code != 400 {
+	if responseRecorder.Code != 200 {
 		t.Error(responseRecorder.Code)
 	}
 	if responseRecorder.Body.Len() != 0 {
 		t.Error("Expected empty response")
+	}
+}
+
+func TestFileEndpointShouldReturn400WhenIdIsNotSpecified(t *testing.T) {
+	for _, method := range METHODS {
+		databaseMock := mock.NewDatabaseMock(t)
+		defer databaseMock.AssertAllExpectionsSatisfied()
+
+		jwtManagerMock := mock.NewJwtManagerMock(t)
+		defer jwtManagerMock.AssertAllExpectionsSatisfied()
+
+		sut := endpoint.NewFileEndpoint(&databaseMock, &jwtManagerMock)
+
+		router, responseRecorder := prepareGin()
+		if method == GET {
+			router.GET("/", sut.Get)
+		} else if method == DELETE {
+			router.GET("/", sut.Delete)
+		}
+		router.ServeHTTP(responseRecorder, prepareGetFileRequest(nil))
+
+		if responseRecorder.Code != 400 {
+			t.Error(responseRecorder.Code)
+		}
+		if responseRecorder.Body.Len() != 0 {
+			t.Error("Expected empty response")
+		}
 	}
 }

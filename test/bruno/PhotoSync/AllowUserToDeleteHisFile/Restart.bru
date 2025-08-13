@@ -1,0 +1,38 @@
+meta {
+  name: Restart
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{HOST}}/restart
+  body: none
+  auth: inherit
+}
+
+assert {
+  res.status: eq 200
+}
+
+script:post-response {
+  const axios = require("axios");
+  let restarted = false
+  for(let i = 0 ; i < 10 ; i++){
+    try{
+      const response = await axios.head(req.url)
+      if(restarted)
+      {
+        break;
+      }
+    }
+    catch(err){
+      restarted = true
+      await new Promise(r => setTimeout(r, 100));
+    }
+  }
+  
+  if(!restarted){
+    throw new Error("Server not restarted!")
+  }
+  
+}

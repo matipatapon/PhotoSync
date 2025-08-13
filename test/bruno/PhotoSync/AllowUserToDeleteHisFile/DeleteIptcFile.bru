@@ -1,0 +1,28 @@
+meta {
+  name: DeleteIptcFile
+  type: http
+  seq: 11
+}
+
+delete {
+  url: {{HOST}}/file?id=3
+  body: none
+  auth: inherit
+}
+
+params:query {
+  id: 3
+}
+
+headers {
+  Authorization: {{TOKEN}}
+}
+
+assert {
+  res.status: eq 200
+  res.body: eq
+}
+
+settings {
+  encodeUrl: true
+}

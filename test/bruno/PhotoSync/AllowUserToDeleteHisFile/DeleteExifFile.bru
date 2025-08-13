@@ -1,0 +1,28 @@
+meta {
+  name: DeleteExifFile
+  type: http
+  seq: 7
+}
+
+delete {
+  url: {{HOST}}/file?id=2
+  body: none
+  auth: inherit
+}
+
+params:query {
+  id: 2
+}
+
+headers {
+  Authorization: {{TOKEN}}
+}
+
+assert {
+  res.status: eq 200
+  res.body: eq
+}
+
+settings {
+  encodeUrl: true
+}
