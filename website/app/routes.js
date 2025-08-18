@@ -1,3 +1,3 @@
 import { index } from "@react-router/dev/routes";
 
-export default [index("routes/register.jsx")];
+export default [index("routes/registration.jsx")];
