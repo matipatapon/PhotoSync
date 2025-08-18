@@ -26,6 +26,8 @@ func NewRegisterEndpoint(db database.IDataBase, passwordFacade password.IPasswor
 
 func (re *RegisterEndpoint) Post(c *gin.Context) {
 	var registerData RegisterData
+	c.Header("Access-Control-Allow-Origin", "*") // TODO TEMPORARY
+	re.logger.Print(c.Request.Header.Get("Origin"))
 	err := c.BindJSON(&registerData)
 	if err != nil {
 		re.logger.Print("Invalid request received!")

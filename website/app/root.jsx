@@ -3,16 +3,14 @@ import {
   Outlet,
 } from "react-router";
 
-import type { Route } from "./+types/root";
-
 export default function App() {
   return <Outlet />;
 }
 
-export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
+export function ErrorBoundary({ error }) {
   let message = "Oops!";
   let details = "An unexpected error occurred.";
-  let stack: string | undefined;
+  let stack;
 
   if (isRouteErrorResponse(error)) {
     message = error.status === 404 ? "404" : "Error";
