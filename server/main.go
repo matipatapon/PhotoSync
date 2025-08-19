@@ -33,6 +33,12 @@ func main() {
 	hasher := helper.NewHasher()
 
 	router := gin.Default()
+
+	// TODO include it in FTies
+	router.Use(func(c *gin.Context) {
+		c.Header("Access-Control-Allow-Origin", "*")
+	})
+
 	registerEndpoint := endpoint.NewRegisterEndpoint(db, passwordFacade)
 	router.POST("/v1/register", registerEndpoint.Post)
 

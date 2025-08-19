@@ -1,12 +1,24 @@
 import { Link , useFetcher} from "react-router";
-import { registerUser } from "../api/register"
+import { registerUser, loginUser} from "../api/api"
 import './registration.css'
 
 export async function clientAction({request}) {
     let formData = await request.formData();
     let username = formData.get("username");
     let password = formData.get("password");
-    let status = await registerUser(username, password)
+    let password_repeated = formData.get("password_repeated");
+    let status
+    if(username === ""){
+        status = "USERNAME_EMPTY"
+    }
+    else if(password === ""){
+        status = "PASSWORD_EMPTY"
+    }
+    else if(password !== password_repeated){
+        status = "PASSWORD_MISMATCH"
+    }else{
+        status = await registerUser(username, password)
+    }
     return {username: username, status: status}
 }
 
@@ -14,30 +26,38 @@ function Message({status}){
     if(status === undefined){
         return null
     }
-    if(status === 401){
-        return <h2>User already exists</h2>
+
+    let msg = "Error occured"
+    if(status === "USER_ALREADY_EXISTS"){
+        msg = "User with given username already exists!"
     }
-    return <h2>Something went wrong</h2>
+    if(status === "PASSWORD_MISMATCH"){
+        msg = "Password mismatch!"
+    }
+    if(status === "PASSWORD_EMPTY"){
+        msg = "Password cannot be empty!"
+    }
+    if(status === "USERNAME_EMPTY"){
+        msg = "Username cannot be empty!"
+    }
+    if(status === "WORKING"){
+        msg = "Please wait..."
+    }
+    return <h2>{msg}</h2>
 }
 
 function RegistrationForm({fetcher, status, state}){
-    if(state !== "idle"){
-        return(
-            <fetcher.Form method="post" action="">
-                <input type="text" name="username" disabled="true"/>
-                <input type="password" name="password" disabled="true"/>
-                <button type="submit" disabled="true">Please wait</button>
-            </fetcher.Form>
-        )
-    }
+    let isIdle = state === "idle"
     return (
         <fetcher.Form method="post" action="">
             <label>Username</label>
-            <input type="text" name="username"/>
+            <input type="text" name="username" disabled={!isIdle}/>
             <label>Password</label>
-            <input type="password" name="password"/>
-            <button type="submit" disabled={state !== "idle"}>Register</button>
-            <Message status={status}/>
+            <input type="password" name="password" disabled={!isIdle}/>
+            <label>Password</label>
+            <input type="password" name="password_repeated" disabled={!isIdle}/>
+            <button type="submit" disabled={!isIdle}>Register</button>
+            <Message status={isIdle ? status : "WORKING"}/>
         </fetcher.Form>
     )
 }
@@ -51,7 +71,7 @@ export default function Registration(){
         username = fetcher.data.username
         status = fetcher.data.status
     }
-    if(status === 200){
+    if(status === "SUCCESS"){
         return(
             <div id="registration_form">
                 <h2>{username} was successfully registered!</h2>
