@@ -13,6 +13,9 @@ $Env:PGIP = "localhost"
 $Env:PGUSER = "postgres"
 $Env:PGPORT = 5432
 $Env:PGPASSWORD = "postgres"
+$Env:TLS_ENABLED = "false"
+$Env:CERT_PATH = ""
+$Env:CERT_PRIVATE_KEY_PATH = ""
 
 function UnitTests(){
     psql --version

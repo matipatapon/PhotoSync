@@ -1,7 +1,8 @@
 package main
 
 import (
-	"log"
+	"errors"
+	"fmt"
 	"os"
 	"path"
 	"photosync/src/database"
@@ -15,8 +16,6 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-var logger *log.Logger = log.New(os.Stdout, "[Main]: ", log.LstdFlags)
-
 func getDirectory() string {
 	_, file, _, ok := runtime.Caller(1)
 	if ok {
@@ -26,11 +25,28 @@ func getDirectory() string {
 	return ""
 }
 
+func runTLSIfEnabled(router *gin.Engine, envGetter helper.IEnvGetter) {
+	isTlsEnabled := envGetter.Get("TLS_ENABLED")
+	if isTlsEnabled == "true" {
+		certPath := envGetter.Get("CERT_PATH")
+		if certPath == "" {
+			panic(errors.New("TLS enabled but 'CERT_PATH' not specified"))
+		}
+		certKeyPath := envGetter.Get("CERT_PRIVATE_KEY_PATH")
+		if certKeyPath == "" {
+			panic(errors.New("TLS enabled but 'CERT_PRIVATE_KEY_PATH' not specified"))
+		}
+		router.RunTLS(":8080", certPath, certKeyPath)
+	} else if isTlsEnabled != "false" {
+		panic(errors.New("TLS_ENABLED' has invalid value"))
+	}
+}
+
 func main() {
 	envGetter := helper.NewEnvGetter()
 	db, err := database.NewPostgresDataBase(&envGetter)
 	if err != nil {
-		logger.Printf("Error during database initialization: '%s'", err.Error())
+		panic(fmt.Errorf("error during database initialization: '%s'", err.Error()))
 	}
 
 	passwordFacade := password.PasswordFacade{}
@@ -71,5 +87,6 @@ func main() {
 		router.HEAD("/v1/restart", restartEndpoint.Head)
 	}
 
+	runTLSIfEnabled(router, &envGetter)
 	router.Run()
 }
