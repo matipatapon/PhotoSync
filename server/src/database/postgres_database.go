@@ -2,9 +2,12 @@ package database
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"os"
+	"photosync/src/helper"
+	"strconv"
 	"time"
 
 	"github.com/jackc/pgx/v4"
@@ -26,13 +29,39 @@ type PostgresDataBase struct {
 
 // NewPostgresDataBase function creates PostgresDataBase.
 func NewPostgresDataBase(
-	db string,
-	user string,
-	password string,
-	address string,
-	port int,
-) *PostgresDataBase {
-	return &PostgresDataBase{db, user, password, address, port}
+	getter helper.IEnvGetter) (*PostgresDataBase, error) {
+
+	db := getter.Get("PGDB")
+	if db == "" {
+		return nil, errors.New("env 'PGDB' is missing")
+	}
+
+	user := getter.Get("PGUSER")
+	if user == "" {
+		return nil, errors.New("env 'PGUSER' is missing")
+	}
+
+	password := getter.Get("PGPASSWORD")
+	if password == "" {
+		return nil, errors.New("env 'PGPASSWORD' is missing")
+	}
+
+	address := getter.Get("PGIP")
+	if address == "" {
+		return nil, errors.New("env 'PGIP' is missing")
+	}
+
+	portRaw := getter.Get("PGPORT")
+	if portRaw == "" {
+		return nil, errors.New("env 'PGPORT' is missing")
+	}
+
+	port, err := strconv.ParseInt(portRaw, 10, 32)
+	if err != nil {
+		return nil, err
+	}
+
+	return &PostgresDataBase{db, user, password, address, int(port)}, nil
 }
 
 // Execute method overrides IDataBase.Query.

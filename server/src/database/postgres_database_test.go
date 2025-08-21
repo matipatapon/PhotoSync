@@ -3,48 +3,120 @@ package database_test
 import (
 	"os"
 	"photosync/src/database"
-	"strconv"
+	"photosync/src/helper"
+	"photosync/src/mock"
 	"strings"
 	"testing"
 )
 
-func getDb() string {
-	return os.Getenv("PGDB")
-}
-
-func getUser() string {
-	return os.Getenv("PGUSER")
-}
-
-func getPassword() string {
-	return os.Getenv("PGPASSWORD")
-}
-
-func getIp() string {
-	return os.Getenv("PGIP")
-}
-
-func getPort() int {
-	port, _ := strconv.Atoi(os.Getenv("PGPORT"))
-	return port
-}
-
 func createSut() *database.PostgresDataBase {
-	return database.NewPostgresDataBase(
-		getDb(),
-		getUser(),
-		getPassword(),
-		getIp(),
-		getPort(),
-	)
+	envGetter := helper.NewEnvGetter()
+	db, _ := database.NewPostgresDataBase(&envGetter)
+	return db
 }
 
 func TestQueryShouldReturnErrorWhenCannotConnectToDb(t *testing.T) {
-	sut := database.NewPostgresDataBase(getDb(), getUser(), "wrong_password", getIp(), getPort())
+	envGetterMock := mock.NewEnvGetterMock(t)
+	envGetterMock.ExpectGet("PGDB", os.Getenv("PGDB"))
+	envGetterMock.ExpectGet("PGUSER", os.Getenv("PGUSER"))
+	envGetterMock.ExpectGet("PGPASSWORD", "INVALID_PASSWORD")
+	envGetterMock.ExpectGet("PGIP", os.Getenv("PGIP"))
+	envGetterMock.ExpectGet("PGPORT", os.Getenv("PGPORT"))
+	defer envGetterMock.AssertAllExpectionsSatisfied()
+	sut, err := database.NewPostgresDataBase(&envGetterMock)
+	if err != nil {
+		t.FailNow()
+	}
 
 	result, err := sut.Query("SELECT version()")
 
 	if len(result) != 0 || err == nil || !strings.HasPrefix(err.Error(), "failed to connect to ") {
+		t.Error()
+	}
+}
+
+func TestNewPostgresDatabaseShouldReturnErrorWhenDatabaseEnvIsMissing(t *testing.T) {
+	envGetterMock := mock.NewEnvGetterMock(t)
+	envGetterMock.ExpectGet("PGDB", "")
+	defer envGetterMock.AssertAllExpectionsSatisfied()
+
+	_, err := database.NewPostgresDataBase(&envGetterMock)
+
+	if err == nil {
+		t.Error()
+	}
+}
+
+func TestNewPostgresDatabaseShouldReturnErrorWhenUserEnvIsMissing(t *testing.T) {
+	envGetterMock := mock.NewEnvGetterMock(t)
+	envGetterMock.ExpectGet("PGDB", "DUMMY")
+	envGetterMock.ExpectGet("PGUSER", "")
+	defer envGetterMock.AssertAllExpectionsSatisfied()
+
+	_, err := database.NewPostgresDataBase(&envGetterMock)
+
+	if err == nil {
+		t.Error()
+	}
+}
+
+func TestNewPostgresDatabaseShouldReturnErrorWhenPasswordEnvIsMissing(t *testing.T) {
+	envGetterMock := mock.NewEnvGetterMock(t)
+	envGetterMock.ExpectGet("PGDB", "DUMMY")
+	envGetterMock.ExpectGet("PGUSER", "DUMMY")
+	envGetterMock.ExpectGet("PGPASSWORD", "")
+	defer envGetterMock.AssertAllExpectionsSatisfied()
+
+	_, err := database.NewPostgresDataBase(&envGetterMock)
+
+	if err == nil {
+		t.Error()
+	}
+}
+
+func TestNewPostgresDatabaseShouldReturnErrorWhenIpEnvIsMissing(t *testing.T) {
+	envGetterMock := mock.NewEnvGetterMock(t)
+	envGetterMock.ExpectGet("PGDB", "DUMMY")
+	envGetterMock.ExpectGet("PGUSER", "DUMMY")
+	envGetterMock.ExpectGet("PGPASSWORD", "DUMMY")
+	envGetterMock.ExpectGet("PGIP", "")
+	defer envGetterMock.AssertAllExpectionsSatisfied()
+
+	_, err := database.NewPostgresDataBase(&envGetterMock)
+
+	if err == nil {
+		t.Error()
+	}
+}
+
+func TestNewPostgresDatabaseShouldReturnErrorWhenPortEnvIsMissing(t *testing.T) {
+	envGetterMock := mock.NewEnvGetterMock(t)
+	envGetterMock.ExpectGet("PGDB", "DUMMY")
+	envGetterMock.ExpectGet("PGUSER", "DUMMY")
+	envGetterMock.ExpectGet("PGPASSWORD", "DUMMY")
+	envGetterMock.ExpectGet("PGIP", "DUMMY")
+	envGetterMock.ExpectGet("PGPORT", "")
+	defer envGetterMock.AssertAllExpectionsSatisfied()
+
+	_, err := database.NewPostgresDataBase(&envGetterMock)
+
+	if err == nil {
+		t.Error()
+	}
+}
+
+func TestNewPostgresDatabaseShouldReturnErrorWhenPortEnvIsInvalid(t *testing.T) {
+	envGetterMock := mock.NewEnvGetterMock(t)
+	envGetterMock.ExpectGet("PGDB", "DUMMY")
+	envGetterMock.ExpectGet("PGUSER", "DUMMY")
+	envGetterMock.ExpectGet("PGPASSWORD", "DUMMY")
+	envGetterMock.ExpectGet("PGIP", "DUMMY")
+	envGetterMock.ExpectGet("PGPORT", "DUMMY")
+	defer envGetterMock.AssertAllExpectionsSatisfied()
+
+	_, err := database.NewPostgresDataBase(&envGetterMock)
+
+	if err == nil {
 		t.Error()
 	}
 }
@@ -183,9 +255,19 @@ func TestExecuteShouldReturnErrorWhenInsertionFailed(t *testing.T) {
 }
 
 func TestExecuteShouldReturnErrorWhenCannotConnectToDb(t *testing.T) {
-	sut := database.NewPostgresDataBase(getDb(), getUser(), "wrong_password", getIp(), getPort())
+	envGetterMock := mock.NewEnvGetterMock(t)
+	envGetterMock.ExpectGet("PGDB", os.Getenv("PGDB"))
+	envGetterMock.ExpectGet("PGUSER", os.Getenv("PGUSER"))
+	envGetterMock.ExpectGet("PGPASSWORD", "INVALID_PASSWORD")
+	envGetterMock.ExpectGet("PGIP", os.Getenv("PGIP"))
+	envGetterMock.ExpectGet("PGPORT", os.Getenv("PGPORT"))
+	defer envGetterMock.AssertAllExpectionsSatisfied()
+	sut, err := database.NewPostgresDataBase(&envGetterMock)
+	if err != nil {
+		t.FailNow()
+	}
 
-	err := sut.Execute("SELECT version()")
+	err = sut.Execute("SELECT version()")
 
 	if err == nil || !strings.HasPrefix(err.Error(), "failed to connect to ") {
 		t.Error()

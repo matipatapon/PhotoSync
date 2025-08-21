@@ -1,6 +1,7 @@
 package main
 
 import (
+	"log"
 	"os"
 	"path"
 	"photosync/src/database"
@@ -14,6 +15,8 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+var logger *log.Logger = log.New(os.Stdout, "[Main]: ", log.LstdFlags)
+
 func getDirectory() string {
 	_, file, _, ok := runtime.Caller(1)
 	if ok {
@@ -24,7 +27,12 @@ func getDirectory() string {
 }
 
 func main() {
-	db := database.NewPostgresDataBase("postgres", "postgres", "postgres", "localhost", 5432)
+	envGetter := helper.NewEnvGetter()
+	db, err := database.NewPostgresDataBase(&envGetter)
+	if err != nil {
+		logger.Printf("Error during database initialization: '%s'", err.Error())
+	}
+
 	passwordFacade := password.PasswordFacade{}
 	timeHelper := helper.TimeHelper{}
 	jwtManager := jwt.NewJwtManager(&timeHelper)
