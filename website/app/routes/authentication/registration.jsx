@@ -1,6 +1,6 @@
-import { Link , useFetcher} from "react-router";
-import { registerUser, loginUser} from "../api/api"
-import './registration.css'
+import { Link , redirect, useFetcher} from "react-router";
+import { registerUser, loginUser} from "../../api/api"
+import './authentication.css'
 
 export async function clientAction({request}) {
     let formData = await request.formData();
@@ -19,6 +19,11 @@ export async function clientAction({request}) {
     }else{
         status = await registerUser(username, password)
     }
+
+    if(status === "SUCCESS"){
+        return redirect("/login")
+    }
+
     return {username: username, status: status}
 }
 
@@ -34,10 +39,10 @@ function Message({status}){
     if(status === "PASSWORD_MISMATCH"){
         msg = "Password mismatch!"
     }
-    if(status === "PASSWORD_EMPTY"){
+    if(status === "EMPTY_PASSWORD"){
         msg = "Password cannot be empty!"
     }
-    if(status === "USERNAME_EMPTY"){
+    if(status === "EMPTY_USERNAME"){
         msg = "Username cannot be empty!"
     }
     if(status === "WORKING"){
@@ -71,19 +76,10 @@ export default function Registration(){
         username = fetcher.data.username
         status = fetcher.data.status
     }
-    if(status === "SUCCESS"){
-        return(
-            <div id="registration_form">
-                <h2>{username} was successfully registered!</h2>
-                You can now <Link to="/login">login</Link>
-            </div>
-        )
-    }
     return(
-        <div id="registration_form">
+        <div className="form">
             <RegistrationForm fetcher={fetcher} status={status} state={state}/>
         </div>
     )
-
 }
 

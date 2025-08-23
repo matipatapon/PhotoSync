@@ -1,8 +1,38 @@
+import {API_ADDRESS} from "../../config.js"
+
+function getApiUrl(request){
+    return `${API_ADDRESS}/v1/${request}`
+}
+
+function validateUsername(username){
+    if(username === ""){
+        return "EMPTY_USERNAME"
+    }
+    return "OK"
+}
+
+function validatePassword(password){
+    if(password === ""){
+        return "EMPTY_PASSWORD"
+    }
+    return "OK"
+}
+
 export async function registerUser(username, password){
-    await new Promise(r => setTimeout(r, 2000));
+    // await new Promise(r => setTimeout(r, 2000));
+    let userStatus = validateUsername(username)
+    if(userStatus !== "OK"){
+        return userStatus
+    }
+
+    let passwordStatus = validatePassword(password)
+    if(passwordStatus !== "OK"){
+        return passwordStatus
+    }
+
     try{
         let response = await fetch(
-            "http://localhost:8080/v1/register",
+            getApiUrl("register"),
             {
                 method: "POST",
                 body: JSON.stringify({username: username, password: password}),
@@ -22,20 +52,21 @@ export async function registerUser(username, password){
 export async function loginUser(username, password){
     try{
         let response = await fetch(
-            "http://localhost:8080/v1/login",
+            getApiUrl("login"),
             {
                 method: "POST",
                 body: JSON.stringify({username: username, password: password}),
             }
         )
-
         if(response.status === 200){
              let body = await response.text()
-             console.log(body)
+             sessionStorage.setItem("Authorization", body)
+             return "SUCCESS"
         }
-        return response.status
-        
+        if(response.status === 401){
+            return "INVALID_USER_OR_PASSWORD"
+        }
     } catch(e){
-        return 500
     }
+    return "ERROR"
 }

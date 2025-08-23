@@ -1,0 +1,15 @@
+.form label, .form input, .form button{
+    display: block;
+}
+
+.link{
+    aspect-ratio : 1 / 1;
+    height:30vh;
+    margin: 5vh 5vw;
+    display: block;
+    background-color: red;
+    font-size: 3vw;
+    display:flex;
+    justify-content: center;
+    align-items: center;
+}

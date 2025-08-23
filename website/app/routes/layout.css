@@ -1,0 +1,27 @@
+body, html{
+    height:100vh;
+    margin: 0;
+    padding: 0;
+}
+
+header{
+    height: 4vh;
+    background-color: blue;
+    font-size: 3vh;
+    padding: 3vh 0;
+    text-align: center;
+}
+
+footer{
+    height:10%;
+    background-color: purple;
+}
+
+#container{
+    background-color: aqua;
+    height: 70%;
+    padding: 5vh 5vw;
+    display: flex;
+    justify-content: space-evenly;
+    align-items: flex-start;
+}
