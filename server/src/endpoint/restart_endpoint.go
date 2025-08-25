@@ -8,20 +8,21 @@ import (
 
 // Endpoint used by ft tests to shutdown application and force it to be restarted
 type RestartEndpoint struct {
+	restart bool
 }
 
 func NewRestartEndpoint() RestartEndpoint {
-	return RestartEndpoint{}
+	return RestartEndpoint{restart: false}
 }
 
-func (*RestartEndpoint) Post(c *gin.Context) {
-	go func() {
-		<-c.Request.Context().Done()
-		os.Exit(0)
-	}()
+func (re *RestartEndpoint) Post(c *gin.Context) {
+	re.restart = true
 	c.Status(200)
 }
 
-func (*RestartEndpoint) Head(c *gin.Context) {
+func (re *RestartEndpoint) Head(c *gin.Context) {
+	if re.restart {
+		os.Exit(0)
+	}
 	c.Status(200)
 }
