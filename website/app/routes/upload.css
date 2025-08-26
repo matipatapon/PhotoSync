@@ -1,0 +1,9 @@
+.upload{
+    height: 40vh;
+    aspect-ratio: 1;
+    background-color: blueviolet;
+}
+
+.upload_over{
+    background-color: yellow;
+}
