@@ -12,16 +12,7 @@ header{
     text-align: center;
 }
 
-footer{
-    height:10%;
-    background-color: purple;
-}
-
 #container{
     background-color: aqua;
-    height: 70%;
-    padding: 5vh 5vw;
-    display: flex;
-    justify-content: space-evenly;
-    align-items: flex-start;
+    height: 90%;
 }

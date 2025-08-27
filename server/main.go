@@ -71,6 +71,7 @@ func main() {
 
 	uploadEndpoint := endpoint.NewUploadEndpoint(db, &metadataExtractor, &hasher, &jwtManager)
 	router.POST("/v1/upload", uploadEndpoint.Post)
+	router.OPTIONS("/v1/upload", uploadEndpoint.Options)
 
 	fileDataEndpoint := endpoint.NewFileDataEndpoint(db, &jwtManager)
 	router.GET("/v1/file_data", fileDataEndpoint.Get)

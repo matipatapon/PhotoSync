@@ -12,7 +12,6 @@ export default function Layout(){
                 <div id="container">
                     <Outlet/>
                 </div>
-                <footer></footer>
             </body>
         </html>
     )

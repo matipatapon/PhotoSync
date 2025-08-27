@@ -32,6 +32,13 @@ func NewUploadEndpoint(db database.IDataBase, me metadata.IMetadataExtractor, h 
 	}
 }
 
+// TODO not tested
+func (ue *UploadEndpoint) Options(c *gin.Context) {
+	c.Header("Access-Control-Allow-Headers", "Authorization")
+	c.Header("Access-Control-Allow-Methods", "POST")
+	c.Status(200)
+}
+
 func (ue *UploadEndpoint) Post(c *gin.Context) {
 	jwt, err := ue.authorize(c)
 	if err != nil {
