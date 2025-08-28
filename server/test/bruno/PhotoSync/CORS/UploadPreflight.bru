@@ -1,0 +1,21 @@
+meta {
+  name: UploadPreflight
+  type: http
+  seq: 1
+}
+
+options {
+  url: {{HOST}}/upload
+  body: none
+  auth: inherit
+}
+
+assert {
+  res.headers["access-control-allow-headers"]: eq Authorization
+  res.headers["access-control-allow-methods"]: eq POST
+  res.headers["access-control-allow-origin"]: eq {{ALLOWED_ORIGIN}}
+}
+
+settings {
+  encodeUrl: true
+}

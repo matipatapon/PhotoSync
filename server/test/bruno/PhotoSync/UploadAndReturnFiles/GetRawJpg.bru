@@ -22,6 +22,7 @@ assert {
   res.status: eq 200
   res.body.length: eq 2356
   res.headers["content-type"]: eq image/jpeg
+  res.headers["access-control-allow-origin"]: eq {{ALLOWED_ORIGIN}}
 }
 
 tests {

@@ -16,6 +16,41 @@ import (
 	"testing"
 )
 
+func TestUploadEndpointShouldReturnProperHeadersDuringPreflight(t *testing.T) {
+	databaseMock := mock.NewDatabaseMock(t)
+	defer databaseMock.AssertAllExpectionsSatisfied()
+
+	metadataExtractorMock := mock.NewMetadataExtractorMock(t)
+	defer metadataExtractorMock.AssertAllExpectionsSatisfied()
+
+	hasherMock := mock.NewHasherMock(t)
+	defer hasherMock.AssertAllExpectionsSatisfied()
+
+	jwtManagerMock := mock.NewJwtManagerMock(t)
+	defer jwtManagerMock.AssertAllExpectionsSatisfied()
+
+	sut := endpoint.NewUploadEndpoint(&databaseMock, &metadataExtractorMock, &hasherMock, &jwtManagerMock)
+
+	request := httptest.NewRequest(http.MethodOptions, "/", io.NopCloser(bytes.NewReader([]byte{})))
+	router, responseRecorder := prepareGin()
+	router.OPTIONS("/", sut.Options)
+	router.ServeHTTP(responseRecorder, request)
+
+	if responseRecorder.Code != 200 {
+		t.Error(responseRecorder.Code)
+	}
+	if responseRecorder.Body.String() != "" {
+		fmt.Print("Expected body to be empty")
+		t.FailNow()
+	}
+	if responseRecorder.Result().Header.Get("Access-Control-Allow-Headers") != "Authorization" {
+		t.Error("Missing/Invalid 'Access-Control-Allow-Headers'")
+	}
+	if responseRecorder.Result().Header.Get("Access-Control-Allow-Methods") != "POST" {
+		t.Error("Missing/Invalid 'Access-Control-Allow-Methods'")
+	}
+}
+
 var UPLOAD_SQL string = "INSERT INTO files(user_id, creation_date, filename, mime_type, file, hash, size) VALUES($1, TO_TIMESTAMP($2, 'YYYY.MM.DD HH24:MI:SS'), $3, $4, $5, $6, $7) RETURNING id"
 
 func createRequest(fields map[string][]byte, token string) *http.Request {

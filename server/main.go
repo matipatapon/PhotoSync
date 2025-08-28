@@ -42,6 +42,17 @@ func runTLSIfEnabled(router *gin.Engine, envGetter helper.IEnvGetter) {
 	}
 }
 
+func includeAllowedOriginInResponses(router *gin.Engine, envGetter helper.IEnvGetter) {
+	allowedOrigin := envGetter.Get("ALLOWED_ORIGIN")
+	if allowedOrigin == "" {
+		panic(fmt.Errorf("'ALLOWED_ORIGIN' not specified"))
+	}
+
+	router.Use(func(c *gin.Context) {
+		c.Header("Access-Control-Allow-Origin", allowedOrigin)
+	})
+}
+
 func main() {
 	envGetter := helper.NewEnvGetter()
 	db, err := database.NewPostgresDataBase(&envGetter)
@@ -58,10 +69,7 @@ func main() {
 
 	router := gin.Default()
 
-	// TODO include it in FTies
-	router.Use(func(c *gin.Context) {
-		c.Header("Access-Control-Allow-Origin", "*")
-	})
+	includeAllowedOriginInResponses(router, &envGetter)
 
 	registerEndpoint := endpoint.NewRegisterEndpoint(db, passwordFacade)
 	router.POST("/v1/register", registerEndpoint.Post)

@@ -21,6 +21,7 @@ headers {
 
 assert {
   res.status: eq 200
+  res.headers["access-control-allow-origin"]: eq {{ALLOWED_ORIGIN}}
 }
 
 tests {

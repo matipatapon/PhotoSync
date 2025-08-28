@@ -23,6 +23,7 @@ body:multipart-form {
 assert {
   res.status: eq 200
   res.body: eq 1
+  res.headers["access-control-allow-origin"]: eq {{ALLOWED_ORIGIN}}
 }
 
 settings {

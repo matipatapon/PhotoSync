@@ -27,6 +27,12 @@ paths:
             text/plain:
               schema:
                 $ref: "#/components/schemas/JWT"
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: string
+                example: "'*', 'http://localhost:3200'"
+              description: allows web browser to share response with given origin
         "400":
           description: invalid request
         "401":
@@ -47,6 +53,12 @@ paths:
       responses:
         "200":
           description: user successfully registered
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: string
+                example: "'*', 'http://localhost:3200'"
+              description: allows web browser to share response with given origin
         "400":
           description: invalid request
         "401":
@@ -94,6 +106,12 @@ paths:
                 type: integer
                 description: id of the photo
                 example: 102
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: string
+                example: "'*', 'http://localhost:3200'"
+              description: allows web browser to share response with given origin
         "400":
           description: invalid request
         "401":
@@ -104,6 +122,27 @@ paths:
           description: token expired or is invalid
         "500":
           description: server error
+    options:
+      summary: used by web browser during preflight to determine for which API allows
+      responses:
+        "200":
+          description: "allows web browser for CORS request"
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: string
+                example: "'*', 'http://localhost:3200'"
+              description: allows web browser to share response with given origin
+            Access-Control-Allow-Headers:
+              schema:
+                type: string
+                example: "Authorization"
+              description: allows web browser to include 'Authorization' header
+            Access-Control-Allow-Methods:
+              schema:
+                type: string
+                example: "POST"
+              description: allows web browser for POST request
   /file_data:
     get:
       summary: |
@@ -153,6 +192,12 @@ paths:
                       type: string
                       description: size of the file in bytes
                       example: "2520424"
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: string
+                example: "'*', 'http://localhost:3200'"
+              description: allows web browser to share response with given origin
         "400":
           description: bad request
         "403":
@@ -181,6 +226,12 @@ paths:
                 type: string
                 description: file
                 format: binary
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: string
+                example: "'*', 'http://localhost:3200'"
+              description: allows web browser to share response with given origin
         "400":
           description: bad request
         "403":
@@ -204,6 +255,12 @@ paths:
       responses:
         "200":
           description: file successfully removed
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: string
+                example: "'*', 'http://localhost:3200'"
+              description: allows web browser to share response with given origin
         "400":
           description: bad request
         "403":

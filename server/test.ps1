@@ -16,6 +16,7 @@ $Env:PGPASSWORD = "postgres"
 $Env:TLS_ENABLED = "false"
 $Env:CERT_PATH = ""
 $Env:CERT_PRIVATE_KEY_PATH = ""
+$Env:ALLOWED_ORIGIN = "*"
 
 function UnitTests(){
     psql --version

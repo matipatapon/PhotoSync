@@ -32,7 +32,6 @@ func NewUploadEndpoint(db database.IDataBase, me metadata.IMetadataExtractor, h 
 	}
 }
 
-// TODO not tested
 func (ue *UploadEndpoint) Options(c *gin.Context) {
 	c.Header("Access-Control-Allow-Headers", "Authorization")
 	c.Header("Access-Control-Allow-Methods", "POST")

@@ -1,7 +1,7 @@
 meta {
-  name: UploadXmpJpg
+  name: UploadRawJpg
   type: http
-  seq: 6
+  seq: 7
 }
 
 post {
@@ -15,14 +15,15 @@ headers {
 }
 
 body:multipart-form {
-  filename: xmp.jpg
-  modification_date: 2025.07.05 12:32:59
-  file: @file(../../images/xmp.jpg)
+  filename: raw.jpg
+  modification_date: 2025.08.11 15:40:00
+  file: @file(../../images/raw.jpg)
 }
 
 assert {
   res.status: eq 200
-  res.body: eq 3
+  res.body: eq 4
+  res.headers["access-control-allow-origin"]: eq {{ALLOWED_ORIGIN}}
 }
 
 settings {
