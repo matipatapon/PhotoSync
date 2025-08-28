@@ -1,5 +1,5 @@
 meta {
-  name: NotAllowUploadWhenTokenIsInvalid
+  name: UploadUserAFile
   type: http
   seq: 6
 }
@@ -11,18 +11,18 @@ post {
 }
 
 headers {
-  Authorization: {{INVALID_TOKEN}}
+  Authorization: {{TOKENA}}
 }
 
 body:multipart-form {
-  filename: raw.jpg
+  filename: exif.jpg
   modification_date: 2025.08.11 15:40:00
-  file: @file(../../images/raw.jpg)
+  file: @file(../../images/exif.jpg)
 }
 
 assert {
-  res.status: eq 403
-  res.body: eq
+  res.status: eq 200
+  res.body: eq 1
 }
 
 settings {

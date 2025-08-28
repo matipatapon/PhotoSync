@@ -1,0 +1,28 @@
+meta {
+  name: NotAllowToRemoveFileWhenTokenIsInvalid
+  type: http
+  seq: 8
+}
+
+delete {
+  url: {{HOST}}/file?id=2
+  body: none
+  auth: inherit
+}
+
+params:query {
+  id: 2
+}
+
+headers {
+  Authorization: {{INVALID_TOKEN}}
+}
+
+assert {
+  res.status: eq 403
+  res.body: eq
+}
+
+settings {
+  encodeUrl: true
+}

@@ -88,8 +88,6 @@ func main() {
 	router.GET("/v1/file", fileEndpoint.Get)
 	router.DELETE("/v1/file", fileEndpoint.Delete)
 
-	// TODO more FTies for delete !!!!
-
 	if len(os.Args) == 2 && os.Args[1] == "--testing" {
 		restartEndpoint := endpoint.NewRestartEndpoint()
 		router.POST("/v1/restart", restartEndpoint.Post)

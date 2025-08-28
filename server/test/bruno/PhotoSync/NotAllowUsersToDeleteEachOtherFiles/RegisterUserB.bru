@@ -1,0 +1,21 @@
+meta {
+  name: RegisterUserB
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{HOST}}/register
+  body: json
+  auth: inherit
+}
+
+assert {
+  res.status: eq 200
+  res.body: eq ""
+}
+
+script:pre-request {
+  req.setBody(`{"username": "${bru.getCollectionVar("USERNAME2")}", "password": "${bru.getCollectionVar("PASSWORD2")}"}`)
+  
+}
