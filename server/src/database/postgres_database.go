@@ -17,8 +17,6 @@ var logger *log.Logger = log.New(os.Stdout, "[PostgresDataBase]: ", log.LstdFlag
 
 var TIMEOUT time.Duration = time.Second * 30
 
-// PostgresDataBase struct implements IDataBase interface.
-// It handles connection with PostgreSQL database.
 type PostgresDataBase struct {
 	db       string
 	user     string
@@ -27,7 +25,6 @@ type PostgresDataBase struct {
 	port     int
 }
 
-// NewPostgresDataBase function creates PostgresDataBase.
 func NewPostgresDataBase(
 	getter helper.IEnvGetter) (*PostgresDataBase, error) {
 
@@ -103,10 +100,6 @@ func (dbw PostgresDataBase) DropDb() error {
 	return err
 }
 
-// Execute method overrides IDataBase.Query.
-// Error will be returned when:
-//   - Connection to db cannot be established
-//   - PostgreSQL database will return error when processing query
 func (dbw PostgresDataBase) Execute(sql string, args ...any) error {
 	ctx, cancel := context.WithTimeout(context.Background(), TIMEOUT)
 	defer cancel()
@@ -128,10 +121,6 @@ func (dbw PostgresDataBase) Execute(sql string, args ...any) error {
 	return err
 }
 
-// Query method overrides IDataBase.Query.
-// Error will be returned when:
-//   - Connection to db cannot be established
-//   - PostgreSQL database will return error when processing query
 func (dbw PostgresDataBase) Query(sql string, args ...any) ([][]any, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), TIMEOUT)
 	defer cancel()
