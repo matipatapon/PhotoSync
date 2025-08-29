@@ -31,29 +31,29 @@ type PostgresDataBase struct {
 func NewPostgresDataBase(
 	getter helper.IEnvGetter) (*PostgresDataBase, error) {
 
-	db := getter.Get("PGDB")
+	db := getter.Get("DATABASE")
 	if db == "" {
-		return nil, errors.New("env 'PGDB' is missing")
+		return nil, errors.New("env 'DATABASE' is missing")
 	}
 
-	user := getter.Get("PGUSER")
+	user := getter.Get("DATABASE_USER")
 	if user == "" {
-		return nil, errors.New("env 'PGUSER' is missing")
+		return nil, errors.New("env 'DATABASE_USER' is missing")
 	}
 
-	password := getter.Get("PGPASSWORD")
+	password := getter.Get("DATABASE_PASSWORD")
 	if password == "" {
-		return nil, errors.New("env 'PGPASSWORD' is missing")
+		return nil, errors.New("env 'DATABASE_PASSWORD' is missing")
 	}
 
-	address := getter.Get("PGIP")
+	address := getter.Get("DATABASE_IP")
 	if address == "" {
-		return nil, errors.New("env 'PGIP' is missing")
+		return nil, errors.New("env 'DATABASE_IP' is missing")
 	}
 
-	portRaw := getter.Get("PGPORT")
+	portRaw := getter.Get("DATABASE_PORT")
 	if portRaw == "" {
-		return nil, errors.New("env 'PGPORT' is missing")
+		return nil, errors.New("env 'DATABASE_PORT' is missing")
 	}
 
 	port, err := strconv.ParseInt(portRaw, 10, 32)

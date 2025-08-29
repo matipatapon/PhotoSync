@@ -3,7 +3,6 @@ package main
 import (
 	"errors"
 	"fmt"
-	"os"
 	"path"
 	"photosync/src/database"
 	"photosync/src/endpoint"
@@ -93,9 +92,12 @@ func main() {
 	router.GET("/v1/file", fileEndpoint.Get)
 	router.DELETE("/v1/file", fileEndpoint.Delete)
 
-	if len(os.Args) == 2 && os.Args[1] == "--testing" {
+	testing := envGetter.Get("TESTING")
+	if testing == "true" {
 		restartEndpoint := endpoint.NewRestartEndpoint(db)
 		router.POST("/v1/restart", restartEndpoint.Post)
+	} else if testing != "false" {
+		panic(errors.New("'TESTING' has invalid value"))
 	}
 
 	runTLSIfEnabled(router, &envGetter)
