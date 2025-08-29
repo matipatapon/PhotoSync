@@ -269,6 +269,23 @@ paths:
           description: file with given id not found
         "500":
           description: server error
+  /restart:
+    post:
+      summary: |
+        Clears entire database.
+        This endpoint is used only for testing purposes.
+        It can be enabled with '--testing' flag.
+      responses:
+        "200":
+          description: "database got successfully cleared"
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: string
+                example: "'*', 'http://localhost:3200'"
+              description: allows web browser to share response with given origin
+        "500":
+          description: "failed to clear database"
 components:
   schemas:
     UserCredentials:
