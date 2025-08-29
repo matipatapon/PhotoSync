@@ -15,11 +15,37 @@ type DatabaseMock struct {
 	expectedExecuteErrors helper.List[error]
 	expectedExecuteSQLs   helper.List[string]
 	expectedExecuteArgs   helper.List[[]any]
+	expectedDropDbErrors  helper.List[error]
+	expectedInitDbErrors  helper.List[error]
 	t                     *testing.T
 }
 
 func NewDatabaseMock(t *testing.T) DatabaseMock {
 	return DatabaseMock{t: t}
+}
+
+func (dbm *DatabaseMock) ExpectDropDb(err error) {
+	dbm.expectedDropDbErrors.Append(err)
+}
+
+func (dbm *DatabaseMock) ExpectInitDb(err error) {
+	dbm.expectedInitDbErrors.Append(err)
+}
+
+func (dbm *DatabaseMock) DropDb() error {
+	if dbm.expectedDropDbErrors.Length() == 0 {
+		fmt.Println("Unexpected DropDb!")
+		dbm.t.FailNow()
+	}
+	return dbm.expectedDropDbErrors.PopFirst()
+}
+
+func (dbm *DatabaseMock) InitDb() error {
+	if dbm.expectedInitDbErrors.Length() == 0 {
+		fmt.Println("Unexpected InitDb!")
+		dbm.t.FailNow()
+	}
+	return dbm.expectedInitDbErrors.PopFirst()
 }
 
 func (dbm *DatabaseMock) ExpectQuery(sql string, result [][]any, args []any, err error) {
@@ -36,7 +62,10 @@ func (dbm *DatabaseMock) ExpectExecute(sql string, args []any, err error) {
 }
 
 func (dbm *DatabaseMock) AssertAllExpectionsSatisfied() {
-	if dbm.expectedQuerySQLs.Length() != 0 || dbm.expectedExecuteSQLs.Length() != 0 {
+	if dbm.expectedQuerySQLs.Length() != 0 ||
+		dbm.expectedExecuteSQLs.Length() != 0 ||
+		dbm.expectedDropDbErrors.Length() != 0 ||
+		dbm.expectedInitDbErrors.Length() != 0 {
 		fmt.Println("Not all expects satisfied!")
 		dbm.t.FailNow()
 	}

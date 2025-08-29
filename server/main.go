@@ -57,6 +57,11 @@ func main() {
 	envGetter := helper.NewEnvGetter()
 	db, err := database.NewPostgresDataBase(&envGetter)
 	if err != nil {
+		panic(fmt.Errorf("error during database creation: '%s'", err.Error()))
+	}
+
+	err = db.InitDb()
+	if err != nil {
 		panic(fmt.Errorf("error during database initialization: '%s'", err.Error()))
 	}
 
@@ -89,9 +94,8 @@ func main() {
 	router.DELETE("/v1/file", fileEndpoint.Delete)
 
 	if len(os.Args) == 2 && os.Args[1] == "--testing" {
-		restartEndpoint := endpoint.NewRestartEndpoint()
+		restartEndpoint := endpoint.NewRestartEndpoint(db)
 		router.POST("/v1/restart", restartEndpoint.Post)
-		router.HEAD("/v1/restart", restartEndpoint.Head)
 	}
 
 	runTLSIfEnabled(router, &envGetter)

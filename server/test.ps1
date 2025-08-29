@@ -18,27 +18,13 @@ $Env:CERT_PATH = ""
 $Env:CERT_PRIVATE_KEY_PATH = ""
 $Env:ALLOWED_ORIGIN = "*"
 
-function UnitTests(){
-    psql --version
-    if($LASTEXITCODE -ne 0){
-        "psql not installed"
-        exit 1
-    }
-    
-    psql -U $Env:PGUSER -d $Env:PGDB -a -f ./test/init_ut.sql
-    if($LASTEXITCODE -ne 0){
-        "failed to initialize database"
-        exit 1
-    }
-    
+function UnitTests(){    
     go clean -testcache
     if($LASTEXITCODE -ne 0){
         "failed to clean cache"
         exit 1
     }
     
-    Clear-Host
-    "please wait ..."
     go test -v ./src/$package -run $test
     if($LASTEXITCODE -ne 0){
         "uties failed"
@@ -47,16 +33,7 @@ function UnitTests(){
 }
 
 function FunctionalTests(){
-    do {
-        psql -U $Env:PGUSER -d $Env:PGDB -a -f ./test/init_ft.sql
-        if($LASTEXITCODE -ne 0){
-            "failed to initialize database"
-            exit 1
-        }
-        Clear-Host
-
-        go run .\main.go --testing
-    } while(1)
+    go run .\main.go --testing
 }
 
 if($type -eq "ut" -or $type -eq "all"){

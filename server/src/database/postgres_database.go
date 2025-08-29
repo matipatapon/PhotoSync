@@ -64,6 +64,45 @@ func NewPostgresDataBase(
 	return &PostgresDataBase{db, user, password, address, int(port)}, nil
 }
 
+func (dbw PostgresDataBase) InitDb() error {
+	err := dbw.Execute(`
+		CREATE TABLE IF NOT EXISTS users(
+			id bigserial,
+			username text NOT NULL,
+			password text NOT NULL,
+			PRIMARY KEY (id),
+			CONSTRAINT "username is unique" UNIQUE (username)
+		);
+		CREATE TABLE IF NOT EXISTS files(
+			id bigserial,
+			user_id bigint REFERENCES users(id) NOT NULL,
+			creation_date timestamp NOT NULL,
+			filename text NOT NULL,
+			mime_type smallint NOT NULL,
+			file bytea NOT NULL,
+			hash text NOT NULL,
+			size bigint NOT NULL,
+			PRIMARY KEY (id),
+			CONSTRAINT "file is unique" UNIQUE (user_id, hash, size)
+		);
+	`)
+	if err != nil {
+		logger.Printf("Failed to initialize db: '%s'", err.Error())
+	}
+	return err
+}
+
+func (dbw PostgresDataBase) DropDb() error {
+	err := dbw.Execute(`
+		DROP TABLE files;
+		DROP TABLE users;
+	`)
+	if err != nil {
+		logger.Printf("Failed to drop db: '%s'", err.Error())
+	}
+	return err
+}
+
 // Execute method overrides IDataBase.Query.
 // Error will be returned when:
 //   - Connection to db cannot be established
