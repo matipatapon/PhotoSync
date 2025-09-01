@@ -9,9 +9,7 @@ export default function Layout(){
             </head>
             <body>
                 <header>PhotoSync</header>
-                <div id="container">
-                    <Outlet/>
-                </div>
+                <Outlet/>
             </body>
         </html>
     )

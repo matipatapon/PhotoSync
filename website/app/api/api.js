@@ -76,14 +76,14 @@ export async function uploadPhoto(file){
     formData.append("file", file)
     formData.append("filename", file.name)
     formData.append("modification_date", "2025.05.16 16:30:12")
-    sessionStorage.getItem("Authorization")
+    
     try{
         let response = await fetch(
             getApiUrl("upload"),
             {
                 method: "POST",
                 headers: {
-                    "Authorization": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHBpcmF0aW9uX3RpbWUiOiIxNzU2MzkyODI2IiwidXNlcl9pZCI6IjEiLCJ1c2VybmFtZSI6InVzZXIifQ.Hn_LMmxKTWGYVYZkaPcgBZogvIso2SiHd_C71xSkHso",
+                    "Authorization": sessionStorage.getItem("Authorization"),
                 },
                 body: formData,
             }

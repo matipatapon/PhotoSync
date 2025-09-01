@@ -1,5 +1,5 @@
-import { useFetcher , redirect} from "react-router";
-import { loginUser } from "../../api/api";
+import { useFetcher , redirect, Link} from "react-router";
+import { loginUser } from "../api/api";
 import './authentication.css'
 
 export async function clientAction({request}) {
@@ -10,7 +10,7 @@ export async function clientAction({request}) {
     let status = await loginUser(username, password)
 
     if(status === "SUCCESS"){
-        return redirect("/")
+        return redirect("/upload")
     }
 
     return {status: status}
@@ -32,16 +32,16 @@ export default function Login(){
     if(fetcher.data !== undefined){
         status = fetcher.data.status
     }
+    console.log(status)
     return (
-        <div className="form">
-            <fetcher.Form method="post" action="">
-                <label>Username</label>
-                <input type="text" name="username" disabled={!isIdle}/>
-                <label>Password</label>
-                <input type="password" name="password" disabled={!isIdle}/>
+        <div className="form_container">
+            <fetcher.Form className="form" method="post" action="">
+                <input type="text" name="username" placeholder="username" disabled={!isIdle}/>
+                <input type="password" name="password" placeholder="password" disabled={!isIdle}/>
                 <button type="submit" disabled={!isIdle}>Login</button>
             </fetcher.Form>
             <Message status={status}/>
+            <h3>Not have account? You can register <Link to={"/registration"}>here</Link></h3>
         </div>
     )
 }

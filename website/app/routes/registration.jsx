@@ -1,5 +1,5 @@
 import { Link , redirect, useFetcher} from "react-router";
-import { registerUser, loginUser} from "../../api/api"
+import { registerUser, loginUser} from "../api/api"
 import './authentication.css'
 
 export async function clientAction({request}) {
@@ -51,34 +51,26 @@ function Message({status}){
     return <h2>{msg}</h2>
 }
 
-function RegistrationForm({fetcher, status, state}){
-    let isIdle = state === "idle"
-    return (
-        <fetcher.Form method="post" action="">
-            <label>Username</label>
-            <input type="text" name="username" disabled={!isIdle}/>
-            <label>Password</label>
-            <input type="password" name="password" disabled={!isIdle}/>
-            <label>Password</label>
-            <input type="password" name="password_repeated" disabled={!isIdle}/>
-            <button type="submit" disabled={!isIdle}>Register</button>
-            <Message status={isIdle ? status : "WORKING"}/>
-        </fetcher.Form>
-    )
-}
-
 export default function Registration(){
     let fetcher = useFetcher()
     let username = undefined
     let status = undefined
     let state = fetcher.state
+    let isIdle = state === "idle"
     if(fetcher.data !== undefined){
         username = fetcher.data.username
         status = fetcher.data.status
     }
     return(
-        <div className="form">
-            <RegistrationForm fetcher={fetcher} status={status} state={state}/>
+        <div className="form_container">
+            <fetcher.Form className="form" method="post" action="">
+                <input type="text" name="username" disabled={!isIdle}/>
+                <input type="password" name="password" disabled={!isIdle}/>
+                <input type="password" name="password_repeated" disabled={!isIdle}/>
+                <button type="submit" disabled={!isIdle}>Register</button>
+            </fetcher.Form>
+            <Message status={isIdle ? status : "WORKING"}/>
+            <h3>Already have account? You can login <Link to={"/login"}>here</Link></h3>
         </div>
     )
 }

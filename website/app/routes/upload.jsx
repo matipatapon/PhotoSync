@@ -3,6 +3,23 @@ import { uploadPhoto } from '../api/api'
 
 import './upload.css'
 
+function traverseFileTree(item, path) {
+  path = path || "";
+  if (item.isFile) {
+    item.file(function(file) {
+      console.log("File:", path + file.name);
+    });
+  } else if (item.isDirectory) {
+    var dirReader = item.createReader();
+    dirReader.readEntries(function(entries) {
+      for (var i=0; i<entries.length; i++) {
+        traverseFileTree(entries[i], path + item.name + "/");
+      }
+    });
+  }
+}
+
+
 function Submit(setUploadState){
     return function(){
         setUploadState(true)
@@ -57,13 +74,17 @@ export default function Upload(){
     let dragCounter = useRef(0)
 
     function drop(event){
+        
         if(event.dataTransfer.files.length == 0){
-            return
+        }
+        for(const item of event.dataTransfer.items){
+            traverseFileTree(item.webkitGetAsEntry())
         }
         event.preventDefault()
-        setFilesKey(filesKey + 1)
-        setUploading(false)
-        setFiles(event.dataTransfer.files)
+        // 
+        // setFilesKey(filesKey + 1)
+        // setUploading(false)
+        // setFiles(event.dataTransfer.files)
     }
 
     function dragEnter(event){
@@ -85,6 +106,11 @@ export default function Upload(){
     }
 
     const classNames = `upload ${areFilesDraggedOver ? "upload_files_over": ""}`
+    return <div className='upload_container'>
+        <div className='upload' onDrop={drop} onDragOver={dragOver}>
+            <input type='file' multiple={true}/>
+        </div>
+    </div>
     return <div className={classNames} onDrop={drop} onDragOver={dragOver} onDragEnter={dragEnter} onDragLeave={dragLeave}>
                 <Files key={filesKey} files={files} uploading={uploading}/>
                 <div className="submit" onClick={Submit(setUploading)}>Submit</div>
