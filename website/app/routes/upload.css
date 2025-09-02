@@ -1,18 +1,54 @@
-.upload_container{
-    background-color: blueviolet;
+
+.upload_container .button{
+    background-color: red;
+    display: inline-block;
+    position: absolute;
+    bottom: 30px;
+    width:20%;
+    padding:10px;
     text-align: center;
+    box-sizing: border-box;
 }
 
-.upload{
-    margin-top: 5%;
+.upload_container #upload{
+    left: 20%;
+}
+
+.upload_container #clear{
+    left:60%;
+}
+
+.upload_container input{
+    display:none;
+}
+
+.upload_container h2{
+    text-align: center;
+    margin: 0;
+}
+
+.upload_container label{
+    display: block;
+    position: absolute;
+    bottom:30px;
+    left:calc(40%);
+    text-align: center;
+    width: calc(20%);
+    background-color: azure;
+    padding:10px;
+    box-sizing: border-box;
+}
+
+.upload_container{
     min-width: 200px;
     min-height: 200px;
-    aspect-ratio: 1;
-    display: inline-block;
+    margin: 50px auto;
+    margin-bottom: 0;
     width:25%;
     padding:10px;
     border-radius: 5px;
     background-color: yellow;
+    position: relative;
 }
 
 .upload_files_over{

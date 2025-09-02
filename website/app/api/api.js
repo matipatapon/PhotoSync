@@ -76,7 +76,6 @@ export async function uploadPhoto(file){
     formData.append("file", file)
     formData.append("filename", file.name)
     formData.append("modification_date", "2025.05.16 16:30:12")
-    
     try{
         let response = await fetch(
             getApiUrl("upload"),
@@ -89,9 +88,17 @@ export async function uploadPhoto(file){
             }
         )
         if(response.status === 200){
-             let body = await response.text()
-             sessionStorage.setItem("Authorization", body)
+             let file_id = await response.text()
              return "SUCCESS"
+        }
+        if(response.status === 401){
+            return "UNSUPPORTED"
+        }
+        if(response.status === 402){
+            return "ALREADY_EXISTS"
+        }
+        if(response.status === 403){
+            return "TOKEN_EXPIRED"
         }
     } catch(e){
     }
