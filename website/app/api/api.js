@@ -76,13 +76,19 @@ export async function uploadPhoto(file){
     formData.append("file", file)
     formData.append("filename", file.name)
     formData.append("modification_date", "2025.05.16 16:30:12")
+
+    const token = sessionStorage.getItem("Authorization")
+    if(token === null){
+        return "NOT_LOGGED_IN"
+    }
+
     try{
         let response = await fetch(
             getApiUrl("upload"),
             {
                 method: "POST",
                 headers: {
-                    "Authorization": sessionStorage.getItem("Authorization"),
+                    "Authorization": token,
                 },
                 body: formData,
             }

@@ -7,14 +7,13 @@ function File(file, path){
     this.path = path
 }
 
-function getFilesFromItems(items, setFiles){
-    let files = []
+function getFilesFromItems(items, output, callback){
     let pendingFileCount = 0
     let pendingDirs = 0
 
     let setFilesIfAllFilesGathered = () => {
         if(pendingDirs == 0 && pendingFileCount == 0){
-            setFiles(files)
+            callback()
         }
     }
 
@@ -22,7 +21,7 @@ function getFilesFromItems(items, setFiles){
         if(item.isFile){
             pendingFileCount += 1
             item.file((f) => {
-                files.push(new File(f, path))
+                output.push(new File(f, path))
                 pendingFileCount -= 1
                 setFilesIfAllFilesGathered();
             })
@@ -49,54 +48,80 @@ function getFilesFromItems(items, setFiles){
     setFilesIfAllFilesGathered()
 }
 
-function FileSelector({setFiles, setLoading}){
-    function drop(event){
-        event.preventDefault()
-        setLoading(true)
-        getFilesFromItems(event.dataTransfer.items, setFiles)
-    }
+
+export default function Upload(){
+    let files = useRef([])
+    let [stage, setStage] = useState("SELECT")
+    let [uploadedCount, setUploadedCount] = useState(0)
+
+    useEffect(
+        () => {
+            async function upload() {
+                if(stage !== "UPLOAD"){
+                    return
+                }
+                const status = await uploadPhoto(files.current[uploadedCount].file)
+                if(status === "SUCCESS"){
+                    if(uploadedCount + 1 < files.current.length){
+                        setUploadedCount(uploadedCount + 1)
+                        
+                    } else{
+                        setStage("FINISH")
+                    }
+                } else {
+                    setUploadedCount(uploadedCount + 1)
+                }
+            }
+            upload()
+        }
+        ,
+        [stage, uploadedCount])
 
     function dragOver(event) {
         event.preventDefault()
+        
     }
 
-    function filesSelected(event){
-        setFiles(event.currentTarget.files)
+    function drop(event){
+        event.preventDefault()
+        if(stage === "SELECT"){
+            getFilesFromItems(event.dataTransfer.items, files.current, () => setStage("OPTIONS"))
+            setStage("LOAD")
+        }
     }
 
-    return  <div className='upload_container' onDrop={drop} onDragOver={dragOver}>
+    let outlet
+    if(stage === "SELECT"){
+        outlet = <>
                 <h2>Drop or select files</h2>
                 <label htmlFor="file_upload">Select</label>
-                <input id="file_upload" type='file' multiple={true} onChange={filesSelected}/>
-            </div>
-}
-
-function FileUploader({setFiles, files}){
-    return <div className='upload_container'>
-        <h2>{files.length} files selected</h2>
-        <div id='upload' className='button'>Upload</div>
-        <div id='clear' className='button' onClick={() => setFiles([])}>Clear</div>
-    </div>
-}
-
-function FileLoader(){
-    return <div className='upload_container'>
-        <h2>Please wait...</h2>
-    </div>
-}
-
-export default function Upload(){
-    let [files, setFiles] = useState([])
-    let [loading, setLoading] = useState(false)
-    let setFilesWrapper = (files) => {
-        setFiles(files)
-        setLoading(false)
+                <input id="file_upload" type='file' multiple={true} onChange={(event) => {files.current = event.currentTarget.files ; setStage("OPTIONS")}}/>
+        </>
     }
-    if(loading){
-        return <FileLoader/>
+    if(stage === "LOAD"){
+        outlet = <h2>Please wait...</h2>
     }
-    if(files.length == 0){
-        return <FileSelector setFiles={setFilesWrapper} setLoading={setLoading}/>
+    if(stage === "OPTIONS"){
+        outlet = <>
+                <h2>{files.current.length} files selected</h2>
+                <div id='upload' className='button' onClick={() => {uploadedCount = 0 ; setStage("UPLOAD")}}>Upload</div>
+                <div id='clear' className='button' onClick={() => {files.current=[] ; setStage("SELECT")}}>Clear</div>
+        </>
     }
-    return <FileUploader setFiles={setFiles} files={files}/>
+    if(stage === "UPLOAD"){
+        outlet = <>
+                    <div className='upload_container'>
+                    <h2>Uploaded {uploadedCount}/{files.current.length}</h2>
+                    </div>
+        </>
+    }
+    if(stage === "FINISH"){
+        outlet = <h3>finished</h3>
+    }
+    if(stage === "ERROR"){
+        outlet = <h3>Something went wrong</h3>
+    }
+        return <div className='upload_container' onDragOver={dragOver} onDrop={drop}>
+            {outlet}
+        </div>
 }

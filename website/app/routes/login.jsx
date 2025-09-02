@@ -32,7 +32,6 @@ export default function Login(){
     if(fetcher.data !== undefined){
         status = fetcher.data.status
     }
-    console.log(status)
     return (
         <div className="form_container">
             <fetcher.Form className="form" method="post" action="">
