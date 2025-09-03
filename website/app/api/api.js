@@ -19,7 +19,6 @@ function validatePassword(password){
 }
 
 export async function registerUser(username, password){
-    // await new Promise(r => setTimeout(r, 2000));
     let userStatus = validateUsername(username)
     if(userStatus !== "OK"){
         return userStatus
@@ -76,6 +75,7 @@ export async function uploadPhoto(file){
     formData.append("file", file)
     formData.append("filename", file.name)
     formData.append("modification_date", "2025.05.16 16:30:12")
+    // TODO FIX DATE
 
     const token = sessionStorage.getItem("Authorization")
     if(token === null){

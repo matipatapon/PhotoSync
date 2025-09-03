@@ -51,43 +51,65 @@ function getFilesFromItems(items, output, callback){
 
 export default function Upload(){
     let files = useRef([])
+    let errorMsg = useRef("")
+    let nameOfLastUploadedFile = useRef(null)
+
     let [stage, setStage] = useState("SELECT")
-    let [uploadedCount, setUploadedCount] = useState(0)
+    let [uploadedFileCount, setUploadedFileCount] = useState(0)
+
+    if(stage !== "UPLOAD" && uploadedFileCount !== 0)
+    {
+        setUploadedFileCount(0)
+    }
 
     useEffect(
         () => {
-            async function upload() {
-                if(stage !== "UPLOAD"){
-                    return
-                }
-                const status = await uploadPhoto(files.current[uploadedCount].file)
-                if(status === "SUCCESS"){
-                    if(uploadedCount + 1 < files.current.length){
-                        setUploadedCount(uploadedCount + 1)
-                        
-                    } else{
-                        setStage("FINISH")
+            if(stage === "UPLOAD")
+            {
+                async function upload(){
+                    const file = files.current[uploadedFileCount]
+                    const status = await uploadPhoto(file.file)
+                    if(status === "SUCCESS" || status === "ALREADY_EXISTS")
+                    {
+                        nameOfLastUploadedFile.current = file.path + file.file.name
+                        if(uploadedFileCount + 1 === files.current.length)
+                        {
+                            setStage("FINISH")
+                        }
+                        setUploadedFileCount(uploadedFileCount + 1)
                     }
-                } else {
-                    setUploadedCount(uploadedCount + 1)
+                    else
+                    {
+                        if(status === "NOT_LOGGED_IN")
+                        {
+                            errorMsg.current = "You need to login to upload files"
+                        }
+                        else if(status === "UNSUPPORTED")
+                        {
+                            errorMsg.current = `${file.path}${file.file.name} has unsupported type`
+                        }
+                        else if(status === "TOKEN_EXPIRED")
+                        {
+                            errorMsg.current = `Your session has expired`
+                        }
+                        else
+                        {
+                            errorMsg.current = "Error"
+                        }
+                        setStage("ERROR")
+                    }
                 }
+                upload()
             }
-            upload()
-        }
-        ,
-        [stage, uploadedCount])
+        }, [stage, uploadedFileCount])
 
-    function dragOver(event) {
-        event.preventDefault()
-        
-    }
-
-    function drop(event){
-        event.preventDefault()
-        if(stage === "SELECT"){
-            getFilesFromItems(event.dataTransfer.items, files.current, () => setStage("OPTIONS"))
-            setStage("LOAD")
+    function select(event){
+        files.current = []
+        for(const file of event.currentTarget.files)
+        {
+            files.current.push(new File(file, ""))
         }
+        setStage("OPTIONS")
     }
 
     let outlet
@@ -95,7 +117,7 @@ export default function Upload(){
         outlet = <>
                 <h2>Drop or select files</h2>
                 <label htmlFor="file_upload">Select</label>
-                <input id="file_upload" type='file' multiple={true} onChange={(event) => {files.current = event.currentTarget.files ; setStage("OPTIONS")}}/>
+                <input id="file_upload" type='file' multiple={true} onChange={select}/>
         </>
     }
     if(stage === "LOAD"){
@@ -104,24 +126,45 @@ export default function Upload(){
     if(stage === "OPTIONS"){
         outlet = <>
                 <h2>{files.current.length} files selected</h2>
-                <div id='upload' className='button' onClick={() => {uploadedCount = 0 ; setStage("UPLOAD")}}>Upload</div>
-                <div id='clear' className='button' onClick={() => {files.current=[] ; setStage("SELECT")}}>Clear</div>
+                <div id='upload' className='button' onClick={() => setStage("UPLOAD")}>Upload</div>
+                <div id='clear' className='button' onClick={() => setStage("SELECT")}>Clear</div>
         </>
     }
     if(stage === "UPLOAD"){
         outlet = <>
-                    <div className='upload_container'>
-                    <h2>Uploaded {uploadedCount}/{files.current.length}</h2>
-                    </div>
+                <h2>Uploaded {uploadedFileCount}/{files.current.length}</h2>
+                <h3>{nameOfLastUploadedFile.current}</h3>
         </>
     }
     if(stage === "FINISH"){
-        outlet = <h3>finished</h3>
+        outlet = <>
+        <h2>All files uploaded</h2>
+        <div className='button' onClick={() => setStage("SELECT")}>Ok</div>
+        </>
     }
     if(stage === "ERROR"){
-        outlet = <h3>Something went wrong</h3>
+        outlet = <>
+            <h2>{errorMsg.current}</h2>
+            <div className='button' onClick={() => setStage("SELECT")}>Ok</div>
+        </>
     }
-        return <div className='upload_container' onDragOver={dragOver} onDrop={drop}>
-            {outlet}
-        </div>
+
+    function dragOver(event) {
+        event.preventDefault()
+    }
+
+    function drop(event){
+        event.preventDefault()
+        if(stage === "SELECT"){
+            files.current = []
+            getFilesFromItems(event.dataTransfer.items, files.current, () => setStage("OPTIONS"))
+            setStage("LOAD")
+        }
+    }
+
+    return  <div className='upload_container'>
+                <div className='upload' onDragOver={dragOver} onDrop={drop}>
+                    {outlet}
+                </div>
+            </div>
 }

@@ -1,33 +1,38 @@
 
-.upload_container .button{
+.upload_container{
+    text-align: center;
+}
+
+.upload .button{
     background-color: red;
     display: inline-block;
     position: absolute;
     bottom: 30px;
     width:20%;
+    left:40%;
     padding:10px;
     text-align: center;
     box-sizing: border-box;
 }
 
-.upload_container #upload{
+.upload #upload{
     left: 20%;
 }
 
-.upload_container #clear{
+.upload #clear{
     left:60%;
 }
 
-.upload_container input{
+.upload input{
     display:none;
 }
 
-.upload_container h2{
+.upload h2{
     text-align: center;
     margin: 0;
 }
 
-.upload_container label{
+.upload label{
     display: block;
     position: absolute;
     bottom:30px;
@@ -39,13 +44,14 @@
     box-sizing: border-box;
 }
 
-.upload_container{
-    min-width: 200px;
-    min-height: 200px;
-    margin: 50px auto;
-    margin-bottom: 0;
-    width:25%;
-    padding:10px;
+.upload{
+    min-width: 300px;
+    min-height: 100px;
+    max-width: 80vw;
+    max-height: 60vh;
+    margin-top: 20vh;
+    display: inline-block;
+    padding: 50px;
     border-radius: 5px;
     background-color: yellow;
     position: relative;
