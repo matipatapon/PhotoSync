@@ -30,6 +30,12 @@ func NewFileDataEndpoint(db database.IDataBase, jm jwt.IJwtManager) FileDataEndp
 	return FileDataEndpoint{db: db, jm: jm, logger: log.New(os.Stdout, "[FileDataEndpoint]: ", log.LstdFlags)}
 }
 
+func (fe *FileDataEndpoint) Options(c *gin.Context) {
+	c.Header("Access-Control-Allow-Headers", "Authorization")
+	c.Header("Access-Control-Allow-Methods", "GET")
+	c.Status(200)
+}
+
 func (fe *FileDataEndpoint) Get(c *gin.Context) {
 	offset, err := strconv.ParseInt(c.Query("offset"), 10, 64)
 	if err != nil || offset < 0 {

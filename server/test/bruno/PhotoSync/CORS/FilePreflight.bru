@@ -1,0 +1,21 @@
+meta {
+  name: FilePreflight
+  type: http
+  seq: 3
+}
+
+options {
+  url: {{HOST}}/file
+  body: none
+  auth: inherit
+}
+
+assert {
+  res.headers["access-control-allow-headers"]: eq Authorization
+  res.headers["access-control-allow-methods"]: eq GET, DELETE
+  res.headers["access-control-allow-origin"]: eq {{ALLOWED_ORIGIN}}
+}
+
+settings {
+  encodeUrl: true
+}

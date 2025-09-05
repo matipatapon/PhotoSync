@@ -123,7 +123,7 @@ paths:
         "500":
           description: server error
     options:
-      summary: used by web browser during preflight to determine for which API allows
+      summary: used by web browser during preflight to determine for what API allows
       responses:
         "200":
           description: "allows web browser for CORS request"
@@ -204,6 +204,27 @@ paths:
           description: missing or invalid token
         "500":
           description: server error
+    options:
+      summary: used by web browser during preflight to determine for what API allows
+      responses:
+        "200":
+          description: "allows web browser for CORS request"
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: string
+                example: "'*', 'http://localhost:3200'"
+              description: allows web browser to share response with given origin
+            Access-Control-Allow-Headers:
+              schema:
+                type: string
+                example: "Authorization"
+              description: allows web browser to include 'Authorization' header
+            Access-Control-Allow-Methods:
+              schema:
+                type: string
+                example: "GET"
+              description: allows web browser for GET request
   /file:
     get:
       summary: returns file with given id
@@ -269,6 +290,27 @@ paths:
           description: file with given id not found
         "500":
           description: server error
+    options:
+      summary: used by web browser during preflight to determine for what API allows
+      responses:
+        "200":
+          description: "allows web browser for CORS request"
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: string
+                example: "'*', 'http://localhost:3200'"
+              description: allows web browser to share response with given origin
+            Access-Control-Allow-Headers:
+              schema:
+                type: string
+                example: "Authorization"
+              description: allows web browser to include 'Authorization' header
+            Access-Control-Allow-Methods:
+              schema:
+                type: string
+                example: "GET, DELETE"
+              description: allows web browser for GET and DELETE requests
   /restart:
     post:
       summary: |

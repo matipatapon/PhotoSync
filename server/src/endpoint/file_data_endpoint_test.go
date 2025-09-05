@@ -89,6 +89,33 @@ func prepareRequest(offset *int64, count *int64) *http.Request {
 	return request
 }
 
+func TestFileDataEndpointShouldReturnProperHeadersDuringPreflight(t *testing.T) {
+	databaseMock := mock.NewDatabaseMock(t)
+	defer databaseMock.AssertAllExpectionsSatisfied()
+	jwtManagerMock := mock.NewJwtManagerMock(t)
+	defer jwtManagerMock.AssertAllExpectionsSatisfied()
+	sut := endpoint.NewFileDataEndpoint(&databaseMock, &jwtManagerMock)
+
+	router, responseRecorder := prepareGin()
+	router.OPTIONS("/", sut.Options)
+	request := httptest.NewRequest(http.MethodOptions, "/", io.NopCloser(bytes.NewReader([]byte{})))
+	router.ServeHTTP(responseRecorder, request)
+
+	if responseRecorder.Code != 200 {
+		t.Error(responseRecorder.Code)
+	}
+	if responseRecorder.Body.String() != "" {
+		fmt.Print("Expected body to be empty")
+		t.FailNow()
+	}
+	if responseRecorder.Result().Header.Get("Access-Control-Allow-Headers") != "Authorization" {
+		t.Error("Missing/Invalid 'Access-Control-Allow-Headers'")
+	}
+	if responseRecorder.Result().Header.Get("Access-Control-Allow-Methods") != "GET" {
+		t.Error("Missing/Invalid 'Access-Control-Allow-Methods'")
+	}
+}
+
 func TestFileDataEndpointShouldReturn500WhenQueryFailed(t *testing.T) {
 	databaseMock := mock.NewDatabaseMock(t)
 	databaseMock.ExpectQuery(FILE_DATA_QUERY, fileDataToRequestArgs(FILE_DATA), []any{USER_ID, int64(15), int64(10)}, errors.New("db error"))

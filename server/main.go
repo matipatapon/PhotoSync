@@ -87,10 +87,12 @@ func main() {
 
 	fileDataEndpoint := endpoint.NewFileDataEndpoint(db, &jwtManager)
 	router.GET("/v1/file_data", fileDataEndpoint.Get)
+	router.OPTIONS("/v1/file_data", fileDataEndpoint.Options)
 
 	fileEndpoint := endpoint.NewFileEndpoint(db, &jwtManager)
 	router.GET("/v1/file", fileEndpoint.Get)
 	router.DELETE("/v1/file", fileEndpoint.Delete)
+	router.OPTIONS("/v1/file", fileEndpoint.Options)
 
 	testing := envGetter.Get("TESTING")
 	if testing == "true" {

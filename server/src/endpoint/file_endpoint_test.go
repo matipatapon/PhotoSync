@@ -34,6 +34,33 @@ func prepareGetFileRequest(id *int64) *http.Request {
 	return request
 }
 
+func TestFileEndpointShouldReturnProperHeadersDuringPreflight(t *testing.T) {
+	databaseMock := mock.NewDatabaseMock(t)
+	defer databaseMock.AssertAllExpectionsSatisfied()
+	jwtManagerMock := mock.NewJwtManagerMock(t)
+	defer jwtManagerMock.AssertAllExpectionsSatisfied()
+	sut := endpoint.NewFileEndpoint(&databaseMock, &jwtManagerMock)
+
+	router, responseRecorder := prepareGin()
+	router.OPTIONS("/", sut.Options)
+	request := httptest.NewRequest(http.MethodOptions, "/", io.NopCloser(bytes.NewReader([]byte{})))
+	router.ServeHTTP(responseRecorder, request)
+
+	if responseRecorder.Code != 200 {
+		t.Error(responseRecorder.Code)
+	}
+	if responseRecorder.Body.String() != "" {
+		fmt.Print("Expected body to be empty")
+		t.FailNow()
+	}
+	if responseRecorder.Result().Header.Get("Access-Control-Allow-Headers") != "Authorization" {
+		t.Error("Missing/Invalid 'Access-Control-Allow-Headers'")
+	}
+	if responseRecorder.Result().Header.Get("Access-Control-Allow-Methods") != "GET, DELETE" {
+		t.Error("Missing/Invalid 'Access-Control-Allow-Methods'")
+	}
+}
+
 func TestFileEndpointShouldReturn404WhenImageNotExists(t *testing.T) {
 	requests := [][][]any{
 		{},

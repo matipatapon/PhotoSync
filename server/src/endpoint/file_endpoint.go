@@ -20,6 +20,12 @@ func NewFileEndpoint(db database.IDataBase, jm jwt.IJwtManager) FileEndpoint {
 	return FileEndpoint{db: db, jm: jm, logger: log.New(os.Stdout, "[FileEndpoint]: ", log.LstdFlags)}
 }
 
+func (fe *FileEndpoint) Options(c *gin.Context) {
+	c.Header("Access-Control-Allow-Headers", "Authorization")
+	c.Header("Access-Control-Allow-Methods", "GET, DELETE")
+	c.Status(200)
+}
+
 func (fe *FileEndpoint) Get(c *gin.Context) {
 	result := fe.handleRequest(c, "SELECT file FROM files WHERE id = $1 AND user_id = $2")
 	if result != nil {
