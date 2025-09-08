@@ -40,7 +40,7 @@ export default function Login(){
                 <button type="submit" disabled={!isIdle}>Login</button>
             </fetcher.Form>
             <Message status={status}/>
-            <h3>Not have account? You can register <Link to={"/registration"}>here</Link></h3>
+            <h3>Not have account? You can register <Link to={"/register"}>here</Link></h3>
         </div>
     )
 }

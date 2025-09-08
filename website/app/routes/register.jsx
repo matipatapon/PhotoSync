@@ -51,7 +51,7 @@ function Message({status}){
     return <h2>{msg}</h2>
 }
 
-export default function Registration(){
+export default function Register(){
     let fetcher = useFetcher()
     let username = undefined
     let status = undefined

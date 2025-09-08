@@ -110,3 +110,62 @@ export async function uploadPhoto(file){
     }
     return "ERROR"
 }
+
+export async function getFileData(offset, count){
+    let result = {status: null, fileData: null}
+    const token = sessionStorage.getItem("Authorization")
+
+    if(token === null){
+        result.status = "NOT_LOGGED_IN"
+        return result
+    }
+
+    try{
+        let response = await fetch(
+            `${getApiUrl("file_data")}?${new URLSearchParams({offset: offset, count: count})}`,
+            {
+                method: "GET",
+                headers: {
+                    "Authorization": token,
+                },
+            }
+        )
+        if(response.status === 200){
+             let fileData = await response.text()
+             result.fileData = JSON.parse(fileData)
+             result.status = "SUCCESS"
+        }
+    } catch(e){
+    }
+    return result
+}
+
+export async function getFile(id){
+    let result = {status: null, url: null}
+    const token = sessionStorage.getItem("Authorization")
+
+    if(token === null){
+        result.status = "NOT_LOGGED_IN"
+        return result
+    }
+
+    try{
+        let response = await fetch(
+            `${getApiUrl("file")}?${new URLSearchParams({id:id})}`,
+            {
+                method: "GET",
+                headers: {
+                    "Authorization": token,
+                },
+            }
+        )
+        if(response.status === 200){
+                let file = await response.blob()
+                result.url = URL.createObjectURL(file)
+                result.status = "SUCCESS"
+        }
+} catch(e){
+}
+return result
+
+}
