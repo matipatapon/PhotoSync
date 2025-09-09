@@ -1,0 +1,16 @@
+.tile{
+    height:25vh;
+    padding: 10px;
+    margin: 10px;
+    background-color: black;
+    border-radius: 10px;
+}
+
+.tile>img{
+    height:100%;
+}
+
+.tile>h1{
+    color:red;
+    height:100%;
+}

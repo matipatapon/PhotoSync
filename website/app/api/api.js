@@ -160,9 +160,11 @@ export async function getFile(id){
             }
         )
         if(response.status === 200){
-                let file = await response.blob()
-                result.url = URL.createObjectURL(file)
-                result.status = "SUCCESS"
+            let file = await response.blob()
+            result.url = URL.createObjectURL(file)
+            result.status = "SUCCESS"
+        } else {
+            result.status = "ERROR"
         }
 } catch(e){
 }
