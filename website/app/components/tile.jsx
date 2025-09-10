@@ -2,7 +2,7 @@ import { useEffect, useState, useRef} from "react"
 import { getFile } from "../api/api"
 import "./tile.css"
 
-export default function Tile({fileData}){
+export default function Tile({fileData, offset}){
     let url = useRef(null)
     let [status, setStatus] = useState("LOADING")
 
@@ -17,7 +17,7 @@ export default function Tile({fileData}){
                 url.current = result.url
                 setStatus("FINISHED")
             }
-            loadImage()
+                loadImage()
         },
         []
     )
@@ -32,7 +32,7 @@ export default function Tile({fileData}){
     if(status == "FINISHED"){
         outlet =  <img src={url.current}/>
     }
-    return <div className="tile">
+    return <div className="tile" style={{transform: `translate(0px, ${offset}px)`}}>
                 {outlet}
            </div>
 }
