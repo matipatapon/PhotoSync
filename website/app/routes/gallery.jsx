@@ -24,6 +24,7 @@ export default function Gallery(){
     let tileHeight = useRef(0)
     let gallery = useRef(null)
     let isBottom = useRef(false)
+    let isTop = useRef(false)
 
     useEffect(
         ()=>{
@@ -43,6 +44,7 @@ export default function Gallery(){
                         tilesOffset.current = paddingHeight.current
                         fileData.current = result.fileData
                         isBottom.current = false
+                        isTop.current = false
                     }
                 }
                 setState("BROWSING")
@@ -73,15 +75,16 @@ export default function Gallery(){
                 isBottom.current = true
                 setState("RELOADING")
             }
+            
+            const firstTilePosition = tile.getBoundingClientRect().top - gallery.current.getBoundingClientRect().top
+            if(!isTop.current && firstTilePosition * -1 < loadRowCount * tileHeight.current)
+            {
+                imageOffsetCount.current -= loadRowCount * tilePerRowCount.current
+                imageOffsetCount.current = imageOffsetCount.current > 0 ? imageOffsetCount.current : 0
+                isTop.current = true
+                setState("RELOADING")
+            }
         }
-
-        
-        
-        
-
-        
-        
-        
     }
 
     return <div className="gallery" ref={gallery} onScroll={onScroll} onScrollEnd={onScroll}>
