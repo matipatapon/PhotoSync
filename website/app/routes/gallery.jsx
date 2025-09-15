@@ -13,45 +13,46 @@ function Files({fileData, offset}){
 
 export default function Gallery(){
     let [status, setStatus] = useState("SHRINK")
+    const imagesPerRow = 6
+    const imageHeight = 400;
+    const loadedRowsCount = 20;
+    const rowsDiffCount = 5;
     let fileData = useRef([])
-    let rowsCount = useRef(6)
-    let rowsDiff = useRef(3)
-    let offset = useRef(0)
+    let offset = useRef(null)
     let tilesOffset = useRef(0)
-    let imageHeight = 400;
-    let scrollableHeight = useRef(rowsCount.current * imageHeight + 100);
-    let topScrollBeforeExpand = useRef(0)
+    let scrollableHeight = useRef(loadedRowsCount * imageHeight + 100);
+    let previousTopScroll = useRef(0)
 
     let loading = useRef(false)
     useEffect(
         ()=>{
             async function loadFileData() {
+                let nextOffset = null
                 if(status === "EXPAND"){
-                    const result = await getFileData((offset.current + rowsDiff.current) * 4, rowsCount.current * 4)
-                    fileData.current = result.fileData
-                    if(result.fileData.length == rowsCount.current * 4){
-                        offset.current = offset.current + rowsDiff.current
-                        console.log(`Offset ${offset.current}`)
-                        scrollableHeight.current = (rowsCount.current * imageHeight + offset.current * imageHeight) + 100
-                        tilesOffset.current = offset.current * imageHeight
-                    }
-                    setStatus("BROWSING")
+                    nextOffset = offset.current + rowsDiffCount
                 }
                 if(status === "SHRINK"){
-                    const nextOffset = offset.current - rowsDiff.current <= 0 ? 0 : offset.current - rowsDiff.current
-                    const result = await getFileData((nextOffset) * 4, rowsCount.current * 4)
-                    fileData.current = result.fileData
-                    if(result.fileData.length == rowsCount.current * 4){
+                    if(offset.current !== 0){
+                        nextOffset = offset.current - rowsDiffCount <= 0 ? 0 : offset.current - rowsDiffCount
+                    }
+                }
+
+                if(nextOffset !== null)
+                {
+                    const result = await getFileData((nextOffset) * imagesPerRow, loadedRowsCount * imagesPerRow)
+                    const areNewImagesFetched = result.fileData.length >= (loadedRowsCount - rowsDiffCount) * imagesPerRow
+                    if(areNewImagesFetched)
+                    {
                         offset.current = nextOffset
                         console.log(`Offset ${nextOffset}`)
-                        scrollableHeight.current = (rowsCount.current * imageHeight + offset.current * imageHeight) + 100
+                        scrollableHeight.current = (loadedRowsCount * imageHeight + offset.current * imageHeight) + 100
                         tilesOffset.current = offset.current * imageHeight
+                        fileData.current = result.fileData
                     }
-                    setStatus("BROWSING")
-
                 }
+                setStatus("BROWSING")
             }
-            if(!loading.current){
+            if(!loading.current && status !== "BROWSING"){
                 loading.current = true
                 loadFileData()
                 loading.current = false
@@ -62,20 +63,22 @@ export default function Gallery(){
     
 
     let onScroll = (element) => {
-        if(status !== "BROWSING"){
-            element.currentTarget.scrollTop = topScrollBeforeExpand.current
+        const direction = previousTopScroll.current > element.currentTarget.scrollTop ? "UP" : "DOWN"
+        previousTopScroll.current = element.currentTarget.scrollTop
+        const bottomReserve = Math.round(element.currentTarget.scrollHeight - element.currentTarget.offsetHeight - element.currentTarget.scrollTop)
+        if(status !== "BROWSING")
+        {
+            return
         }
-        else if(element.currentTarget.offsetHeight + element.currentTarget.scrollTop === element.currentTarget.scrollHeight){
-            topScrollBeforeExpand.current = element.currentTarget.scrollTop
+        if(direction === "DOWN" && bottomReserve <= rowsDiffCount * imageHeight){
             setStatus("EXPAND")
         }
-        else if(element.currentTarget.scrollHeight - element.currentTarget.scrollTop - element.currentTarget.offsetHeight > rowsCount.current * imageHeight){
-            topScrollBeforeExpand.current = element.currentTarget.scrollTop
+        if(direction === "UP" && bottomReserve >= rowsDiffCount * imageHeight){
             setStatus("SHRINK")
         }
     }
 
-    return <div className="gallery" onScroll={onScroll}>
+    return <div className="gallery" onScroll={onScroll} onScrollEnd={onScroll}>
                 <div className="scrollable" style={{height: scrollableHeight.current}}>
                     <Files fileData={fileData.current} offset={tilesOffset.current}/>
                 </div>
