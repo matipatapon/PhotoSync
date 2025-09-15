@@ -12,75 +12,80 @@ function Files({fileData, offset}){
 }
 
 export default function Gallery(){
-    let [status, setStatus] = useState("SHRINK")
-    const imagesPerRow = 6
-    const imageHeight = 400;
-    const loadedRowsCount = 20;
-    const rowsDiffCount = 5;
-    let fileData = useRef([])
-    let offset = useRef(null)
-    let tilesOffset = useRef(0)
-    let scrollableHeight = useRef(loadedRowsCount * imageHeight + 100);
-    let previousTopScroll = useRef(0)
+    let [state, setState] = useState("LOADING")
 
-    let loading = useRef(false)
+    const rowCount = 10
+    const loadRowCount = 2
+    let tilesOffset = useRef(0)
+    let fileData = useRef([])
+    let imageOffsetCount = useRef(0)
+    let tilePerRowCount = useRef(0)
+    let paddingHeight = useRef(0)
+    let tileHeight = useRef(0)
+    let gallery = useRef(null)
+    let isBottom = useRef(false)
+
     useEffect(
         ()=>{
-            async function loadFileData() {
-                let nextOffset = null
-                if(status === "EXPAND"){
-                    nextOffset = offset.current + rowsDiffCount
-                }
-                if(status === "SHRINK"){
-                    if(offset.current !== 0){
-                        nextOffset = offset.current - rowsDiffCount <= 0 ? 0 : offset.current - rowsDiffCount
-                    }
-                }
-
-                if(nextOffset !== null)
+            async function load(){
+                if(state === "LOADING")
                 {
-                    const result = await getFileData((nextOffset) * imagesPerRow, loadedRowsCount * imagesPerRow)
-                    const areNewImagesFetched = result.fileData.length >= (loadedRowsCount - rowsDiffCount) * imagesPerRow
-                    if(areNewImagesFetched)
+                    const result = await getFileData(0, 40)
+                    fileData.current = result.fileData
+                }
+                else if(state === "RELOADING")
+                {
+                    const result = await getFileData(imageOffsetCount.current, tilePerRowCount.current * rowCount)
+                    if(result.fileData.length > (rowCount - loadRowCount) * tilePerRowCount.current)
                     {
-                        offset.current = nextOffset
-                        console.log(`Offset ${nextOffset}`)
-                        scrollableHeight.current = (loadedRowsCount * imageHeight + offset.current * imageHeight) + 100
-                        tilesOffset.current = offset.current * imageHeight
+                        const rowOffset = Math.floor(imageOffsetCount.current / tilePerRowCount.current)
+                        paddingHeight.current = tileHeight.current * rowOffset
+                        tilesOffset.current = paddingHeight.current
                         fileData.current = result.fileData
+                        isBottom.current = false
                     }
                 }
-                setStatus("BROWSING")
+                setState("BROWSING")
             }
-            if(!loading.current && status !== "BROWSING"){
-                loading.current = true
-                loadFileData()
-                loading.current = false
+            
+            if(state !== "BROWSING")
+            {
+                load()
             }
         },
-        [status]
+        [state]
     )
-    
 
     let onScroll = (element) => {
-        const direction = previousTopScroll.current > element.currentTarget.scrollTop ? "UP" : "DOWN"
-        previousTopScroll.current = element.currentTarget.scrollTop
-        const bottomReserve = Math.round(element.currentTarget.scrollHeight - element.currentTarget.offsetHeight - element.currentTarget.scrollTop)
-        if(status !== "BROWSING")
+        if(state === "BROWSING")
         {
-            return
+            const scrollBottom = element.currentTarget.scrollHeight - element.currentTarget.scrollTop - element.currentTarget.offsetHeight
+            const tile = element.currentTarget.querySelector(".tile")
+            if(tile === null){
+                return
+            }
+            tileHeight.current = tile.offsetHeight
+            const tileWidth = tile.offsetWidth
+            tilePerRowCount.current = Math.floor(element.currentTarget.offsetWidth / tileWidth)
+            if(!isBottom.current && scrollBottom < loadRowCount * tileHeight.current)
+            {
+                imageOffsetCount.current += loadRowCount * tilePerRowCount.current
+                isBottom.current = true
+                setState("RELOADING")
+            }
         }
-        if(direction === "DOWN" && bottomReserve <= rowsDiffCount * imageHeight){
-            setStatus("EXPAND")
-        }
-        if(direction === "UP" && bottomReserve >= rowsDiffCount * imageHeight){
-            setStatus("SHRINK")
-        }
+
+        
+        
+        
+
+        
+        
+        
     }
 
-    return <div className="gallery" onScroll={onScroll} onScrollEnd={onScroll}>
-                <div className="scrollable" style={{height: scrollableHeight.current}}>
-                    <Files fileData={fileData.current} offset={tilesOffset.current}/>
-                </div>
+    return <div className="gallery" ref={gallery} onScroll={onScroll} onScrollEnd={onScroll}>
+                <Files fileData={fileData.current} offset={tilesOffset.current}/>
+                <div className="scrollable" style={{height: paddingHeight, display: "none"}}></div>
           </div>
 }
