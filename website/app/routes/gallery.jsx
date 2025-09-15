@@ -36,6 +36,7 @@ export default function Gallery(){
                 }
                 else if(state === "RELOADING")
                 {
+                    isTop.current = imageOffsetCount.current === 0
                     const result = await getFileData(imageOffsetCount.current, tilePerRowCount.current * rowCount)
                     if(result.fileData.length > (rowCount - loadRowCount) * tilePerRowCount.current)
                     {
@@ -44,7 +45,6 @@ export default function Gallery(){
                         tilesOffset.current = paddingHeight.current
                         fileData.current = result.fileData
                         isBottom.current = false
-                        isTop.current = false
                     }
                 }
                 setState("BROWSING")
@@ -69,7 +69,7 @@ export default function Gallery(){
             tileHeight.current = tile.offsetHeight
             const tileWidth = tile.offsetWidth
             tilePerRowCount.current = Math.floor(element.currentTarget.offsetWidth / tileWidth)
-            if(!isBottom.current && scrollBottom < loadRowCount * tileHeight.current)
+            if(isBottom.current === false && scrollBottom < loadRowCount * tileHeight.current)
             {
                 imageOffsetCount.current += loadRowCount * tilePerRowCount.current
                 isBottom.current = true
@@ -77,8 +77,10 @@ export default function Gallery(){
             }
             
             const firstTilePosition = tile.getBoundingClientRect().top - gallery.current.getBoundingClientRect().top
-            if(!isTop.current && firstTilePosition * -1 < loadRowCount * tileHeight.current)
+            if(isTop.current === false && firstTilePosition * -1 < loadRowCount * tileHeight.current)
             {
+                            console.log(isTop.current)
+
                 imageOffsetCount.current -= loadRowCount * tilePerRowCount.current
                 imageOffsetCount.current = imageOffsetCount.current > 0 ? imageOffsetCount.current : 0
                 isTop.current = true
