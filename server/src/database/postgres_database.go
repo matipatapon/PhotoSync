@@ -77,6 +77,7 @@ func (dbw PostgresDataBase) InitDb() error {
 			filename text NOT NULL,
 			mime_type smallint NOT NULL,
 			file bytea NOT NULL,
+			thumbnail bytea,
 			hash text NOT NULL,
 			size bigint NOT NULL,
 			PRIMARY KEY (id),

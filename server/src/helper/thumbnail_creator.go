@@ -15,6 +15,10 @@ import (
 const maxSizeWithoutAThumbnail = 600
 const thumbnailSize = 400
 
+type IThumbnailCreator interface {
+	Create(file []byte, mimeType metadata.MIMEType) ([]byte, error)
+}
+
 type ThumbnailCreator struct {
 	logger *log.Logger
 }
