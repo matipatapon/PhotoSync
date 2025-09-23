@@ -1,0 +1,30 @@
+meta {
+  name: UploadLargeJpg
+  type: http
+  seq: 5
+}
+
+post {
+  url: {{HOST}}/upload
+  body: multipartForm
+  auth: inherit
+}
+
+headers {
+  Authorization: {{TOKEN}}
+}
+
+body:multipart-form {
+  filename: 600_x_601.jpg
+  modification_date: 2025.07.05 12:32:59
+  file: @file(../../images/600_x_601.jpg)
+}
+
+assert {
+  res.status: eq 200
+  res.body: eq 1
+}
+
+settings {
+  encodeUrl: true
+}

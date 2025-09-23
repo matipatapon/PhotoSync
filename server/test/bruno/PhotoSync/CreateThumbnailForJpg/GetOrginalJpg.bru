@@ -1,7 +1,7 @@
 meta {
-  name: GetFileA
+  name: GetOrginalJpg
   type: http
-  seq: 8
+  seq: 10
 }
 
 get {
@@ -15,12 +15,12 @@ params:query {
 }
 
 headers {
-  Authorization: {{TOKENA}}
+  Authorization: {{TOKEN}}
 }
 
 assert {
   res.status: eq 200
-  res.body.length: eq 2356
+  res.body.length: eq 12735
   res.headers["content-type"]: eq image/jpeg
 }
 
@@ -35,7 +35,7 @@ tests {
   };
   
   test("hash is expected", function(){
-    expect(generateHash(res.body)).to.eql(860404287) 
+    expect(generateHash(res.body)).to.eql(715688660) 
   })
 }
 

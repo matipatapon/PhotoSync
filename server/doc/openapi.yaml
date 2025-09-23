@@ -192,6 +192,12 @@ paths:
                       type: string
                       description: size of the file in bytes
                       example: "2520424"
+                    thumbnail:
+                      type: string
+                      description: |
+                        Base64 encoded image/jpeg.
+                        Orginal image/jpeg is used as a thumbnail when its not bigger than 600px x 600px.
+                        Thumbnail size can range from 400px x 400px to 600px x 600px.
           headers:
             Access-Control-Allow-Origin:
               schema:
