@@ -1,6 +1,11 @@
 .tile{
-    width: 380px;
-    height: 380px;
+    width: 20%;
+    height: 20%;
+    min-width: 200px;
+    min-height: 200px;
+    max-width: 420px;
+    max-height: 420px;
+
     box-sizing: border-box;
     padding: 10px;
     border-radius: 10px;

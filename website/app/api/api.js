@@ -115,8 +115,6 @@ export async function getFileData(offset, count){
     let result = {status: null, fileData: null}
     const token = sessionStorage.getItem("Authorization")
 
-    console.log("getFileData")
-
     if(token === null){
         result.status = "NOT_LOGGED_IN"
         return result

@@ -1,7 +1,7 @@
 import "./tile.css"
 
-export default function Tile({fileData, offset}){
-    return <div className="tile" style={{transform: `translate(0px, ${offset}px)`}}>
+export default function Tile({fileData}){
+    return <div className="tile">
                 <img src={`data:image/jpg;base64, ${fileData.thumbnail}`}/>
            </div>
 }

@@ -4,10 +4,11 @@
     bottom:0;
     position: absolute;
     left:0; right:0; 
+    width:100%;
+    overflow-y: scroll;
+    box-sizing: content-box
 }
 
-.scrollable{
-    background-color: green;
-    text-align: center;
-    position: relative;
+.padding{
+    display: block;
 }
