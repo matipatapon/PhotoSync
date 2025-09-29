@@ -231,6 +231,42 @@ paths:
                 type: string
                 example: "GET"
               description: allows web browser for GET request
+  /dates:
+    get:
+      summary: Returns the dates along with the number of files created on each. Only dates with at least one file are included
+      security:
+        - tokenAuth: []
+      parameters:
+        - in: query
+          name: year
+          schema:
+            type: integer
+            description: Year from which to return dates
+            example: 2012
+          required: false
+        - in: query
+          name: month
+          schema:
+            type: integer
+            description: Month of the year from which to return dates, year must be specified.
+            example: 10
+          required: false
+      responses:
+        "200":
+          description: successfully returned dates
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    date:
+                      type: string
+                      example: 2025.05.16
+                    file_count:
+                      type: string
+                      example: 23
   /file:
     get:
       summary: returns file with given id
