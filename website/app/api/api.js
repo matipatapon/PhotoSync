@@ -171,3 +171,23 @@ export async function getFile(id){
 return result
 
 }
+
+export async function getDates(){
+    return {
+        years:[
+            {
+                year: 2025,
+                months:[
+                {
+                    month: 1,
+                    days:[
+                        {
+                        day: 25,
+                        imageCount: 50
+                        }
+                    ]
+                }
+            ]}
+        ]
+    }
+}
