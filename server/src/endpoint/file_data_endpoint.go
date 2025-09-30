@@ -1,7 +1,5 @@
 package endpoint
 
-// TODO update docs & add FT for thumbnail handling !!!!!!!
-
 import (
 	"encoding/base64"
 	"encoding/json"
