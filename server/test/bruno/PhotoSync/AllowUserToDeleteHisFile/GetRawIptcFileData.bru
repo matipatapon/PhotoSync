@@ -24,6 +24,8 @@ assert {
 }
 
 tests {
+  const rawJpgBase64 = bru.getCollectionVar("RAW_JPG_BASE64")
+  const iptcJpgBase64 = bru.getCollectionVar("IPTC_JPG_BASE64")
   test("should return proper file data", function(){
     expect(res.getBody()).to.eql([
       {
@@ -32,6 +34,7 @@ tests {
         id: "1",
         mime_type: "image/jpeg",
         size: "2439",
+        thumbnail: rawJpgBase64,
       },
       {
         creation_date : "2022.03.01 21:37:00",
@@ -39,6 +42,7 @@ tests {
         id: "3",
         mime_type: "image/jpeg",
         size: "3240",
+        thumbnail: iptcJpgBase64,
       },
     ])
   })

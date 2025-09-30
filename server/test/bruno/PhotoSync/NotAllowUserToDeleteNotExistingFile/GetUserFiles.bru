@@ -20,7 +20,7 @@ headers {
 }
 
 tests {
-  console.log(res.getBody())
+  const exifJpgBase64 = bru.getCollectionVar("EXIF_JPG_BASE64")
   test("should return proper file data", function(){
     expect(res.getBody()).to.eql(
     [
@@ -30,6 +30,7 @@ tests {
         id: "1",
         mime_type: "image/jpeg",
         size: "3474",
+        thumbnail: exifJpgBase64,
       },
     ]
     )

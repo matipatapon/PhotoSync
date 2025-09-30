@@ -66,6 +66,7 @@ func main() {
 
 	passwordFacade := password.PasswordFacade{}
 	timeHelper := helper.TimeHelper{}
+	thumbnailCreator := helper.NewThumbnailCreator()
 	jwtManager := jwt.NewJwtManager(&timeHelper)
 	rawMetadataExtractor := metadata.NewRawMetadataExtractor(getDirectory() + "/exiftool/exiftool")
 	metadataExtractor := metadata.NewMetadataExtractor(&rawMetadataExtractor)
@@ -81,7 +82,7 @@ func main() {
 	loginEndpoint := endpoint.NewLoginEndpoint(db, passwordFacade, &jwtManager, &timeHelper)
 	router.POST("/v1/login", loginEndpoint.Post)
 
-	uploadEndpoint := endpoint.NewUploadEndpoint(db, &metadataExtractor, &hasher, &jwtManager)
+	uploadEndpoint := endpoint.NewUploadEndpoint(db, &metadataExtractor, &hasher, &jwtManager, &thumbnailCreator)
 	router.POST("/v1/upload", uploadEndpoint.Post)
 	router.OPTIONS("/v1/upload", uploadEndpoint.Options)
 

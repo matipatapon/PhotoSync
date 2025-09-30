@@ -19,15 +19,17 @@ type UploadEndpoint struct {
 	me     metadata.IMetadataExtractor
 	h      helper.IHasher
 	jm     jwt.IJwtManager
+	tc     helper.IThumbnailCreator
 	logger *log.Logger
 }
 
-func NewUploadEndpoint(db database.IDataBase, me metadata.IMetadataExtractor, h helper.IHasher, jm jwt.IJwtManager) UploadEndpoint {
+func NewUploadEndpoint(db database.IDataBase, me metadata.IMetadataExtractor, h helper.IHasher, jm jwt.IJwtManager, tc helper.IThumbnailCreator) UploadEndpoint {
 	return UploadEndpoint{
 		db:     db,
 		me:     me,
 		h:      h,
 		jm:     jm,
+		tc:     tc,
 		logger: log.New(os.Stdout, "[UploadEndpoint]: ", log.LstdFlags),
 	}
 }
@@ -71,13 +73,21 @@ func (ue *UploadEndpoint) Post(c *gin.Context) {
 		modificationDate = meta.CreationDate
 	}
 
+	thumbnail, err := ue.tc.Create(file, meta.MIMEType)
+	if err != nil {
+		ue.logger.Printf("Failed to create thumbnail: '%s'", err.Error())
+		c.Status(500)
+		return
+	}
+
 	result, err := ue.db.Query(
-		"INSERT INTO files(user_id, creation_date, filename, mime_type, file, hash, size) VALUES($1, TO_TIMESTAMP($2, 'YYYY.MM.DD HH24:MI:SS'), $3, $4, $5, $6, $7) RETURNING id",
+		"INSERT INTO files(user_id, creation_date, filename, mime_type, file, thumbnail, hash, size) VALUES($1, TO_TIMESTAMP($2, 'YYYY.MM.DD HH24:MI:SS'), $3, $4, $5, $6, $7, $8) RETURNING id",
 		jwt.UserId,
 		modificationDate.ToString(),
 		filename,
 		meta.MIMEType,
 		file,
+		thumbnail,
 		hash,
 		len(file),
 	)

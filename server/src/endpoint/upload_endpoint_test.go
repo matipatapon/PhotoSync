@@ -29,7 +29,10 @@ func TestUploadEndpointShouldReturnProperHeadersDuringPreflight(t *testing.T) {
 	jwtManagerMock := mock.NewJwtManagerMock(t)
 	defer jwtManagerMock.AssertAllExpectionsSatisfied()
 
-	sut := endpoint.NewUploadEndpoint(&databaseMock, &metadataExtractorMock, &hasherMock, &jwtManagerMock)
+	thumbnailCreatorMock := mock.NewThumbnailCreatorMock(t)
+	defer thumbnailCreatorMock.AssertAllExpectionsSatisfied()
+
+	sut := endpoint.NewUploadEndpoint(&databaseMock, &metadataExtractorMock, &hasherMock, &jwtManagerMock, &thumbnailCreatorMock)
 
 	request := httptest.NewRequest(http.MethodOptions, "/", io.NopCloser(bytes.NewReader([]byte{})))
 	router, responseRecorder := prepareGin()
@@ -51,7 +54,9 @@ func TestUploadEndpointShouldReturnProperHeadersDuringPreflight(t *testing.T) {
 	}
 }
 
-var UPLOAD_SQL string = "INSERT INTO files(user_id, creation_date, filename, mime_type, file, hash, size) VALUES($1, TO_TIMESTAMP($2, 'YYYY.MM.DD HH24:MI:SS'), $3, $4, $5, $6, $7) RETURNING id"
+var UPLOAD_SQL string = "INSERT INTO files(user_id, creation_date, filename, mime_type, file, thumbnail, hash, size) VALUES($1, TO_TIMESTAMP($2, 'YYYY.MM.DD HH24:MI:SS'), $3, $4, $5, $6, $7, $8) RETURNING id"
+var NO_THUMBNAIL []byte
+var THUMBNAIL []byte = []byte("SOME THUMBNAIL DATA")
 
 func createRequest(fields map[string][]byte, token string) *http.Request {
 	var body bytes.Buffer
@@ -76,7 +81,7 @@ func TestUploadEndpointShouldReturn202WhenImageAlreadyExistsInDb(t *testing.T) {
 	}
 	for _, queryResult := range queryResults {
 		databaseMock := mock.NewDatabaseMock(t)
-		databaseMock.ExpectQuery(UPLOAD_SQL, queryResult, []any{USER_ID, MODIFICATION_DATE, FILENAME, metadata.JPG, FILE, HASH, len(FILE)}, nil)
+		databaseMock.ExpectQuery(UPLOAD_SQL, queryResult, []any{USER_ID, MODIFICATION_DATE, FILENAME, metadata.JPG, FILE, NO_THUMBNAIL, HASH, len(FILE)}, nil)
 		defer databaseMock.AssertAllExpectionsSatisfied()
 
 		metadataExtractorMock := mock.NewMetadataExtractorMock(t)
@@ -91,7 +96,11 @@ func TestUploadEndpointShouldReturn202WhenImageAlreadyExistsInDb(t *testing.T) {
 		jwtManagerMock.ExpectDecode(TOKEN_STRING, jwt.JwtPayload{UserId: USER_ID, Username: USERNAME, ExpirationTime: EXPIRATION_TIME}, nil)
 		defer jwtManagerMock.AssertAllExpectionsSatisfied()
 
-		sut := endpoint.NewUploadEndpoint(&databaseMock, &metadataExtractorMock, &hasherMock, &jwtManagerMock)
+		thumbnailCreatorMock := mock.NewThumbnailCreatorMock(t)
+		thumbnailCreatorMock.ExpectCreate(FILE, metadata.JPG, nil, nil)
+		defer thumbnailCreatorMock.AssertAllExpectionsSatisfied()
+
+		sut := endpoint.NewUploadEndpoint(&databaseMock, &metadataExtractorMock, &hasherMock, &jwtManagerMock, &thumbnailCreatorMock)
 
 		request := createRequest(
 			map[string][]byte{
@@ -132,7 +141,10 @@ func TestUploadEndpointShouldReturn401ForUnsupportedFile(t *testing.T) {
 	jwtManagerMock.ExpectDecode(TOKEN_STRING, jwt.JwtPayload{UserId: USER_ID, Username: USERNAME, ExpirationTime: EXPIRATION_TIME}, nil)
 	defer jwtManagerMock.AssertAllExpectionsSatisfied()
 
-	sut := endpoint.NewUploadEndpoint(&databaseMock, &metadataExtractorMock, &hasherMock, &jwtManagerMock)
+	thumbnailCreatorMock := mock.NewThumbnailCreatorMock(t)
+	defer thumbnailCreatorMock.AssertAllExpectionsSatisfied()
+
+	sut := endpoint.NewUploadEndpoint(&databaseMock, &metadataExtractorMock, &hasherMock, &jwtManagerMock, &thumbnailCreatorMock)
 
 	request := createRequest(
 		map[string][]byte{
@@ -170,7 +182,10 @@ func TestUploadEndpointShouldReturn400WhenModificationDateIsInvalid(t *testing.T
 	jwtManagerMock.ExpectDecode(TOKEN_STRING, jwt.JwtPayload{UserId: USER_ID, Username: USERNAME, ExpirationTime: EXPIRATION_TIME}, nil)
 	defer jwtManagerMock.AssertAllExpectionsSatisfied()
 
-	sut := endpoint.NewUploadEndpoint(&databaseMock, &metadataExtractorMock, &hasherMock, &jwtManagerMock)
+	thumbnailCreatorMock := mock.NewThumbnailCreatorMock(t)
+	defer thumbnailCreatorMock.AssertAllExpectionsSatisfied()
+
+	sut := endpoint.NewUploadEndpoint(&databaseMock, &metadataExtractorMock, &hasherMock, &jwtManagerMock, &thumbnailCreatorMock)
 
 	request := createRequest(
 		map[string][]byte{
@@ -196,7 +211,7 @@ func TestUploadEndpointShouldReturn400WhenModificationDateIsInvalid(t *testing.T
 
 func TestUploadEndpointShouldPrioritizeCreationDateFromMetadata(t *testing.T) {
 	databaseMock := mock.NewDatabaseMock(t)
-	databaseMock.ExpectQuery(UPLOAD_SQL, [][]any{{FILE_ID}}, []any{USER_ID, CREATION_DATE, FILENAME, metadata.JPG, FILE, HASH, len(FILE)}, nil)
+	databaseMock.ExpectQuery(UPLOAD_SQL, [][]any{{FILE_ID}}, []any{USER_ID, CREATION_DATE, FILENAME, metadata.JPG, FILE, NO_THUMBNAIL, HASH, len(FILE)}, nil)
 	defer databaseMock.AssertAllExpectionsSatisfied()
 
 	creationDate, _ := metadata.NewDate(CREATION_DATE)
@@ -212,7 +227,11 @@ func TestUploadEndpointShouldPrioritizeCreationDateFromMetadata(t *testing.T) {
 	jwtManagerMock.ExpectDecode(TOKEN_STRING, jwt.JwtPayload{UserId: USER_ID, Username: USERNAME, ExpirationTime: EXPIRATION_TIME}, nil)
 	defer jwtManagerMock.AssertAllExpectionsSatisfied()
 
-	sut := endpoint.NewUploadEndpoint(&databaseMock, &metadataExtractorMock, &hasherMock, &jwtManagerMock)
+	thumbnailCreatorMock := mock.NewThumbnailCreatorMock(t)
+	thumbnailCreatorMock.ExpectCreate(FILE, metadata.JPG, nil, nil)
+	defer thumbnailCreatorMock.AssertAllExpectionsSatisfied()
+
+	sut := endpoint.NewUploadEndpoint(&databaseMock, &metadataExtractorMock, &hasherMock, &jwtManagerMock, &thumbnailCreatorMock)
 
 	request := createRequest(
 		map[string][]byte{
@@ -238,7 +257,7 @@ func TestUploadEndpointShouldPrioritizeCreationDateFromMetadata(t *testing.T) {
 
 func TestUploadEndpointShouldReturn500WhenFailedToSaveFileInDatabase(t *testing.T) {
 	databaseMock := mock.NewDatabaseMock(t)
-	databaseMock.ExpectQuery(UPLOAD_SQL, [][]any{}, []any{USER_ID, MODIFICATION_DATE, FILENAME, metadata.JPG, FILE, HASH, len(FILE)}, errors.New("DB error"))
+	databaseMock.ExpectQuery(UPLOAD_SQL, [][]any{}, []any{USER_ID, MODIFICATION_DATE, FILENAME, metadata.JPG, FILE, NO_THUMBNAIL, HASH, len(FILE)}, errors.New("DB error"))
 	defer databaseMock.AssertAllExpectionsSatisfied()
 
 	metadataExtractorMock := mock.NewMetadataExtractorMock(t)
@@ -253,7 +272,11 @@ func TestUploadEndpointShouldReturn500WhenFailedToSaveFileInDatabase(t *testing.
 	jwtManagerMock.ExpectDecode(TOKEN_STRING, jwt.JwtPayload{UserId: USER_ID, Username: USERNAME, ExpirationTime: EXPIRATION_TIME}, nil)
 	defer jwtManagerMock.AssertAllExpectionsSatisfied()
 
-	sut := endpoint.NewUploadEndpoint(&databaseMock, &metadataExtractorMock, &hasherMock, &jwtManagerMock)
+	thumbnailCreatorMock := mock.NewThumbnailCreatorMock(t)
+	thumbnailCreatorMock.ExpectCreate(FILE, metadata.JPG, nil, nil)
+	defer thumbnailCreatorMock.AssertAllExpectionsSatisfied()
+
+	sut := endpoint.NewUploadEndpoint(&databaseMock, &metadataExtractorMock, &hasherMock, &jwtManagerMock, &thumbnailCreatorMock)
 
 	request := createRequest(
 		map[string][]byte{
@@ -292,7 +315,10 @@ func TestUploadEndpointShouldReturn500WhenFailedToHashAFile(t *testing.T) {
 	jwtManagerMock.ExpectDecode(TOKEN_STRING, jwt.JwtPayload{UserId: USER_ID, Username: USERNAME, ExpirationTime: EXPIRATION_TIME}, nil)
 	defer jwtManagerMock.AssertAllExpectionsSatisfied()
 
-	sut := endpoint.NewUploadEndpoint(&databaseMock, &metadataExtractorMock, &hasherMock, &jwtManagerMock)
+	thumbnailCreatorMock := mock.NewThumbnailCreatorMock(t)
+	defer thumbnailCreatorMock.AssertAllExpectionsSatisfied()
+
+	sut := endpoint.NewUploadEndpoint(&databaseMock, &metadataExtractorMock, &hasherMock, &jwtManagerMock, &thumbnailCreatorMock)
 
 	request := createRequest(
 		map[string][]byte{
@@ -349,7 +375,10 @@ func TestUploadEndpointShouldReturn400WhenAnyRequestPartIsMissing(t *testing.T) 
 		jwtManagerMock.ExpectDecode(TOKEN_STRING, jwt.JwtPayload{UserId: USER_ID, Username: USERNAME, ExpirationTime: EXPIRATION_TIME}, nil)
 		defer jwtManagerMock.AssertAllExpectionsSatisfied()
 
-		sut := endpoint.NewUploadEndpoint(&databaseMock, &metadataExtractorMock, &hasherMock, &jwtManagerMock)
+		thumbnailCreatorMock := mock.NewThumbnailCreatorMock(t)
+		defer thumbnailCreatorMock.AssertAllExpectionsSatisfied()
+
+		sut := endpoint.NewUploadEndpoint(&databaseMock, &metadataExtractorMock, &hasherMock, &jwtManagerMock, &thumbnailCreatorMock)
 
 		router, responseRecorder := prepareGin()
 		router.POST("/", sut.Post)
@@ -379,7 +408,10 @@ func TestUploadEndpointShouldReturn403WhenInvalidJwt(t *testing.T) {
 	jwtManagerMock.ExpectDecode(TOKEN_STRING, jwt.JwtPayload{}, errors.New("JWT is invalid"))
 	defer jwtManagerMock.AssertAllExpectionsSatisfied()
 
-	sut := endpoint.NewUploadEndpoint(&databaseMock, &metadataExtractorMock, &hasherMock, &jwtManagerMock)
+	thumbnailCreatorMock := mock.NewThumbnailCreatorMock(t)
+	defer thumbnailCreatorMock.AssertAllExpectionsSatisfied()
+
+	sut := endpoint.NewUploadEndpoint(&databaseMock, &metadataExtractorMock, &hasherMock, &jwtManagerMock, &thumbnailCreatorMock)
 
 	request := createRequest(
 		map[string][]byte{
@@ -406,14 +438,21 @@ func TestUploadEndpointShouldReturn403WhenInvalidJwt(t *testing.T) {
 func TestUploadEndpointShouldReturn400ForEmptyRequestBody(t *testing.T) {
 	databaseMock := mock.NewDatabaseMock(t)
 	defer databaseMock.AssertAllExpectionsSatisfied()
+
 	metadataExtractorMock := mock.NewMetadataExtractorMock(t)
 	defer metadataExtractorMock.AssertAllExpectionsSatisfied()
+
 	hasherMock := mock.NewHasherMock(t)
 	defer hasherMock.AssertAllExpectionsSatisfied()
+
 	jwtManagerMock := mock.NewJwtManagerMock(t)
 	jwtManagerMock.ExpectDecode(TOKEN_STRING, jwt.JwtPayload{UserId: USER_ID, Username: USERNAME, ExpirationTime: EXPIRATION_TIME}, nil)
 	defer jwtManagerMock.AssertAllExpectionsSatisfied()
-	sut := endpoint.NewUploadEndpoint(&databaseMock, &metadataExtractorMock, &hasherMock, &jwtManagerMock)
+
+	thumbnailCreatorMock := mock.NewThumbnailCreatorMock(t)
+	defer thumbnailCreatorMock.AssertAllExpectionsSatisfied()
+
+	sut := endpoint.NewUploadEndpoint(&databaseMock, &metadataExtractorMock, &hasherMock, &jwtManagerMock, &thumbnailCreatorMock)
 
 	request := httptest.NewRequest(http.MethodPost, "/", io.NopCloser(bytes.NewReader([]byte{})))
 	request.Header.Set("Authorization", TOKEN_STRING)
@@ -431,9 +470,8 @@ func TestUploadEndpointShouldReturn400ForEmptyRequestBody(t *testing.T) {
 	}
 }
 
-func TestUploadEndpointShouldSaveGivenImageToDb(t *testing.T) {
+func TestUploadEndpointShouldReturn500WhenFailedToCreateThumbnail(t *testing.T) {
 	databaseMock := mock.NewDatabaseMock(t)
-	databaseMock.ExpectQuery(UPLOAD_SQL, [][]any{{FILE_ID}}, []any{USER_ID, MODIFICATION_DATE, FILENAME, metadata.JPG, FILE, HASH, len(FILE)}, nil)
 	defer databaseMock.AssertAllExpectionsSatisfied()
 
 	metadataExtractorMock := mock.NewMetadataExtractorMock(t)
@@ -448,7 +486,101 @@ func TestUploadEndpointShouldSaveGivenImageToDb(t *testing.T) {
 	jwtManagerMock.ExpectDecode(TOKEN_STRING, jwt.JwtPayload{UserId: USER_ID, Username: USERNAME, ExpirationTime: EXPIRATION_TIME}, nil)
 	defer jwtManagerMock.AssertAllExpectionsSatisfied()
 
-	sut := endpoint.NewUploadEndpoint(&databaseMock, &metadataExtractorMock, &hasherMock, &jwtManagerMock)
+	thumbnailCreatorMock := mock.NewThumbnailCreatorMock(t)
+	thumbnailCreatorMock.ExpectCreate(FILE, metadata.JPG, nil, errors.New("failed to create thumbnail"))
+	defer thumbnailCreatorMock.AssertAllExpectionsSatisfied()
+
+	sut := endpoint.NewUploadEndpoint(&databaseMock, &metadataExtractorMock, &hasherMock, &jwtManagerMock, &thumbnailCreatorMock)
+
+	request := createRequest(
+		map[string][]byte{
+			"filename":          []byte(FILENAME),
+			"modification_date": []byte(MODIFICATION_DATE),
+			"file":              FILE,
+		},
+		TOKEN_STRING,
+	)
+
+	router, responseRecorder := prepareGin()
+	router.POST("/", sut.Post)
+	router.ServeHTTP(responseRecorder, request)
+
+	if responseRecorder.Code != 500 {
+		t.Error(responseRecorder.Code)
+	}
+	if responseRecorder.Body.String() != "" {
+		fmt.Print("Expected body to be empty")
+		t.FailNow()
+	}
+}
+
+func TestUploadEndpointShouldSaveThumbnailToDb(t *testing.T) {
+	databaseMock := mock.NewDatabaseMock(t)
+	databaseMock.ExpectQuery(UPLOAD_SQL, [][]any{{FILE_ID}}, []any{USER_ID, MODIFICATION_DATE, FILENAME, metadata.JPG, FILE, THUMBNAIL, HASH, len(FILE)}, nil)
+	defer databaseMock.AssertAllExpectionsSatisfied()
+
+	metadataExtractorMock := mock.NewMetadataExtractorMock(t)
+	metadataExtractorMock.ExpectExtract(FILE, metadata.Metadata{MIMEType: metadata.JPG})
+	defer metadataExtractorMock.AssertAllExpectionsSatisfied()
+
+	hasherMock := mock.NewHasherMock(t)
+	hasherMock.ExpectHash(FILE, HASH, nil)
+	defer hasherMock.AssertAllExpectionsSatisfied()
+
+	jwtManagerMock := mock.NewJwtManagerMock(t)
+	jwtManagerMock.ExpectDecode(TOKEN_STRING, jwt.JwtPayload{UserId: USER_ID, Username: USERNAME, ExpirationTime: EXPIRATION_TIME}, nil)
+	defer jwtManagerMock.AssertAllExpectionsSatisfied()
+
+	thumbnailCreatorMock := mock.NewThumbnailCreatorMock(t)
+	thumbnailCreatorMock.ExpectCreate(FILE, metadata.JPG, THUMBNAIL, nil)
+	defer thumbnailCreatorMock.AssertAllExpectionsSatisfied()
+
+	sut := endpoint.NewUploadEndpoint(&databaseMock, &metadataExtractorMock, &hasherMock, &jwtManagerMock, &thumbnailCreatorMock)
+
+	request := createRequest(
+		map[string][]byte{
+			"filename":          []byte(FILENAME),
+			"modification_date": []byte(MODIFICATION_DATE),
+			"file":              FILE,
+		},
+		TOKEN_STRING,
+	)
+
+	router, responseRecorder := prepareGin()
+	router.POST("/", sut.Post)
+	router.ServeHTTP(responseRecorder, request)
+
+	if responseRecorder.Code != 200 {
+		t.Error(responseRecorder.Code)
+	}
+	if responseRecorder.Body.String() != strconv.FormatInt(FILE_ID, 10) {
+		fmt.Printf("Expected '%s', got '%s'", strconv.FormatInt(FILE_ID, 10), responseRecorder.Body.String())
+		t.FailNow()
+	}
+}
+
+func TestUploadEndpointShouldSaveGivenImageToDb(t *testing.T) {
+	databaseMock := mock.NewDatabaseMock(t)
+	databaseMock.ExpectQuery(UPLOAD_SQL, [][]any{{FILE_ID}}, []any{USER_ID, MODIFICATION_DATE, FILENAME, metadata.JPG, FILE, NO_THUMBNAIL, HASH, len(FILE)}, nil)
+	defer databaseMock.AssertAllExpectionsSatisfied()
+
+	metadataExtractorMock := mock.NewMetadataExtractorMock(t)
+	metadataExtractorMock.ExpectExtract(FILE, metadata.Metadata{MIMEType: metadata.JPG})
+	defer metadataExtractorMock.AssertAllExpectionsSatisfied()
+
+	hasherMock := mock.NewHasherMock(t)
+	hasherMock.ExpectHash(FILE, HASH, nil)
+	defer hasherMock.AssertAllExpectionsSatisfied()
+
+	jwtManagerMock := mock.NewJwtManagerMock(t)
+	jwtManagerMock.ExpectDecode(TOKEN_STRING, jwt.JwtPayload{UserId: USER_ID, Username: USERNAME, ExpirationTime: EXPIRATION_TIME}, nil)
+	defer jwtManagerMock.AssertAllExpectionsSatisfied()
+
+	thumbnailCreatorMock := mock.NewThumbnailCreatorMock(t)
+	thumbnailCreatorMock.ExpectCreate(FILE, metadata.JPG, nil, nil)
+	defer thumbnailCreatorMock.AssertAllExpectionsSatisfied()
+
+	sut := endpoint.NewUploadEndpoint(&databaseMock, &metadataExtractorMock, &hasherMock, &jwtManagerMock, &thumbnailCreatorMock)
 
 	request := createRequest(
 		map[string][]byte{
@@ -474,7 +606,7 @@ func TestUploadEndpointShouldSaveGivenImageToDb(t *testing.T) {
 
 func TestUploadEndpointShouldHandleRequestPartsInDifferentOrder(t *testing.T) {
 	databaseMock := mock.NewDatabaseMock(t)
-	databaseMock.ExpectQuery(UPLOAD_SQL, [][]any{{FILE_ID}}, []any{USER_ID, MODIFICATION_DATE, FILENAME, metadata.JPG, FILE, HASH, len(FILE)}, nil)
+	databaseMock.ExpectQuery(UPLOAD_SQL, [][]any{{FILE_ID}}, []any{USER_ID, MODIFICATION_DATE, FILENAME, metadata.JPG, FILE, NO_THUMBNAIL, HASH, len(FILE)}, nil)
 	defer databaseMock.AssertAllExpectionsSatisfied()
 
 	metadataExtractorMock := mock.NewMetadataExtractorMock(t)
@@ -489,7 +621,11 @@ func TestUploadEndpointShouldHandleRequestPartsInDifferentOrder(t *testing.T) {
 	jwtManagerMock.ExpectDecode(TOKEN_STRING, jwt.JwtPayload{UserId: USER_ID, Username: USERNAME, ExpirationTime: EXPIRATION_TIME}, nil)
 	defer jwtManagerMock.AssertAllExpectionsSatisfied()
 
-	sut := endpoint.NewUploadEndpoint(&databaseMock, &metadataExtractorMock, &hasherMock, &jwtManagerMock)
+	thumbnailCreatorMock := mock.NewThumbnailCreatorMock(t)
+	thumbnailCreatorMock.ExpectCreate(FILE, metadata.JPG, nil, nil)
+	defer thumbnailCreatorMock.AssertAllExpectionsSatisfied()
+
+	sut := endpoint.NewUploadEndpoint(&databaseMock, &metadataExtractorMock, &hasherMock, &jwtManagerMock, &thumbnailCreatorMock)
 
 	request := createRequest(
 		map[string][]byte{
