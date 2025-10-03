@@ -95,6 +95,10 @@ func main() {
 	router.DELETE("/v1/file", fileEndpoint.Delete)
 	router.OPTIONS("/v1/file", fileEndpoint.Options)
 
+	datesEndpoint := endpoint.NewDatesEndpoint(db, &jwtManager)
+	router.GET("/v1/dates", datesEndpoint.Get)
+	router.OPTIONS("/v1/dates", datesEndpoint.Options)
+
 	testing := envGetter.Get("TESTING")
 	if testing == "true" {
 		restartEndpoint := endpoint.NewRestartEndpoint(db)

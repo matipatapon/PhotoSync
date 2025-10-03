@@ -173,21 +173,32 @@ return result
 }
 
 export async function getDates(){
-    return {
-        years:[
-            {
-                year: 2025,
-                months:[
-                {
-                    month: 1,
-                    days:[
-                        {
-                        day: 25,
-                        imageCount: 50
-                        }
-                    ]
-                }
-            ]}
-        ]
+    let result = {status: null, result: null}
+    const token = sessionStorage.getItem("Authorization")
+
+    if(token === null){
+        result.status = "NOT_LOGGED_IN"
+        return result
     }
+
+    try{
+        let response = await fetch(
+            `${getApiUrl("dates")}`,
+            {
+                method: "GET",
+                headers: {
+                    "Authorization": token,
+                },
+            }
+        )
+        if(response.status === 200){
+            result.status = "SUCCESS"
+            let dates = await response.text()
+            result.result = JSON.parse(dates)
+        } else {
+            result.status = "ERROR"
+        }
+} catch(e){
+}
+return result
 }

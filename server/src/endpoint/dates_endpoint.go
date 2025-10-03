@@ -30,12 +30,14 @@ func NewDatesEndpoint(db database.IDataBase, jm jwt.IJwtManager) DatesEndpoint {
 	return DatesEndpoint{db: db, jm: jm, logger: log.New(os.Stdout, "[DatesEndpoint]: ", log.LstdFlags)}
 }
 
+// TODO UTies & FTies & docs
 func (fe *DatesEndpoint) Options(c *gin.Context) {
-	// c.Header("Access-Control-Allow-Headers", "Authorization")
-	// c.Header("Access-Control-Allow-Methods", "GET")
-	// c.Status(200)
+	c.Header("Access-Control-Allow-Headers", "Authorization")
+	c.Header("Access-Control-Allow-Methods", "GET")
+	c.Status(200)
 }
 
+// TODO FTies & docs
 func (de *DatesEndpoint) Get(c *gin.Context) {
 	token := c.Request.Header.Get("Authorization")
 	jwt, err := de.jm.Decode(token)
