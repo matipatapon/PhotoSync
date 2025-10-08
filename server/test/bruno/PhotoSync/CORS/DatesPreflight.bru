@@ -1,0 +1,21 @@
+meta {
+  name: DatesPreflight
+  type: http
+  seq: 4
+}
+
+options {
+  url: {{HOST}}/dates
+  body: none
+  auth: inherit
+}
+
+assert {
+  res.headers["access-control-allow-headers"]: eq Authorization
+  res.headers["access-control-allow-methods"]: eq GET
+  res.headers["access-control-allow-origin"]: eq {{ALLOWED_ORIGIN}}
+}
+
+settings {
+  encodeUrl: true
+}

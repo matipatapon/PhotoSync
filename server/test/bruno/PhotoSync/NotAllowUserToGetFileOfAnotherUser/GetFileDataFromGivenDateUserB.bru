@@ -1,7 +1,7 @@
 meta {
-  name: GetFileDataB
+  name: GetFileDataFromGivenDateUserB
   type: http
-  seq: 9
+  seq: 11
 }
 
 get {
@@ -16,6 +16,11 @@ params:query {
 
 headers {
   Authorization: {{TOKENB}}
+}
+
+assert {
+  res.status: eq 200
+  res.headers["access-control-allow-origin"]: eq {{ALLOWED_ORIGIN}}
 }
 
 tests {
@@ -34,7 +39,6 @@ tests {
     ]
     )
   })
-  
 }
 
 settings {

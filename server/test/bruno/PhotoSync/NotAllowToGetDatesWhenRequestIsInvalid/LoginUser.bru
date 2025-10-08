@@ -1,7 +1,7 @@
 meta {
-  name: LoginUserA
+  name: LoginUser
   type: http
-  seq: 4
+  seq: 3
 }
 
 post {
@@ -19,5 +19,5 @@ script:pre-request {
 }
 
 script:post-response {
-  bru.setVar("TOKENA", res.body)
+  bru.setVar("TOKEN", res.body)
 }

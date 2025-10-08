@@ -57,11 +57,11 @@ func (fe *FileDataEndpoint) Get(c *gin.Context) {
 	}
 	if err != nil {
 		c.Status(500)
-		fe.logger.Printf("Regexp for date '%s' failed", date)
+		fe.logger.Printf("Regexp for date '%s' failed: '%s'", date, err.Error())
 		return
 	}
 
-	rows, err := fe.db.Query("SELECT id, filename, TO_CHAR(creation_date, 'YYYY.MM.DD HH24:MI:SS') AS date, mime_type, size, thumbnail FROM files WHERE user_id = $1 AND TO_CHAR(creation_date, 'YYYY.MM.DD HH24:MI:SS') ILIKE $2 || '%' ORDER BY id DESC, creation_date DESC", jwt.UserId, date)
+	rows, err := fe.db.Query("SELECT id, filename, TO_CHAR(creation_date, 'YYYY.MM.DD HH24:MI:SS') AS date, mime_type, size, thumbnail FROM files WHERE user_id = $1 AND TO_CHAR(creation_date, 'YYYY.MM.DD') ILIKE $2 || '%' ORDER BY id DESC, creation_date DESC", jwt.UserId, date)
 	if err != nil {
 		c.Status(500)
 		fe.logger.Printf("Query failed: '%s'", err.Error())

@@ -1,7 +1,7 @@
 meta {
-  name: UploadRawJpgA
+  name: UploadRawJpg
   type: http
-  seq: 6
+  seq: 4
 }
 
 post {
@@ -11,18 +11,19 @@ post {
 }
 
 headers {
-  Authorization: {{TOKENA}}
+  Authorization: {{TOKEN}}
 }
 
 body:multipart-form {
   filename: raw.jpg
-  modification_date: 2025.08.11 15:40:00
+  modification_date: 2023.06.07 15:40:00
   file: @file(../../images/raw.jpg)
 }
 
 assert {
   res.status: eq 200
   res.body: eq 1
+  res.headers["access-control-allow-origin"]: eq {{ALLOWED_ORIGIN}}
 }
 
 settings {

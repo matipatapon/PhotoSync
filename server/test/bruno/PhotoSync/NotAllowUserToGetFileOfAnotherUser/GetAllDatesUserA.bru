@@ -1,0 +1,36 @@
+meta {
+  name: GetAllDatesUserA
+  type: http
+  seq: 14
+}
+
+get {
+  url: {{HOST}}/dates
+  body: none
+  auth: inherit
+}
+
+headers {
+  Authorization: {{TOKENA}}
+}
+
+assert {
+  res.headers["access-control-allow-origin"]: eq {{ALLOWED_ORIGIN}}
+  res.status: eq 200
+}
+
+tests {
+  test("should return proper dates", function(){
+    expect(res.getBody()).to.eql(
+    [
+      {
+        "date": "2025.08.11",
+        "file_count": "1"
+      }
+    ])
+  })
+}
+
+settings {
+  encodeUrl: true
+}

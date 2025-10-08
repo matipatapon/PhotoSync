@@ -1,17 +1,17 @@
 meta {
-  name: GetFileDataWithInvalidDate
+  name: NotAllowToGetDatesWithInvalidYear
   type: http
   seq: 5
 }
 
 get {
-  url: {{HOST}}/file_data?date=%
+  url: {{HOST}}/dates?year=abcd
   body: none
   auth: inherit
 }
 
 params:query {
-  date: %
+  year: abcd
 }
 
 headers {
@@ -19,8 +19,9 @@ headers {
 }
 
 assert {
+  res.headers["access-control-allow-origin"]: eq {{ALLOWED_ORIGIN}}
   res.status: eq 400
-  res.body: 
+  res.body.length: eq 0
 }
 
 settings {

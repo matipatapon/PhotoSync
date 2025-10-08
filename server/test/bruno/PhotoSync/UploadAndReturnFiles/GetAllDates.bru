@@ -1,0 +1,48 @@
+meta {
+  name: GetAllDates
+  type: http
+  seq: 17
+}
+
+get {
+  url: {{HOST}}/dates
+  body: none
+  auth: inherit
+}
+
+headers {
+  Authorization: {{TOKEN}}
+}
+
+assert {
+  res.headers["access-control-allow-origin"]: eq {{ALLOWED_ORIGIN}}
+  res.status: eq 200
+}
+
+tests {
+  test("should return proper dates", function(){
+    expect(res.getBody()).to.eql(
+    [
+      {
+        "date": "2023.08.03",
+        "file_count": "1"
+      },
+      {
+        "date": "2023.06.07",
+        "file_count": "2"
+      },
+      {
+        "date": "2022.03.01",
+        "file_count": "1"
+      },
+      {
+        "date": "2007.12.20",
+        "file_count": "1"
+      }
+    ])
+  })
+}
+
+settings {
+  encodeUrl: true
+}

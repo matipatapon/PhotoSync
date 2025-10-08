@@ -1,0 +1,44 @@
+meta {
+  name: GetAllDatesFromGivenYear
+  type: http
+  seq: 18
+}
+
+get {
+  url: {{HOST}}/dates?year=2023
+  body: none
+  auth: inherit
+}
+
+params:query {
+  year: 2023
+}
+
+headers {
+  Authorization: {{TOKEN}}
+}
+
+assert {
+  res.headers["access-control-allow-origin"]: eq {{ALLOWED_ORIGIN}}
+  res.status: eq 200
+}
+
+tests {
+  test("should return proper dates", function(){
+    expect(res.getBody()).to.eql(
+      [
+        {
+          "date": "2023.08.03",
+          "file_count": "1"
+        },
+        {
+          "date": "2023.06.07",
+          "file_count": "2"
+        }
+      ])
+  })
+}
+
+settings {
+  encodeUrl: true
+}

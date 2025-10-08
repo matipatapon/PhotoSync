@@ -1,0 +1,20 @@
+meta {
+  name: NotAllowToGetDatesWhenTokenIsMissing
+  type: http
+  seq: 10
+}
+
+get {
+  url: {{HOST}}/dates
+  body: none
+  auth: inherit
+}
+
+assert {
+  res.status: eq 403
+  res.body: 
+}
+
+settings {
+  encodeUrl: true
+}

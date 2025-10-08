@@ -1,0 +1,41 @@
+meta {
+  name: GetAllDatesFromGivenYearAndMonth
+  type: http
+  seq: 19
+}
+
+get {
+  url: {{HOST}}/dates?year=2023&month=06
+  body: none
+  auth: inherit
+}
+
+params:query {
+  year: 2023
+  month: 06
+}
+
+headers {
+  Authorization: {{TOKEN}}
+}
+
+assert {
+  res.headers["access-control-allow-origin"]: eq {{ALLOWED_ORIGIN}}
+  res.status: eq 200
+}
+
+tests {
+  test("should return proper dates", function(){
+    expect(res.getBody()).to.eql(
+      [
+        {
+          "date": "2023.06.07",
+          "file_count": "2"
+        }
+      ])
+  })
+}
+
+settings {
+  encodeUrl: true
+}

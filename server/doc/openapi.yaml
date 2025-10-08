@@ -156,9 +156,9 @@ paths:
           schema:
             type: string
             description: |
-              Date formated as 'DD.MM.YYYY'.
+              Date formated as 'YYYY.MM.DD'.
               Only data of files created on given date will be returned.
-            example: '16.05.2025'
+            example: '2025.05.16'
           required: true
       responses:
         "200":
@@ -262,6 +262,18 @@ paths:
                     file_count:
                       type: string
                       example: 23
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: string
+                example: "'*', 'http://localhost:3200'"
+              description: allows web browser to share response with given origin
+        "400":
+          description: bad request
+        "403":
+          description: missing or invalid token
+        "500":
+          description: server error
   /file:
     get:
       summary: returns file with given id

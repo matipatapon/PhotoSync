@@ -18,7 +18,7 @@ import (
 	"testing"
 )
 
-var FILE_DATA_QUERY string = "SELECT id, filename, TO_CHAR(creation_date, 'YYYY.MM.DD HH24:MI:SS') AS date, mime_type, size, thumbnail FROM files WHERE user_id = $1 AND TO_CHAR(creation_date, 'YYYY.MM.DD HH24:MI:SS') ILIKE $2 || '%' ORDER BY id DESC, creation_date DESC"
+var FILE_DATA_QUERY string = "SELECT id, filename, TO_CHAR(creation_date, 'YYYY.MM.DD HH24:MI:SS') AS date, mime_type, size, thumbnail FROM files WHERE user_id = $1 AND TO_CHAR(creation_date, 'YYYY.MM.DD') ILIKE $2 || '%' ORDER BY id DESC, creation_date DESC"
 var OFFSET int64 = 10
 var COUNT int64 = 15
 var NEGATIVE_OFFSET int64 = -10

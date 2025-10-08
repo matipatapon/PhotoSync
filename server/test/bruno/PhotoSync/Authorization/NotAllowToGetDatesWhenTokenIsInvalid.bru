@@ -1,0 +1,24 @@
+meta {
+  name: NotAllowToGetDatesWhenTokenIsInvalid
+  type: http
+  seq: 9
+}
+
+get {
+  url: {{HOST}}/dates
+  body: none
+  auth: inherit
+}
+
+headers {
+  Authorization: {{INVALID_TOKEN}}
+}
+
+assert {
+  res.status: eq 403
+  res.body: 
+}
+
+settings {
+  encodeUrl: true
+}

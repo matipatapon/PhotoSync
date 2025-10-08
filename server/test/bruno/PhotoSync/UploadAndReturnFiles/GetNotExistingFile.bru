@@ -1,17 +1,17 @@
 meta {
-  name: NotAllowUserToGetNotExistingFile
+  name: GetNotExistingFile
   type: http
-  seq: 12
+  seq: 16
 }
 
 get {
-  url: {{HOST}}/file?id=2
+  url: {{HOST}}/file?id=6
   body: none
   auth: inherit
 }
 
 params:query {
-  id: 2
+  id: 6
 }
 
 headers {

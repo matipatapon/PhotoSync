@@ -1,0 +1,30 @@
+meta {
+  name: NotAllowToGetDatesWithInvalidMonth
+  type: http
+  seq: 6
+}
+
+get {
+  url: {{HOST}}/dates?year=2025&month=aa
+  body: none
+  auth: inherit
+}
+
+params:query {
+  year: 2025
+  month: aa
+}
+
+headers {
+  Authorization: {{TOKEN}}
+}
+
+assert {
+  res.headers["access-control-allow-origin"]: eq {{ALLOWED_ORIGIN}}
+  res.status: eq 400
+  res.body.length: eq 0
+}
+
+settings {
+  encodeUrl: true
+}
