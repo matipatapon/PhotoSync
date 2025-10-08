@@ -1,41 +1,53 @@
 meta {
-  name: GetUserFiles
+  name: GetFileDataFromGivenDate
   type: http
-  seq: 6
+  seq: 8
 }
 
 get {
-  url: {{HOST}}/file_data?offset=0&count=10
+  url: {{HOST}}/file_data?date=2023.06.07
   body: none
   auth: inherit
 }
 
 params:query {
-  offset: 0
-  count: 10
+  date: 2023.06.07
 }
 
 headers {
   Authorization: {{TOKEN}}
 }
 
+assert {
+  res.status: eq 200
+  res.headers["access-control-allow-origin"]: eq {{ALLOWED_ORIGIN}}
+}
+
 tests {
   const exifJpgBase64 = bru.getCollectionVar("EXIF_JPG_BASE64")
+  const rawJpgBase64 = bru.getCollectionVar("RAW_JPG_BASE64")
   test("should return proper file data", function(){
     expect(res.getBody()).to.eql(
     [
       {
+        creation_date : "2023.06.07 15:40:00",
+        filename : "raw.jpg",
+        id: "4",
+        mime_type: "image/jpeg",
+        size: "2439",
+        thumbnail: rawJpgBase64,
+      },
+      {
         creation_date : "2023.06.07 12:30:45",
         filename : "exif.jpg",
-        id: "1",
+        id: "2",
         mime_type: "image/jpeg",
         size: "3474",
         thumbnail: exifJpgBase64,
-      },
+      }
     ]
     )
   })
-  
 }
 
 settings {

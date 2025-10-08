@@ -18,7 +18,7 @@ import (
 	"testing"
 )
 
-var FILE_DATA_QUERY string = "SELECT id, filename, TO_CHAR(creation_date, 'YYYY.MM.DD HH24:MI:SS'), mime_type, size, thumbnail FROM files WHERE user_id = $1 ORDER BY creation_date DESC, id DESC LIMIT $2 OFFSET $3"
+var FILE_DATA_QUERY string = "SELECT id, filename, TO_CHAR(creation_date, 'YYYY.MM.DD HH24:MI:SS') AS date, mime_type, size, thumbnail FROM files WHERE user_id = $1 AND TO_CHAR(creation_date, 'YYYY.MM.DD HH24:MI:SS') ILIKE $2 || '%' ORDER BY id DESC, creation_date DESC"
 var OFFSET int64 = 10
 var COUNT int64 = 15
 var NEGATIVE_OFFSET int64 = -10
@@ -90,20 +90,12 @@ var FILE_2_CREATION_DATE string = "2022.01.04 12:30:00"
 var FILE_2_MIME_TYPE int16 = int16(metadata.JPG)
 var FILE_2_SIZE int64 = 5000
 
-func prepareRequest(offset *int64, count *int64) *http.Request {
+func prepareRequest(date *string) *http.Request {
 	var query string
-	if offset == nil {
-		if count == nil {
-			query = "/"
-		} else {
-			query = fmt.Sprintf("/?count=%d", *count)
-		}
+	if date == nil {
+		query = "/"
 	} else {
-		if count == nil {
-			query = fmt.Sprintf("/?offset=%d", *offset)
-		} else {
-			query = fmt.Sprintf("/?offset=%d&count=%d", *offset, *count)
-		}
+		query = fmt.Sprintf("/?date=%s", *date)
 	}
 
 	request := httptest.NewRequest(http.MethodGet, query, io.NopCloser(bytes.NewBuffer([]byte{})))
@@ -138,9 +130,43 @@ func TestFileDataEndpointShouldReturnProperHeadersDuringPreflight(t *testing.T) 
 	}
 }
 
+func TestFileDataEndpointShouldReturn400WhenDateIsInvalid(t *testing.T) {
+	invalidDates := []string{
+		"yyyy.mm.dd",
+		"%",
+		"2025-12-24",
+		"12.06.2025",
+		"a12.06.2025b",
+		"",
+	}
+	for _, invalidDate := range invalidDates {
+		databaseMock := mock.NewDatabaseMock(t)
+		defer databaseMock.AssertAllExpectionsSatisfied()
+
+		jwtManagerMock := mock.NewJwtManagerMock(t)
+		jwtManagerMock.ExpectDecode(TOKEN_STRING, jwt.JwtPayload{
+			UserId: USER_ID,
+		}, nil)
+		defer jwtManagerMock.AssertAllExpectionsSatisfied()
+
+		sut := endpoint.NewFileDataEndpoint(&databaseMock, &jwtManagerMock)
+		router, responseRecorder := prepareGin()
+		router.GET("/", sut.Get)
+
+		router.ServeHTTP(responseRecorder, prepareRequest(&invalidDate))
+
+		if responseRecorder.Code != 400 {
+			t.Error(responseRecorder.Code)
+		}
+		if responseRecorder.Body.Len() != 0 {
+			t.Error("Expected empty response")
+		}
+	}
+}
+
 func TestFileDataEndpointShouldReturn500WhenQueryFailed(t *testing.T) {
 	databaseMock := mock.NewDatabaseMock(t)
-	databaseMock.ExpectQuery(FILE_DATA_QUERY, fileDataToRequestArgs(FILE_DATA_WITH_THUMBNAIL), []any{USER_ID, int64(15), int64(10)}, errors.New("db error"))
+	databaseMock.ExpectQuery(FILE_DATA_QUERY, fileDataToRequestArgs(FILE_DATA_WITH_THUMBNAIL), []any{USER_ID, PARAM_DATE}, errors.New("db error"))
 	defer databaseMock.AssertAllExpectionsSatisfied()
 
 	jwtManagerMock := mock.NewJwtManagerMock(t)
@@ -153,7 +179,7 @@ func TestFileDataEndpointShouldReturn500WhenQueryFailed(t *testing.T) {
 	router, responseRecorder := prepareGin()
 	router.GET("/", sut.Get)
 
-	router.ServeHTTP(responseRecorder, prepareRequest(&OFFSET, &COUNT))
+	router.ServeHTTP(responseRecorder, prepareRequest(&PARAM_DATE))
 
 	if responseRecorder.Code != 500 {
 		t.Error(responseRecorder.Code)
@@ -175,93 +201,9 @@ func TestFileDataEndpointShouldReturn403WhenTokenIsInvalid(t *testing.T) {
 	router, responseRecorder := prepareGin()
 	router.GET("/", sut.Get)
 
-	router.ServeHTTP(responseRecorder, prepareRequest(&OFFSET, &COUNT))
+	router.ServeHTTP(responseRecorder, prepareRequest(&PARAM_DATE))
 
 	if responseRecorder.Code != 403 {
-		t.Error(responseRecorder.Code)
-	}
-	if responseRecorder.Body.Len() != 0 {
-		t.Error("Expected empty response")
-	}
-}
-
-func TestFileDataEndpointShouldReturn400WhenCountIsMissing(t *testing.T) {
-	databaseMock := mock.NewDatabaseMock(t)
-	defer databaseMock.AssertAllExpectionsSatisfied()
-
-	jwtManagerMock := mock.NewJwtManagerMock(t)
-	defer jwtManagerMock.AssertAllExpectionsSatisfied()
-
-	sut := endpoint.NewFileDataEndpoint(&databaseMock, &jwtManagerMock)
-	router, responseRecorder := prepareGin()
-	router.GET("/", sut.Get)
-
-	router.ServeHTTP(responseRecorder, prepareRequest(&OFFSET, nil))
-
-	if responseRecorder.Code != 400 {
-		t.Error(responseRecorder.Code)
-	}
-	if responseRecorder.Body.Len() != 0 {
-		t.Error("Expected empty response")
-	}
-}
-
-func TestFileDataEndpointShouldReturn400WhenOffsetIsNegative(t *testing.T) {
-	databaseMock := mock.NewDatabaseMock(t)
-	defer databaseMock.AssertAllExpectionsSatisfied()
-
-	jwtManagerMock := mock.NewJwtManagerMock(t)
-	defer jwtManagerMock.AssertAllExpectionsSatisfied()
-
-	sut := endpoint.NewFileDataEndpoint(&databaseMock, &jwtManagerMock)
-	router, responseRecorder := prepareGin()
-	router.GET("/", sut.Get)
-
-	router.ServeHTTP(responseRecorder, prepareRequest(&NEGATIVE_OFFSET, &COUNT))
-
-	if responseRecorder.Code != 400 {
-		t.Error(responseRecorder.Code)
-	}
-	if responseRecorder.Body.Len() != 0 {
-		t.Error("Expected empty response")
-	}
-}
-
-func TestFileDataEndpointShouldReturn400WhenCountIsNegative(t *testing.T) {
-	databaseMock := mock.NewDatabaseMock(t)
-	defer databaseMock.AssertAllExpectionsSatisfied()
-
-	jwtManagerMock := mock.NewJwtManagerMock(t)
-	defer jwtManagerMock.AssertAllExpectionsSatisfied()
-
-	sut := endpoint.NewFileDataEndpoint(&databaseMock, &jwtManagerMock)
-	router, responseRecorder := prepareGin()
-	router.GET("/", sut.Get)
-
-	router.ServeHTTP(responseRecorder, prepareRequest(&OFFSET, &NEGATIVE_COUNT))
-
-	if responseRecorder.Code != 400 {
-		t.Error(responseRecorder.Code)
-	}
-	if responseRecorder.Body.Len() != 0 {
-		t.Error("Expected empty response")
-	}
-}
-
-func TestFileDataEndpointShouldReturn400WhenOffsetIsMissing(t *testing.T) {
-	databaseMock := mock.NewDatabaseMock(t)
-	defer databaseMock.AssertAllExpectionsSatisfied()
-
-	jwtManagerMock := mock.NewJwtManagerMock(t)
-	defer jwtManagerMock.AssertAllExpectionsSatisfied()
-
-	sut := endpoint.NewFileDataEndpoint(&databaseMock, &jwtManagerMock)
-	router, responseRecorder := prepareGin()
-	router.GET("/", sut.Get)
-
-	router.ServeHTTP(responseRecorder, prepareRequest(nil, &COUNT))
-
-	if responseRecorder.Code != 400 {
 		t.Error(responseRecorder.Code)
 	}
 	if responseRecorder.Body.Len() != 0 {
@@ -275,7 +217,7 @@ func TestFileDataEndpointShouldReturn500WhenFileGotDeleted(t *testing.T) {
 		fileId, _ := strconv.ParseInt(FILE_DATA_WITHOUT_THUMBNAIL[0].Id, 10, 64)
 
 		databaseMock := mock.NewDatabaseMock(t)
-		databaseMock.ExpectQuery(FILE_DATA_QUERY, fileDataToRequestArgs(FILE_DATA_WITHOUT_THUMBNAIL), []any{USER_ID, int64(15), int64(10)}, nil)
+		databaseMock.ExpectQuery(FILE_DATA_QUERY, fileDataToRequestArgs(FILE_DATA_WITHOUT_THUMBNAIL), []any{USER_ID, PARAM_DATE}, nil)
 		databaseMock.ExpectQuery("SELECT file FROM files WHERE id = $1", result, []any{fileId}, nil)
 		defer databaseMock.AssertAllExpectionsSatisfied()
 
@@ -289,7 +231,7 @@ func TestFileDataEndpointShouldReturn500WhenFileGotDeleted(t *testing.T) {
 		router, responseRecorder := prepareGin()
 		router.GET("/", sut.Get)
 
-		router.ServeHTTP(responseRecorder, prepareRequest(&OFFSET, &COUNT))
+		router.ServeHTTP(responseRecorder, prepareRequest(&PARAM_DATE))
 
 		if responseRecorder.Code != 500 {
 			t.Error(responseRecorder.Code)
@@ -304,7 +246,7 @@ func TestFileDataEndpointShouldReturn500WhenFailedToGetAImage(t *testing.T) {
 	fileId, _ := strconv.ParseInt(FILE_DATA_WITHOUT_THUMBNAIL[0].Id, 10, 64)
 
 	databaseMock := mock.NewDatabaseMock(t)
-	databaseMock.ExpectQuery(FILE_DATA_QUERY, fileDataToRequestArgs(FILE_DATA_WITHOUT_THUMBNAIL), []any{USER_ID, int64(15), int64(10)}, nil)
+	databaseMock.ExpectQuery(FILE_DATA_QUERY, fileDataToRequestArgs(FILE_DATA_WITHOUT_THUMBNAIL), []any{USER_ID, PARAM_DATE}, nil)
 	databaseMock.ExpectQuery("SELECT file FROM files WHERE id = $1", [][]any{{}}, []any{fileId}, errors.New("failed to get a file"))
 	defer databaseMock.AssertAllExpectionsSatisfied()
 
@@ -318,7 +260,7 @@ func TestFileDataEndpointShouldReturn500WhenFailedToGetAImage(t *testing.T) {
 	router, responseRecorder := prepareGin()
 	router.GET("/", sut.Get)
 
-	router.ServeHTTP(responseRecorder, prepareRequest(&OFFSET, &COUNT))
+	router.ServeHTTP(responseRecorder, prepareRequest(&PARAM_DATE))
 
 	if responseRecorder.Code != 500 {
 		t.Error(responseRecorder.Code)
@@ -335,7 +277,7 @@ func TestFileDataEndpointShouldReturnImageAsThumbnailWhenThereIsNoThumbnail(t *t
 	fileId, _ := strconv.ParseInt(expectedFileData[0].Id, 10, 64)
 
 	databaseMock := mock.NewDatabaseMock(t)
-	databaseMock.ExpectQuery(FILE_DATA_QUERY, fileDataToRequestArgs(FILE_DATA_WITHOUT_THUMBNAIL), []any{USER_ID, int64(15), int64(10)}, nil)
+	databaseMock.ExpectQuery(FILE_DATA_QUERY, fileDataToRequestArgs(FILE_DATA_WITHOUT_THUMBNAIL), []any{USER_ID, PARAM_DATE}, nil)
 	databaseMock.ExpectQuery("SELECT file FROM files WHERE id = $1", [][]any{{FILE}}, []any{fileId}, nil)
 	defer databaseMock.AssertAllExpectionsSatisfied()
 
@@ -349,7 +291,7 @@ func TestFileDataEndpointShouldReturnImageAsThumbnailWhenThereIsNoThumbnail(t *t
 	router, responseRecorder := prepareGin()
 	router.GET("/", sut.Get)
 
-	router.ServeHTTP(responseRecorder, prepareRequest(&OFFSET, &COUNT))
+	router.ServeHTTP(responseRecorder, prepareRequest(&PARAM_DATE))
 
 	if responseRecorder.Code != 200 {
 		t.Error(responseRecorder.Code)
@@ -367,7 +309,7 @@ func TestFileDataEndpointShouldReturnImageAsThumbnailWhenThereIsNoThumbnail(t *t
 
 func TestFileDataEndpointShouldReturn200AndFileData(t *testing.T) {
 	databaseMock := mock.NewDatabaseMock(t)
-	databaseMock.ExpectQuery(FILE_DATA_QUERY, fileDataToRequestArgs(FILE_DATA_WITH_THUMBNAIL), []any{USER_ID, int64(15), int64(10)}, nil)
+	databaseMock.ExpectQuery(FILE_DATA_QUERY, fileDataToRequestArgs(FILE_DATA_WITH_THUMBNAIL), []any{USER_ID, PARAM_DATE}, nil)
 	defer databaseMock.AssertAllExpectionsSatisfied()
 
 	jwtManagerMock := mock.NewJwtManagerMock(t)
@@ -380,7 +322,7 @@ func TestFileDataEndpointShouldReturn200AndFileData(t *testing.T) {
 	router, responseRecorder := prepareGin()
 	router.GET("/", sut.Get)
 
-	router.ServeHTTP(responseRecorder, prepareRequest(&OFFSET, &COUNT))
+	router.ServeHTTP(responseRecorder, prepareRequest(&PARAM_DATE))
 
 	if responseRecorder.Code != 200 {
 		t.Error(responseRecorder.Code)

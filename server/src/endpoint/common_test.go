@@ -21,6 +21,7 @@ var FILE_ID int64 = 2137
 var INVALID_MODIFICATION_DATE string = "2025:04:12|15-32-13"
 var MODIFICATION_DATE string = "2025.08.03 15:24:13"
 var CREATION_DATE string = "2024.07.01 12:31:32"
+var PARAM_DATE string = "2025.05.16"
 
 func prepareGin() (*gin.Engine, *httptest.ResponseRecorder) {
 	gin.SetMode(gin.TestMode)

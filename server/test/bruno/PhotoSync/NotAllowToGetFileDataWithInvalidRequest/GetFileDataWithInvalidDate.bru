@@ -1,17 +1,17 @@
 meta {
-  name: DeleteRawFile
+  name: GetFileDataWithInvalidDate
   type: http
-  seq: 10
+  seq: 7
 }
 
-delete {
-  url: {{HOST}}/file?id=1
+get {
+  url: {{HOST}}/file_data?date=2025
   body: none
   auth: inherit
 }
 
 params:query {
-  id: 1
+  date: 2025
 }
 
 headers {
@@ -19,8 +19,8 @@ headers {
 }
 
 assert {
-  res.status: eq 200
-  res.body: eq
+  res.status: eq 400
+  res.body: 
 }
 
 settings {

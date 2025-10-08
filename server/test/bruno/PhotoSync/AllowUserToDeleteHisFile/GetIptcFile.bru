@@ -1,17 +1,17 @@
 meta {
-  name: GetExifJpg
+  name: GetIptcFile
   type: http
-  seq: 10
+  seq: 13
 }
 
 get {
-  url: {{HOST}}/file?id=2
+  url: {{HOST}}/file?id=3
   body: none
   auth: inherit
 }
 
 params:query {
-  id: 2
+  id: 3
 }
 
 headers {
@@ -20,9 +20,8 @@ headers {
 
 assert {
   res.status: eq 200
-  res.body.length: eq 3390
+  res.body.length: eq 3156
   res.headers["content-type"]: eq image/jpeg
-  res.headers["access-control-allow-origin"]: eq {{ALLOWED_ORIGIN}}
 }
 
 tests {
@@ -36,7 +35,7 @@ tests {
   };
   
   test("hash is expected", function(){
-    expect(generateHash(res.body)).to.eql(1762376268 ) 
+    expect(generateHash(res.body)).to.eql(-376067850) 
   })
 }
 

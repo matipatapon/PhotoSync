@@ -1,10 +1,10 @@
 meta {
-  name: DeleteRawFile
+  name: TryToGetAFile
   type: http
-  seq: 10
+  seq: 7
 }
 
-delete {
+get {
   url: {{HOST}}/file?id=1
   body: none
   auth: inherit
@@ -19,8 +19,9 @@ headers {
 }
 
 assert {
-  res.status: eq 200
-  res.body: eq
+  res.status: eq 404
+  res.body.length: eq 0
+  res.headers["access-control-allow-origin"]: eq {{ALLOWED_ORIGIN}}
 }
 
 settings {

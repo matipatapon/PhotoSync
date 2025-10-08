@@ -1,10 +1,10 @@
 meta {
-  name: DeleteIptcFile
+  name: NotGetIptcFile
   type: http
-  seq: 14
+  seq: 15
 }
 
-delete {
+get {
   url: {{HOST}}/file?id=3
   body: none
   auth: inherit
@@ -15,12 +15,12 @@ params:query {
 }
 
 headers {
-  Authorization: {{TOKEN}}
+  Authorization: {{TOKENB}}
 }
 
 assert {
-  res.status: eq 200
-  res.body: eq
+  res.status: eq 404
+  res.body.length: eq 0
 }
 
 settings {

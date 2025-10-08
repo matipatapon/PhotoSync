@@ -152,18 +152,13 @@ paths:
         - tokenAuth: []
       parameters:
         - in: query
-          name: offset
+          name: date
           schema:
-            type: integer
-            description: where metadata collection should begin
-            example: 50
-          required: true
-        - in: query
-          name: count
-          schema:
-            type: integer
-            description: how many metadata should be returned
-            example: 100
+            type: string
+            description: |
+              Date formated as 'DD.MM.YYYY'.
+              Only data of files created on given date will be returned.
+            example: '16.05.2025'
           required: true
       responses:
         "200":

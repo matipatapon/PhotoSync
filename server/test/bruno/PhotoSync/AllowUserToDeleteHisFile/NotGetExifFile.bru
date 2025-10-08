@@ -1,0 +1,28 @@
+meta {
+  name: NotGetExifFile
+  type: http
+  seq: 8
+}
+
+get {
+  url: {{HOST}}/file?id=2
+  body: none
+  auth: inherit
+}
+
+params:query {
+  id: 2
+}
+
+headers {
+  Authorization: {{TOKENB}}
+}
+
+assert {
+  res.status: eq 404
+  res.body.length: eq 0
+}
+
+settings {
+  encodeUrl: true
+}

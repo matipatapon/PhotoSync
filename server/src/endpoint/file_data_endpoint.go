@@ -8,6 +8,7 @@ import (
 	"photosync/src/database"
 	"photosync/src/jwt"
 	"photosync/src/metadata"
+	"regexp"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
@@ -39,20 +40,6 @@ func (fe *FileDataEndpoint) Options(c *gin.Context) {
 }
 
 func (fe *FileDataEndpoint) Get(c *gin.Context) {
-	offset, err := strconv.ParseInt(c.Query("offset"), 10, 64)
-	if err != nil || offset < 0 {
-		c.Status(400)
-		fe.logger.Print("Invalid offset")
-		return
-	}
-
-	count, err := strconv.ParseInt(c.Query("count"), 10, 64)
-	if err != nil || count < 0 {
-		c.Status(400)
-		fe.logger.Print("Invalid count")
-		return
-	}
-
 	token := c.Request.Header.Get("Authorization")
 	jwt, err := fe.jm.Decode(token)
 	if err != nil {
@@ -61,7 +48,20 @@ func (fe *FileDataEndpoint) Get(c *gin.Context) {
 		return
 	}
 
-	rows, err := fe.db.Query("SELECT id, filename, TO_CHAR(creation_date, 'YYYY.MM.DD HH24:MI:SS'), mime_type, size, thumbnail FROM files WHERE user_id = $1 ORDER BY creation_date DESC, id DESC LIMIT $2 OFFSET $3", jwt.UserId, count, offset)
+	date := c.Query("date")
+	isDateOk, err := regexp.MatchString("^\\d{4}\\.\\d{2}\\.\\d{2}$", date)
+	if !isDateOk {
+		c.Status(400)
+		fe.logger.Printf("'%s' date is invalid", date)
+		return
+	}
+	if err != nil {
+		c.Status(500)
+		fe.logger.Printf("Regexp for date '%s' failed", date)
+		return
+	}
+
+	rows, err := fe.db.Query("SELECT id, filename, TO_CHAR(creation_date, 'YYYY.MM.DD HH24:MI:SS') AS date, mime_type, size, thumbnail FROM files WHERE user_id = $1 AND TO_CHAR(creation_date, 'YYYY.MM.DD HH24:MI:SS') ILIKE $2 || '%' ORDER BY id DESC, creation_date DESC", jwt.UserId, date)
 	if err != nil {
 		c.Status(500)
 		fe.logger.Printf("Query failed: '%s'", err.Error())

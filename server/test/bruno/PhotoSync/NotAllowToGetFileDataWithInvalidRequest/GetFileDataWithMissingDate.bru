@@ -1,17 +1,13 @@
 meta {
-  name: GetFileDataWithMissingOffset
+  name: GetFileDataWithMissingDate
   type: http
-  seq: 7
+  seq: 5
 }
 
 get {
-  url: {{HOST}}/file_data?count=10
+  url: {{HOST}}/file_data
   body: none
   auth: inherit
-}
-
-params:query {
-  count: 10
 }
 
 headers {
