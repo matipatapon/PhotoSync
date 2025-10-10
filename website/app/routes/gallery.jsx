@@ -2,10 +2,8 @@ import "./gallery.css"
 import { getDates, getFileData } from "../api/api"
 import { useRef, useEffect, useState, useLayoutEffect} from "react"
 
-const DATE_HEIGHT = 100
+const DATE_HEIGHT = 50
 const EMPTY_SPACE_AT_THE_END_HEIGHT = 50
-const MAX_TILE_SIZE = 400
-const MIN_TILE_SIZE = 150
 const LOAD_MARGIN = 1000
 
 function log(string){
@@ -46,29 +44,28 @@ function ScrollData(
     this.bottom = bottom
 }
 
-function calculateTileSize(containerWidth){
-    let tileSize = containerWidth / 5
-    if (tileSize > MAX_TILE_SIZE) {
-        tileSize = MAX_TILE_SIZE
+function calculateTilesPerRow(containerWidth){
+    if(containerWidth > 2000){
+        return 7
     }
-    if (tileSize < MIN_TILE_SIZE){
-        tileSize = MIN_TILE_SIZE
+    if(containerWidth > 1000){
+        return 5
     }
-    return Math.floor(tileSize)
+    return 3
 }
 
 function createElements(dates, containerWidth, tileSize){
     let elements = []
     let lastDayEnd = -1
-    const tilesPerRow = Math.floor(containerWidth / tileSize)
-    log(`tilesPerRow{${tilesPerRow}} = ${containerWidth} / ${tileSize}`)
+    const tilesPerRow = calculateTilesPerRow(containerWidth)
+    tileSize.current = Math.floor(containerWidth / tilesPerRow)
     for(const date of dates){
         let start = lastDayEnd + 1
         let end = start + DATE_HEIGHT
         elements.push(new TextData(start, end, DATE_HEIGHT, date.date))
     
         const rowCount = Math.ceil(date.file_count / tilesPerRow)
-        const height = rowCount * tileSize
+        const height = rowCount * tileSize.current
         start = end + 1
         end = start + height
         elements.push(new DayData(start, end, height, date.date))
@@ -167,9 +164,8 @@ export default function Gallery(){
                 log("no dates, skipping effect")
                 return
             }
-            tileSize.current = calculateTileSize(containerWidth)
             gallery.current.scrollTop = 0
-            setElements(createElements(dates, containerWidth, tileSize.current))
+            setElements(createElements(dates, containerWidth, tileSize))
         },[containerWidth, dates]
     )
 

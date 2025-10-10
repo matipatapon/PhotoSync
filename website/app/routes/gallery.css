@@ -18,6 +18,7 @@
     position: absolute;
     box-sizing: border-box;
     width: 100%;
+    line-height: 0;
 }
 
 .day .header{
