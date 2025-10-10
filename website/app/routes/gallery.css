@@ -1,12 +1,14 @@
 .gallery{
     overflow-y: scroll;
-    position: relative;
-    box-sizing: content-box;
-    height: 89vh;
-    margin-top: 1vh;
-    max-height: calc(99vh - 50px);
+    height: 95vh;
+    padding: 0 1%;
+    max-height: calc(100vh - 50px);
 }
 
+.gallery>.container{
+    position: relative;
+    margin: 0 auto;
+}
 
 .padding{
     display: block;
@@ -45,5 +47,18 @@
     overflow: hidden;
 }
 
+.gallery .text{
+    position: absolute;
+    box-sizing: border-box;
+    padding: 20px;
+    display: flex;
+    font-size: 1.5em;
+    justify-content: start;
+    align-items: center;
+}
+
 .tile img{
+    min-width: 100%;
+    min-height: 100%;
+    object-fit: cover;
 }

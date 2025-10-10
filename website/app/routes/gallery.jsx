@@ -2,29 +2,39 @@ import "./gallery.css"
 import { getDates, getFileData } from "../api/api"
 import { useRef, useEffect, useState, useLayoutEffect} from "react"
 
-const SPACE_BETWEEN_DAYS = 10
+const DATE_HEIGHT = 100
+const EMPTY_SPACE_AT_THE_END_HEIGHT = 50
+const MAX_TILE_SIZE = 400
+const MIN_TILE_SIZE = 150
+const LOAD_MARGIN = 1000
 
 function log(string){
     console.log(`[Gallery]: ` + string)
 }
 
-function DayData(
-    start,
-    end,
-    headerHeight,
-    height,
-    tileSize,
-    date,
-    fileCount,
-)
+class ElementData
 {
-    this.start = start
-    this.end = end
-    this.headerHeight = headerHeight
-    this.height = height
-    this.date = date
-    this.tileSize = tileSize
-    this.fileCount = fileCount
+    constructor(start, end, height){
+        this.start = start
+        this.end = end
+        this.height = height
+    }
+}
+
+class DayData extends ElementData
+{
+    constructor(start, end, height, date){
+        super(start, end, height)
+        this.date = date
+    }
+}
+
+class TextData extends ElementData
+{
+    constructor(start, end, height, text){
+        super(start, end, height)
+        this.text = text
+    }
 }
 
 function ScrollData(
@@ -36,38 +46,39 @@ function ScrollData(
     this.bottom = bottom
 }
 
-function calculateDaysData(dates, galleryWidth){
-    let days = []
+function calculateTileSize(containerWidth){
+    let tileSize = containerWidth / 5
+    if (tileSize > MAX_TILE_SIZE) {
+        tileSize = MAX_TILE_SIZE
+    }
+    if (tileSize < MIN_TILE_SIZE){
+        tileSize = MIN_TILE_SIZE
+    }
+    return Math.floor(tileSize)
+}
+
+function createElements(dates, containerWidth, tileSize){
+    let elements = []
     let lastDayEnd = -1
-    const headerHeight = 50
-    const maxTileSize = 400
-    const minTileSize = 200
-    let tileSize = galleryWidth / 5
-    if (tileSize > maxTileSize) {
-        tileSize = maxTileSize
-    }
-    if (tileSize < minTileSize){
-        tileSize = minTileSize
-    }
-    const tilesPerRow = Math.floor(galleryWidth / tileSize)
+    const tilesPerRow = Math.floor(containerWidth / tileSize)
+    log(`tilesPerRow{${tilesPerRow}} = ${containerWidth} / ${tileSize}`)
     for(const date of dates){
+        let start = lastDayEnd + 1
+        let end = start + DATE_HEIGHT
+        elements.push(new TextData(start, end, DATE_HEIGHT, date.date))
+    
         const rowCount = Math.ceil(date.file_count / tilesPerRow)
-        const bodyHeight = rowCount * tileSize
-        const height = bodyHeight + headerHeight + SPACE_BETWEEN_DAYS
-        const start = lastDayEnd + 1
-        const end = start + height
-        let day = new DayData(
-            start,
-            end,
-            headerHeight,
-            height,
-            tileSize,
-            date.date,
-            date.file_count)
-        days.push(day)
-        lastDayEnd = day.end
+        const height = rowCount * tileSize
+        start = end + 1
+        end = start + height
+        elements.push(new DayData(start, end, height, date.date))
+        lastDayEnd = end
     }
-    return days
+
+    let start = lastDayEnd + 1
+    let end = start + EMPTY_SPACE_AT_THE_END_HEIGHT
+    elements.push(new TextData(start, end, EMPTY_SPACE_AT_THE_END_HEIGHT, ""))
+    return elements
 }
 
 function Tile({fileData, size}){
@@ -78,90 +89,115 @@ function Tile({fileData, size}){
             </div>
 }
 
-function Day({day}){
+function Day({day, tileSize}){
     let [fileData, setFileData] = useState([])
     useEffect(
         ()=>{
+            let abort = false
             async function fun() {
                 const result = await getFileData(day.date)
-                const fd = result.fileData
-                setFileData(fd) 
+                if(!abort)
+                {
+                    const fd = result.fileData
+                    setFileData(fd) 
+
+                }
             }
             fun()
+            return () => abort = true
         },
         []
     )
 
     let tiles = []
     for(const fd of fileData){
-        tiles.push(<Tile key={fd.id} fileData={fd} size={day.tileSize}/>)
+        tiles.push(<Tile key={fd.id} fileData={fd} size={tileSize}/>)
     }
     return  <div className="day" style={{height: `${day.height}px`, transform: `translate(0px, ${day.start}px)`}}>
-                <div style={{height: `${day.headerHeight}px`}} className="header">
-                    {day.date}
-                </div>
                 {tiles}
             </div>
 }
 
+function Text({data}){
+    return <div className="text" style={{height: `${data.height}px`, transform: `translate(0px, ${data.start}px)`}}>
+                <div className="content">{data.text}</div>
+            </div>
+}
+
 export default function Gallery(){
-    const preloadMargin = 1000
+    let tileSize = useRef(null)
     let gallery = useRef(null)
-    let [galleryWidth, setGalleryWidth] = useState(null)
+    let container = useRef(null)
+    let [containerWidth, setContainerWidth] = useState(null)
     let [dates, setDates] = useState(null)
-    let [days, setDays] = useState(null)
+    let [elements, setElements] = useState(null)
     let [scrollData, setScrollData] = useState(new ScrollData(0, window.innerHeight))
     const resizeObserver = new ResizeObserver((entries) => {
         for (const entry of entries) {
             if (entry.contentBoxSize) {
-                log(`galleryWidth => ${entry.contentBoxSize[0].inlineSize}`)
-                setGalleryWidth(entry.contentBoxSize[0].inlineSize)
+                console.log(`containerWidth => ${entry.contentBoxSize[0].inlineSize}`)
+                setContainerWidth(entry.contentBoxSize[0].inlineSize)
             }
         }
     })
 
     useEffect(
         () => {
-            resizeObserver.observe(gallery.current)
+            let abort = false
+            resizeObserver.observe(container.current)
             async function fun(){
                 const result = await getDates()
-                setDates(result.result)
+                if(!abort)
+                {
+                    setDates(result.result)
+                }
+                
             }
             fun()
+            return () => abort = true
         },[])
 
     useLayoutEffect(
         () => {
-            if(galleryWidth === null){
-                log("no galleryWidth, skipping effect")
+            if(containerWidth === null){
+                log("no containerWidth, skipping effect")
                 return
             }
             if(dates === null){
                 log("no dates, skipping effect")
                 return
             }
-            async function fun(){
-                setDays(calculateDaysData(dates, galleryWidth))
-            }
-            fun()
-        },[galleryWidth, dates]
+            tileSize.current = calculateTileSize(containerWidth)
+            gallery.current.scrollTop = 0
+            setElements(createElements(dates, containerWidth, tileSize.current))
+        },[containerWidth, dates]
     )
 
     let outlet = null
-    if(days === null){
+    if(elements === null)
+    {
         outlet = <h2>Loading...</h2>
-    } else {
+    }
+    else
+    {
         outlet = []
         let totalHeight = 0
-        for(let i = 0 ; i < days.length ; i++)
+        let newScrollAnchor = null
+        for(let i = 0 ; i < elements.length ; i++)
         {
-            const day = days[i]
-            totalHeight += day.height
-            if(day.start - preloadMargin <= scrollData.bottom && day.end + preloadMargin >= scrollData.top)
+            const element = elements[i]
+            totalHeight += element.height
+            // TODO sprawdź czy dobrze to porównujesz + dodaj anchora aby ustawić odpowiedni scroll podczas resize ^^
+            if(element.start - LOAD_MARGIN <= scrollData.bottom && element.end + LOAD_MARGIN >= scrollData.top)
             {
-                outlet.push(
-                    <Day key={day.date} day={day}/>
-                )
+                if(element instanceof DayData)
+                {
+                    outlet.push(<Day key={element.date} day={element} tileSize={tileSize.current}/>)
+                }
+                else if(element instanceof TextData)
+                {
+                    outlet.push(<Text key={element.start} data={element}/>)
+                }
             }
         }
         outlet.push(<div key={totalHeight} style={{height: `${totalHeight}px`}}></div>)
@@ -171,11 +207,12 @@ export default function Gallery(){
         let gallery = e.currentTarget
         const scrollTop = gallery.scrollTop
         const scrollBottom = scrollTop + gallery.offsetHeight
-        log(`scrollTop => ${gallery.scrollTop} | scrollBottom => ${scrollBottom}`)
         setScrollData(new ScrollData(scrollTop, scrollBottom))
     }
 
     return <div ref={gallery} className="gallery" onScroll={scroll}>
-                {outlet}
+                <div ref={container} className="container">
+                    {outlet}
+                </div>
            </div>
 }
