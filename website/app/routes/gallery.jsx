@@ -1,6 +1,8 @@
 import "./gallery.css"
-import { getDates } from "../api/api"
+import { getDates, getFileData } from "../api/api"
 import { useRef, useEffect, useState, useLayoutEffect} from "react"
+
+const SPACE_BETWEEN_DAYS = 10
 
 function log(string){
     console.log(`[Gallery]: ` + string)
@@ -9,15 +11,19 @@ function log(string){
 function DayData(
     start,
     end,
+    headerHeight,
     height,
+    tileSize,
     date,
     fileCount,
 )
 {
     this.start = start
     this.end = end
+    this.headerHeight = headerHeight
     this.height = height
     this.date = date
+    this.tileSize = tileSize
     this.fileCount = fileCount
 }
 
@@ -34,28 +40,72 @@ function calculateDaysData(dates, galleryWidth){
     let days = []
     let lastDayEnd = -1
     const headerHeight = 50
-    log(`headerHeight => ${headerHeight}`)
-    const tileSize = 400
-    log(`tileSize => ${tileSize}`)
+    const maxTileSize = 400
+    const minTileSize = 200
+    let tileSize = galleryWidth / 5
+    if (tileSize > maxTileSize) {
+        tileSize = maxTileSize
+    }
+    if (tileSize < minTileSize){
+        tileSize = minTileSize
+    }
     const tilesPerRow = Math.floor(galleryWidth / tileSize)
-    log(`tilesPerRow => ${tilesPerRow}`)
     for(const date of dates){
-        log(`date => ${date.date}`)
         const rowCount = Math.ceil(date.file_count / tilesPerRow)
-        log(`rowCount => ${rowCount} = ${date.file_count} / ${tilesPerRow}`)
         const bodyHeight = rowCount * tileSize
-        log(`bodyHeight => ${bodyHeight} = ${rowCount} * ${tileSize}`)
-        const height = bodyHeight + headerHeight
+        const height = bodyHeight + headerHeight + SPACE_BETWEEN_DAYS
         const start = lastDayEnd + 1
         const end = start + height
-        let day = new DayData(start, end, height, date.date, date.file_count)
+        let day = new DayData(
+            start,
+            end,
+            headerHeight,
+            height,
+            tileSize,
+            date.date,
+            date.file_count)
         days.push(day)
         lastDayEnd = day.end
     }
     return days
 }
 
+function Tile({fileData, size}){
+    return  <div className="tile" style={{width: `${size}px`, height: `${size}px`}}>
+                <div className="content">
+                        <img src={`data:image/jpg;base64, ${fileData.thumbnail}`}/>
+                </div>
+            </div>
+}
+
+function Day({day}){
+    let [fileData, setFileData] = useState([])
+    useEffect(
+        ()=>{
+            async function fun() {
+                const result = await getFileData(day.date)
+                const fd = result.fileData
+                setFileData(fd) 
+            }
+            fun()
+        },
+        []
+    )
+
+    let tiles = []
+    for(const fd of fileData){
+        tiles.push(<Tile key={fd.id} fileData={fd} size={day.tileSize}/>)
+    }
+    return  <div className="day" style={{height: `${day.height}px`, transform: `translate(0px, ${day.start}px)`}}>
+                <div style={{height: `${day.headerHeight}px`}} className="header">
+                    {day.date}
+                </div>
+                {tiles}
+            </div>
+}
+
 export default function Gallery(){
+    const preloadMargin = 1000
     let gallery = useRef(null)
     let [galleryWidth, setGalleryWidth] = useState(null)
     let [dates, setDates] = useState(null)
@@ -107,18 +157,10 @@ export default function Gallery(){
         {
             const day = days[i]
             totalHeight += day.height
-            if(day.start <= scrollData.bottom && day.end >= scrollData.top)
+            if(day.start - preloadMargin <= scrollData.bottom && day.end + preloadMargin >= scrollData.top)
             {
                 outlet.push(
-                    <div key={day.date} style={{
-                        height: `${day.height}px`,
-                        position: "absolute",
-                        transform: `translate(0px, ${day.start}px)`,
-                        boxSizing: "border-box",
-                        border: "1px solid black",
-                        display: "block",
-                        width: "100%"
-                    }} >{day.date} | {day.fileCount}</div>
+                    <Day key={day.date} day={day}/>
                 )
             }
         }

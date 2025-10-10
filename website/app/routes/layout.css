@@ -1,17 +1,24 @@
 body, html{
     margin: 0;
-    background-image: url("background.png");
+    background-color: #1a1a1a;
+    color: white;
+    height: 100vh;
 }
 
 header{
-    background-color: blue;
-    text-align: center;
-    padding: 0.3em;
+    background-color: gray;
+    padding: 5px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 5vh;
+    min-height: 50px;
+    box-sizing: border-box;
 }
 
 header>a{
     display: inline-block;
-    margin: 0 30px;
+    margin: 0 10px;
     background-color: burlywood;
     padding: 10px;
 }

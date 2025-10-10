@@ -1,13 +1,49 @@
 .gallery{
     overflow-y: scroll;
-    top: 50px;
-    bottom:0;
-    position: absolute;
-    left:0; right:0; 
-    width:100%;
+    position: relative;
     box-sizing: content-box;
+    height: 89vh;
+    margin-top: 1vh;
+    max-height: calc(99vh - 50px);
 }
+
 
 .padding{
     display: block;
+}
+
+.day{
+    position: absolute;
+    box-sizing: border-box;
+    width: 100%;
+}
+
+.day .header{
+    margin: 0px;
+    font-size: 2em;
+    display: flex;
+    justify-content: start;
+    align-items: center;
+    box-sizing: border-box;
+    padding: 10px;
+}
+
+.tile{
+    display: inline-block;
+    box-sizing: border-box;
+    overflow: hidden;
+    padding: 3px;
+}
+
+.tile .content{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    width: 100%;
+    box-sizing: border-box;
+    overflow: hidden;
+}
+
+.tile img{
 }

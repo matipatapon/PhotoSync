@@ -111,7 +111,7 @@ export async function uploadPhoto(file){
     return "ERROR"
 }
 
-export async function getFileData(offset, count){
+export async function getFileData(date){
     let result = {status: null, fileData: null}
     const token = sessionStorage.getItem("Authorization")
 
@@ -122,7 +122,7 @@ export async function getFileData(offset, count){
 
     try{
         let response = await fetch(
-            `${getApiUrl("file_data")}?${new URLSearchParams({offset: offset, count: count})}`,
+            `${getApiUrl("file_data")}?${new URLSearchParams({date: date})}`,
             {
                 method: "GET",
                 headers: {
