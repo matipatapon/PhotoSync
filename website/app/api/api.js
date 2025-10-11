@@ -1,6 +1,6 @@
 import {API_ADDRESS} from "../../config.js"
 
-function getApiUrl(request){
+export function getApiUrl(request){
     return `${API_ADDRESS}/v1/${request}`
 }
 
@@ -170,35 +170,4 @@ export async function getFile(id){
 }
 return result
 
-}
-
-export async function getDates(){
-    let result = {status: null, result: null}
-    const token = sessionStorage.getItem("Authorization")
-
-    if(token === null){
-        result.status = "NOT_LOGGED_IN"
-        return result
-    }
-
-    try{
-        let response = await fetch(
-            `${getApiUrl("dates")}`,
-            {
-                method: "GET",
-                headers: {
-                    "Authorization": token,
-                },
-            }
-        )
-        if(response.status === 200){
-            result.status = "SUCCESS"
-            let dates = await response.text()
-            result.result = JSON.parse(dates)
-        } else {
-            result.status = "ERROR"
-        }
-} catch(e){
-}
-return result
 }

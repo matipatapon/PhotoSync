@@ -1,6 +1,9 @@
 import "./gallery.css"
-import { getDates, getFileData } from "../api/api"
+import { getFileData } from "../api/api"
+import { getDates } from "../api/get_dates"
+import { SUCCESS } from "../api/status"
 import { useRef, useEffect, useState, useLayoutEffect} from "react"
+import { useNavigate } from "react-router"
 
 const DATE_HEIGHT = 50
 const EMPTY_SPACE_AT_THE_END_HEIGHT = 50
@@ -63,7 +66,7 @@ function createElements(dates, containerWidth, tileSize){
         let start = lastDayEnd + 1
         let end = start + DATE_HEIGHT
         elements.push(new TextData(start, end, DATE_HEIGHT, date.date))
-    
+
         const rowCount = Math.ceil(date.file_count / tilesPerRow)
         const height = rowCount * tileSize.current
         start = end + 1
@@ -129,6 +132,7 @@ export default function Gallery(){
     let [dates, setDates] = useState(null)
     let [elements, setElements] = useState(null)
     let [scrollData, setScrollData] = useState(new ScrollData(0, window.innerHeight))
+    let navigate = useNavigate()
     const resizeObserver = new ResizeObserver((entries) => {
         for (const entry of entries) {
             if (entry.contentBoxSize) {
@@ -146,9 +150,12 @@ export default function Gallery(){
                 const result = await getDates()
                 if(!abort)
                 {
-                    setDates(result.result)
+                    if(result.status === SUCCESS)
+                    {
+                        setDates(result.dates)
+                    }
+                    navigate("/login")
                 }
-                
             }
             fun()
             return () => abort = true
