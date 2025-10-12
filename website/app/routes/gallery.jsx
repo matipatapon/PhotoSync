@@ -3,7 +3,7 @@ import { getFileData } from "../api/api"
 import { getDates } from "../api/get_dates"
 import { SUCCESS } from "../api/status"
 import { useRef, useEffect, useState, useLayoutEffect} from "react"
-import { useNavigate } from "react-router"
+import { useNavigate, Link} from "react-router"
 
 const DATE_HEIGHT = 50
 const EMPTY_SPACE_AT_THE_END_HEIGHT = 50
@@ -143,7 +143,7 @@ function Text({data}){
 export default function Gallery(){
     let tileSize = useRef(null)
     let gallery = useRef(null)
-    let container = useRef(null)
+    let content = useRef(null)
     let anchor = useRef(0)
     let [containerWidth, setContainerWidth] = useState(null)
     let [dates, setDates] = useState(null)
@@ -161,18 +161,18 @@ export default function Gallery(){
     useEffect(
         () => {
             let abort = false
-            resizeObserver.observe(container.current)
+            resizeObserver.observe(content.current)
             async function fun(){
                 const result = await getDates()
                 if(!abort)
                 {
-                    if(result.status === SUCCESS)
+                    if(result.status !== SUCCESS)
                     {
-                        setDates(result.dates)
+                        navigate("/error")
                     }
                     else
                     {
-                        navigate("/login")
+                        setDates(result.dates)
                     }
                 }
             }
@@ -232,9 +232,12 @@ export default function Gallery(){
         setScrollData(new ScrollData(scrollTop, scrollBottom))
     }
 
-    return <div ref={gallery} className="gallery" onScroll={scroll}>
-                <div ref={container} className="container">
-                    {outlet}
+    return <div className="gallery_container">
+                <header><Link className="button" to={"/upload"}>Upload</Link><Link className="button" to={"/login"}>Logout</Link></header>
+                <div ref={gallery} className="gallery" onScroll={scroll}>
+                    <div ref={content} className="content">
+                        {outlet}
+                    </div>
                 </div>
            </div>
 }

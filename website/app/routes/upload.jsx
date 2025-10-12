@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef} from 'react'
+import { Link, useNavigate } from 'react-router'
 import { uploadPhoto } from '../api/api'
 import './upload.css'
 
@@ -51,11 +52,10 @@ function getFilesFromItems(items, output, callback){
 
 export default function Upload(){
     let files = useRef([])
-    let errorMsg = useRef("")
     let nameOfLastUploadedFile = useRef(null)
-
     let [stage, setStage] = useState("SELECT")
     let [uploadedFileCount, setUploadedFileCount] = useState(0)
+    let navigate = useNavigate()
 
     if(stage !== "UPLOAD" && uploadedFileCount !== 0)
     {
@@ -76,27 +76,14 @@ export default function Upload(){
                         {
                             setStage("FINISH")
                         }
-                        setUploadedFileCount(uploadedFileCount + 1)
+                        else
+                        {
+                            setUploadedFileCount(uploadedFileCount + 1)
+                        }
                     }
                     else
                     {
-                        if(status === "NOT_LOGGED_IN")
-                        {
-                            errorMsg.current = "You need to login to upload files"
-                        }
-                        else if(status === "UNSUPPORTED")
-                        {
-                            errorMsg.current = `${file.path}${file.file.name} has unsupported type`
-                        }
-                        else if(status === "TOKEN_EXPIRED")
-                        {
-                            errorMsg.current = `Your session has expired`
-                        }
-                        else
-                        {
-                            errorMsg.current = "Error"
-                        }
-                        setStage("ERROR")
+                        navigate("/error")
                     }
                 }
                 upload()
@@ -115,37 +102,39 @@ export default function Upload(){
     let outlet
     if(stage === "SELECT"){
         outlet = <>
-                <h2>Drop or select files</h2>
-                <label htmlFor="file_upload">Select</label>
-                <input id="file_upload" type='file' multiple={true} onChange={select}/>
+                <h1>Select files</h1>
+                <div className='options'>
+                    <label className="button" htmlFor="file_upload">Select</label>
+                    <input id="file_upload" type='file' multiple={true} onChange={select}/>
+                </div>
         </>
     }
     if(stage === "LOAD"){
-        outlet = <h2>Please wait...</h2>
+        outlet = <h1>Please wait...</h1>
     }
     if(stage === "OPTIONS"){
         outlet = <>
-                <h2>{files.current.length} files selected</h2>
-                <div id='upload' className='button' onClick={() => setStage("UPLOAD")}>Upload</div>
-                <div id='clear' className='button' onClick={() => setStage("SELECT")}>Clear</div>
+                <h1>{files.current.length} files selected</h1>
+                <div className='options'>
+                    <div className='button' onClick={() => setStage("UPLOAD")}>Upload</div>
+                    <div className='button' onClick={() => setStage("SELECT")}>Clear</div>
+                </div>
         </>
     }
     if(stage === "UPLOAD"){
         outlet = <>
-                <h2>Uploaded {uploadedFileCount}/{files.current.length}</h2>
-                <h3>{nameOfLastUploadedFile.current}</h3>
+                <h1>Uploading {uploadedFileCount}/{files.current.length}</h1>
+                <div className='options'>
+                    <div className='button' onClick={() => setStage("SELECT")}>Cancel</div>
+                </div>
         </>
     }
     if(stage === "FINISH"){
         outlet = <>
-        <h2>All files uploaded</h2>
-        <div className='button' onClick={() => setStage("SELECT")}>Ok</div>
-        </>
-    }
-    if(stage === "ERROR"){
-        outlet = <>
-            <h2>{errorMsg.current}</h2>
+        <h1>All files uploaded</h1>
+        <div className='options'>
             <div className='button' onClick={() => setStage("SELECT")}>Ok</div>
+        </div>
         </>
     }
 
@@ -163,6 +152,7 @@ export default function Upload(){
     }
 
     return  <div className='upload_container'>
+                <header><Link className="button" to={"/gallery"}>Gallery</Link><Link className="button" to={"/login"}>Logout</Link></header>
                 <div className='upload' onDragOver={dragOver} onDrop={drop}>
                     {outlet}
                 </div>

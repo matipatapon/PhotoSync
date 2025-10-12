@@ -7,5 +7,6 @@ export default [
         route("/login", "routes/login.jsx"),
         route("/upload", "routes/upload.jsx"),
         route("/gallery", "routes/gallery.jsx"),
+        route("/error", "routes/error.jsx"),
     ])
 ];

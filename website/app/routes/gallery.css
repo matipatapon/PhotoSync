@@ -1,12 +1,16 @@
-.gallery{
-    overflow-y: scroll;
-    height: 95vh;
-    padding: 0 1%;
-    max-height: calc(100vh - 50px);
+.gallery_container{
+    height: 100vh;
 }
 
-.gallery>.container{
+.gallery{
+    overflow-y: scroll;
+    height: calc(100% - 50px);
+}
+
+.gallery>.content{
     position: relative;
+    width: 98vw;
+    margin: 0 auto;
     margin: 0 auto;
 }
 
