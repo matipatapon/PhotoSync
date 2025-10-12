@@ -5,7 +5,7 @@ import { SUCCESS } from "../api/status"
 import { useRef, useEffect, useState, useLayoutEffect} from "react"
 import { useNavigate, Link} from "react-router"
 
-const DATE_HEIGHT = 50
+const DATE_HEIGHT = 70
 const EMPTY_SPACE_AT_THE_END_HEIGHT = 50
 const LOAD_MARGIN = 1000
 const FILE_DATA_LOAD_DELAY_MS = 100

@@ -3,6 +3,7 @@ body, html{
     background-color: #1a1a1a;
     color: white;
     height: 100vh;
+    font-family: Sans-serif;
 }
 
 header{
@@ -10,26 +11,64 @@ header{
     display: flex;
     justify-content: center;
     align-items: center;
-    height: 50px;
     position: sticky;
+    padding: 5px 0;
     top: 0;
     z-index: 1;
+    height: 30px;
+}
+
+header .button{
+    margin: 0 10px;
 }
 
 .button{
     box-sizing: border-box;
-    height: 40px;
     display: inline-block;
-    margin: 0 10px;
     background-color: rgb(255, 255, 255);
     color: black;
     text-align: center;
-    padding: 10px 20px;
-    border-radius: 4px;
+    padding: 5px;
+    border-radius: 5px;
     text-decoration: none;
-    font-size: 1.1em;
 }
 
 .button:hover{
     background-color: rgb(215, 202, 255);
+}
+
+.window_container{
+    text-align: center;
+}
+
+.window{
+    margin: 0 auto;
+    margin-top: 20vh;
+    display: inline-block;
+    padding: 15px;
+    text-align: center;
+    background-color: black;
+    border-radius: 10px;
+}
+
+.window .buttons{
+    margin-top: 15px;
+}
+
+.window .buttons .button{
+    width: 100%;
+    display: block;
+    margin-top: 5px;
+    border: 0;
+}
+
+.window h1{
+    background-color: white;
+    color: black;
+    padding: 10px;
+    width: 100%;
+    margin: 0 auto;
+    box-sizing: border-box;
+    font-size: 1.5em;
+    font-weight: normal;
 }

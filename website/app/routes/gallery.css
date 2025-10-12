@@ -4,13 +4,12 @@
 
 .gallery{
     overflow-y: scroll;
-    height: calc(100% - 50px);
+    height: calc(100% - 40px);
 }
 
 .gallery>.content{
     position: relative;
-    width: 98vw;
-    margin: 0 auto;
+    width: 98%;
     margin: 0 auto;
 }
 

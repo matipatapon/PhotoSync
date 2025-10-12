@@ -103,7 +103,7 @@ export default function Upload(){
     if(stage === "SELECT"){
         outlet = <>
                 <h1>Select files</h1>
-                <div className='options'>
+                <div className='buttons'>
                     <label className="button" htmlFor="file_upload">Select</label>
                     <input id="file_upload" type='file' multiple={true} onChange={select}/>
                 </div>
@@ -115,7 +115,7 @@ export default function Upload(){
     if(stage === "OPTIONS"){
         outlet = <>
                 <h1>{files.current.length} files selected</h1>
-                <div className='options'>
+                <div className='buttons'>
                     <div className='button' onClick={() => setStage("UPLOAD")}>Upload</div>
                     <div className='button' onClick={() => setStage("SELECT")}>Clear</div>
                 </div>
@@ -124,7 +124,7 @@ export default function Upload(){
     if(stage === "UPLOAD"){
         outlet = <>
                 <h1>Uploading {uploadedFileCount}/{files.current.length}</h1>
-                <div className='options'>
+                <div className='buttons'>
                     <div className='button' onClick={() => setStage("SELECT")}>Cancel</div>
                 </div>
         </>
@@ -132,7 +132,7 @@ export default function Upload(){
     if(stage === "FINISH"){
         outlet = <>
         <h1>All files uploaded</h1>
-        <div className='options'>
+        <div className='buttons'>
             <div className='button' onClick={() => setStage("SELECT")}>Ok</div>
         </div>
         </>
@@ -151,10 +151,12 @@ export default function Upload(){
         }
     }
 
-    return  <div className='upload_container'>
+    return  <>
                 <header><Link className="button" to={"/gallery"}>Gallery</Link><Link className="button" to={"/login"}>Logout</Link></header>
-                <div className='upload' onDragOver={dragOver} onDrop={drop}>
-                    {outlet}
+                <div className='window_container'>
+                    <div className='window' onDragOver={dragOver} onDrop={drop}>
+                        {outlet}
+                    </div>
                 </div>
-            </div>
+            </>
 }

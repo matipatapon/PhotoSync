@@ -62,16 +62,21 @@ export default function Register(){
         status = fetcher.data.status
     }
     return(
-        <div className="form_container">
-            <header><Link className="button" to={"/login"}>Login</Link></header>
-            <fetcher.Form className="form" method="post" action="">
-                <input type="text" name="username" disabled={!isIdle}/>
-                <input type="password" name="password" disabled={!isIdle}/>
-                <input type="password" name="password_repeated" disabled={!isIdle}/>
-                <button type="submit" disabled={!isIdle}>Register</button>
-            </fetcher.Form>
-            <Message status={isIdle ? status : "WORKING"}/>
-        </div>
+            <>
+                <header><Link className="button" to={"/login"}>Login</Link></header>
+                <div className="window_container">
+
+                <fetcher.Form className="window" method="post" action="">
+                    <input type="text" name="username" disabled={!isIdle}/>
+                    <input type="password" name="password" disabled={!isIdle}/>
+                    <input type="password" name="password_repeated" disabled={!isIdle}/>
+                    <div className="buttons">
+                        <button className="button" type="submit" disabled={!isIdle}>Register</button>
+                    </div>
+                </fetcher.Form>
+                <Message status={isIdle ? status : "WORKING"}/>
+                </div>
+            </>
     )
 }
 
