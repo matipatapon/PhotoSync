@@ -8,6 +8,7 @@ import { useNavigate } from "react-router"
 const DATE_HEIGHT = 50
 const EMPTY_SPACE_AT_THE_END_HEIGHT = 50
 const LOAD_MARGIN = 1000
+const FILE_DATA_LOAD_DELAY_MS = 100
 
 function log(string){
     console.log(`[Gallery]: ` + string)
@@ -81,6 +82,18 @@ function createElements(dates, containerWidth, tileSize){
     return elements
 }
 
+function alignScrollTop(elements, gallery, anchor)
+{
+    for(let i = 0 ; i < elements.length ; i++)
+    {
+        if(anchor === i)
+        {
+            gallery.scrollTop = elements[i].start
+            return
+        }
+    }
+}
+
 function Tile({fileData, size}){
     return  <div className="tile" style={{width: `${size}px`, height: `${size}px`}}>
                 <div className="content">
@@ -94,19 +107,22 @@ function Day({day, tileSize}){
     useEffect(
         ()=>{
             let abort = false
-            async function fun() {
-                const result = await getFileData(day.date)
-                if(!abort)
+            setTimeout(() => {
+                async function fun()
                 {
-                    const fd = result.fileData
-                    setFileData(fd) 
-
+                    if(!abort)
+                    {
+                        const result = await getFileData(day.date)
+                        if(!abort)
+                        {
+                            const fd = result.fileData
+                            setFileData(fd) 
+                        }
+                    }
                 }
-            }
-            fun()
-            return () => abort = true
-        },
-        []
+                fun()
+            }, FILE_DATA_LOAD_DELAY_MS)
+            return () => abort = true},[]
     )
 
     let tiles = []
@@ -128,6 +144,7 @@ export default function Gallery(){
     let tileSize = useRef(null)
     let gallery = useRef(null)
     let container = useRef(null)
+    let anchor = useRef(0)
     let [containerWidth, setContainerWidth] = useState(null)
     let [dates, setDates] = useState(null)
     let [elements, setElements] = useState(null)
@@ -136,7 +153,6 @@ export default function Gallery(){
     const resizeObserver = new ResizeObserver((entries) => {
         for (const entry of entries) {
             if (entry.contentBoxSize) {
-                console.log(`containerWidth => ${entry.contentBoxSize[0].inlineSize}`)
                 setContainerWidth(entry.contentBoxSize[0].inlineSize)
             }
         }
@@ -154,7 +170,10 @@ export default function Gallery(){
                     {
                         setDates(result.dates)
                     }
-                    navigate("/login")
+                    else
+                    {
+                        navigate("/login")
+                    }
                 }
             }
             fun()
@@ -163,16 +182,12 @@ export default function Gallery(){
 
     useLayoutEffect(
         () => {
-            if(containerWidth === null){
-                log("no containerWidth, skipping effect")
+            if(containerWidth === null || dates === null || gallery.current === null){
                 return
             }
-            if(dates === null){
-                log("no dates, skipping effect")
-                return
-            }
-            gallery.current.scrollTop = 0
-            setElements(createElements(dates, containerWidth, tileSize))
+            const elements = createElements(dates, containerWidth, tileSize)
+            alignScrollTop(elements, gallery.current, anchor.current)
+            setElements(elements)
         },[containerWidth, dates]
     )
 
@@ -190,7 +205,6 @@ export default function Gallery(){
         {
             const element = elements[i]
             totalHeight += element.height
-            // TODO sprawdź czy dobrze to porównujesz + dodaj anchora aby ustawić odpowiedni scroll podczas resize ^^
             if(element.start - LOAD_MARGIN <= scrollData.bottom && element.end + LOAD_MARGIN >= scrollData.top)
             {
                 if(element instanceof DayData)
@@ -201,8 +215,13 @@ export default function Gallery(){
                 {
                     outlet.push(<Text key={element.start} data={element}/>)
                 }
+                if(newScrollAnchor === null && element.start <= scrollData.bottom && element.end >= scrollData.top)
+                {
+                    newScrollAnchor = i
+                }
             }
         }
+        anchor.current = newScrollAnchor
         outlet.push(<div key={totalHeight} style={{height: `${totalHeight}px`}}></div>)
     }
 
