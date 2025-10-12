@@ -1,0 +1,39 @@
+meta {
+  name: GetEmptyFileData
+  type: http
+  seq: 10
+}
+
+get {
+  url: {{HOST}}/file_data?date=2022.05.16
+  body: none
+  auth: inherit
+}
+
+params:query {
+  date: 2022.05.16
+}
+
+headers {
+  Authorization: {{TOKEN}}
+}
+
+assert {
+  res.status: eq 200
+  res.headers["access-control-allow-origin"]: eq {{ALLOWED_ORIGIN}}
+}
+
+tests {
+  const exifJpgBase64 = bru.getCollectionVar("EXIF_JPG_BASE64")
+  const rawJpgBase64 = bru.getCollectionVar("RAW_JPG_BASE64")
+  test("should return proper file data", function(){
+    expect(res.getBody()).to.eql(
+    [
+    ]
+    )
+  })
+}
+
+settings {
+  encodeUrl: true
+}

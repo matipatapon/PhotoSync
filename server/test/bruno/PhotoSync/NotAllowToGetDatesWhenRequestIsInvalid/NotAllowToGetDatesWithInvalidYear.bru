@@ -1,0 +1,29 @@
+meta {
+  name: NotAllowToGetDatesWithInvalidYear
+  type: http
+  seq: 5
+}
+
+get {
+  url: {{HOST}}/dates?year=abcd
+  body: none
+  auth: inherit
+}
+
+params:query {
+  year: abcd
+}
+
+headers {
+  Authorization: {{TOKEN}}
+}
+
+assert {
+  res.headers["access-control-allow-origin"]: eq {{ALLOWED_ORIGIN}}
+  res.status: eq 400
+  res.body.length: eq 0
+}
+
+settings {
+  encodeUrl: true
+}

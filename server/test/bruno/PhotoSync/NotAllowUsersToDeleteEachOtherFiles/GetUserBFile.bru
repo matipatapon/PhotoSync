@@ -5,37 +5,39 @@ meta {
 }
 
 get {
-  url: {{HOST}}/file_data?offset=0&count=10
+  url: {{HOST}}/file?id=2
   body: none
   auth: inherit
 }
 
 params:query {
-  offset: 0
-  count: 10
+  id: 2
 }
 
 headers {
   Authorization: {{TOKENB}}
 }
 
+assert {
+  res.status: eq 200
+  res.body.length: eq 2356
+  res.headers["content-type"]: eq image/jpeg
+  res.headers["access-control-allow-origin"]: eq {{ALLOWED_ORIGIN}}
+}
+
 tests {
-  const rawJpgBase64 = bru.getCollectionVar("RAW_JPG_BASE64")
-  test("should return proper file data", function(){
-    expect(res.getBody()).to.eql(
-    [
-      {
-        creation_date : "2025.08.11 15:40:00",
-        filename : "raw.jpg",
-        id: "2",
-        mime_type: "image/jpeg",
-        size: "2439",
-        thumbnail: rawJpgBase64,
-      },
-    ]
-    )
-  })
+  const generateHash = (string) => {
+    let hash = 0;
+    for (const char of string) {
+      hash = (hash << 5) - hash + char.charCodeAt(0);
+      hash |= 0; // Constrain to 32bit integer
+    }
+    return hash;
+  };
   
+  test("hash is expected", function(){
+    expect(generateHash(res.body)).to.eql(860404287) 
+  })
 }
 
 settings {

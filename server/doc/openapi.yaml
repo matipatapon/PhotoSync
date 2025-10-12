@@ -152,18 +152,13 @@ paths:
         - tokenAuth: []
       parameters:
         - in: query
-          name: offset
+          name: date
           schema:
-            type: integer
-            description: where metadata collection should begin
-            example: 50
-          required: true
-        - in: query
-          name: count
-          schema:
-            type: integer
-            description: how many metadata should be returned
-            example: 100
+            type: string
+            description: |
+              Date formated as 'YYYY.MM.DD'.
+              Only data of files created on given date will be returned.
+            example: '2025.05.16'
           required: true
       responses:
         "200":
@@ -231,6 +226,54 @@ paths:
                 type: string
                 example: "GET"
               description: allows web browser for GET request
+  /dates:
+    get:
+      summary: Returns the dates along with the number of files created on each. Only dates with at least one file are included
+      security:
+        - tokenAuth: []
+      parameters:
+        - in: query
+          name: year
+          schema:
+            type: integer
+            description: Year from which to return dates
+            example: 2012
+          required: false
+        - in: query
+          name: month
+          schema:
+            type: integer
+            description: Month of the year from which to return dates, year must be specified.
+            example: 10
+          required: false
+      responses:
+        "200":
+          description: successfully returned dates
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    date:
+                      type: string
+                      example: 2025.05.16
+                    file_count:
+                      type: string
+                      example: 23
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: string
+                example: "'*', 'http://localhost:3200'"
+              description: allows web browser to share response with given origin
+        "400":
+          description: bad request
+        "403":
+          description: missing or invalid token
+        "500":
+          description: server error
   /file:
     get:
       summary: returns file with given id

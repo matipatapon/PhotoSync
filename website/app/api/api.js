@@ -1,6 +1,6 @@
 import {API_ADDRESS} from "../../config.js"
 
-function getApiUrl(request){
+export function getApiUrl(request){
     return `${API_ADDRESS}/v1/${request}`
 }
 
@@ -111,11 +111,9 @@ export async function uploadPhoto(file){
     return "ERROR"
 }
 
-export async function getFileData(offset, count){
+export async function getFileData(date){
     let result = {status: null, fileData: null}
     const token = sessionStorage.getItem("Authorization")
-
-    console.log("getFileData")
 
     if(token === null){
         result.status = "NOT_LOGGED_IN"
@@ -124,7 +122,7 @@ export async function getFileData(offset, count){
 
     try{
         let response = await fetch(
-            `${getApiUrl("file_data")}?${new URLSearchParams({offset: offset, count: count})}`,
+            `${getApiUrl("file_data")}?${new URLSearchParams({date: date})}`,
             {
                 method: "GET",
                 headers: {

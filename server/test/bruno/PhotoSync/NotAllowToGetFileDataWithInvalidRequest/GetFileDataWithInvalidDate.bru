@@ -1,0 +1,28 @@
+meta {
+  name: GetFileDataWithInvalidDate
+  type: http
+  seq: 5
+}
+
+get {
+  url: {{HOST}}/file_data?date=%
+  body: none
+  auth: inherit
+}
+
+params:query {
+  date: %
+}
+
+headers {
+  Authorization: {{TOKEN}}
+}
+
+assert {
+  res.status: eq 400
+  res.body: 
+}
+
+settings {
+  encodeUrl: true
+}

@@ -1,0 +1,45 @@
+meta {
+  name: GetRaw2Jpg
+  type: http
+  seq: 15
+}
+
+get {
+  url: {{HOST}}/file?id=5
+  body: none
+  auth: inherit
+}
+
+params:query {
+  id: 5
+}
+
+headers {
+  Authorization: {{TOKEN}}
+}
+
+assert {
+  res.status: eq 200
+  res.body.length: eq 3987
+  res.headers["content-type"]: eq image/jpeg
+  res.headers["access-control-allow-origin"]: eq {{ALLOWED_ORIGIN}}
+}
+
+tests {
+  const generateHash = (string) => {
+    let hash = 0;
+    for (const char of string) {
+      hash = (hash << 5) - hash + char.charCodeAt(0);
+      hash |= 0; // Constrain to 32bit integer
+    }
+    return hash;
+  };
+  
+  test("hash is expected", function(){
+    expect(generateHash(res.body)).to.eql(1981195598 ) 
+  })
+}
+
+settings {
+  encodeUrl: true
+}

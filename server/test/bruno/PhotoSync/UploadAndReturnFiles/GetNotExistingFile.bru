@@ -1,0 +1,28 @@
+meta {
+  name: GetNotExistingFile
+  type: http
+  seq: 16
+}
+
+get {
+  url: {{HOST}}/file?id=6
+  body: none
+  auth: inherit
+}
+
+params:query {
+  id: 6
+}
+
+headers {
+  Authorization: {{TOKEN}}
+}
+
+assert {
+  res.status: eq 404
+  res.body: eq
+}
+
+settings {
+  encodeUrl: true
+}

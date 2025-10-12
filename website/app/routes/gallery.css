@@ -1,13 +1,69 @@
-.gallery{
-    overflow-y: scroll;
-    top: 50px;
-    bottom:0;
-    position: absolute;
-    left:0; right:0; 
+.gallery_container{
+    height: 100vh;
 }
 
-.scrollable{
-    background-color: green;
-    text-align: center;
+.gallery{
+    overflow-y: scroll;
+    height: calc(100% - 50px);
+}
+
+.gallery>.content{
     position: relative;
+    width: 98vw;
+    margin: 0 auto;
+    margin: 0 auto;
+}
+
+.padding{
+    display: block;
+}
+
+.day{
+    position: absolute;
+    box-sizing: border-box;
+    width: 100%;
+    line-height: 0;
+}
+
+.day .header{
+    margin: 0px;
+    font-size: 2em;
+    display: flex;
+    justify-content: start;
+    align-items: center;
+    box-sizing: border-box;
+    padding: 10px;
+}
+
+.tile{
+    display: inline-block;
+    box-sizing: border-box;
+    overflow: hidden;
+    padding: 3px;
+}
+
+.tile .content{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    width: 100%;
+    box-sizing: border-box;
+    overflow: hidden;
+}
+
+.gallery .text{
+    position: absolute;
+    box-sizing: border-box;
+    padding: 20px;
+    display: flex;
+    font-size: 1.5em;
+    justify-content: start;
+    align-items: center;
+}
+
+.tile img{
+    min-width: 100%;
+    min-height: 100%;
+    object-fit: cover;
 }

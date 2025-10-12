@@ -63,6 +63,7 @@ export default function Register(){
     }
     return(
         <div className="form_container">
+            <header><Link className="button" to={"/login"}>Login</Link></header>
             <fetcher.Form className="form" method="post" action="">
                 <input type="text" name="username" disabled={!isIdle}/>
                 <input type="password" name="password" disabled={!isIdle}/>
@@ -70,7 +71,6 @@ export default function Register(){
                 <button type="submit" disabled={!isIdle}>Register</button>
             </fetcher.Form>
             <Message status={isIdle ? status : "WORKING"}/>
-            <h3>Already have account? You can login <Link to={"/login"}>here</Link></h3>
         </div>
     )
 }

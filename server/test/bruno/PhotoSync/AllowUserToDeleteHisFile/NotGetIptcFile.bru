@@ -1,0 +1,28 @@
+meta {
+  name: NotGetIptcFile
+  type: http
+  seq: 15
+}
+
+get {
+  url: {{HOST}}/file?id=3
+  body: none
+  auth: inherit
+}
+
+params:query {
+  id: 3
+}
+
+headers {
+  Authorization: {{TOKENB}}
+}
+
+assert {
+  res.status: eq 404
+  res.body.length: eq 0
+}
+
+settings {
+  encodeUrl: true
+}

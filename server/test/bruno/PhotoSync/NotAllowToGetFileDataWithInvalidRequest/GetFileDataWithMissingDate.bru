@@ -1,0 +1,24 @@
+meta {
+  name: GetFileDataWithMissingDate
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{HOST}}/file_data
+  body: none
+  auth: inherit
+}
+
+headers {
+  Authorization: {{TOKEN}}
+}
+
+assert {
+  res.status: eq 400
+  res.body: 
+}
+
+settings {
+  encodeUrl: true
+}

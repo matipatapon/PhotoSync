@@ -1,0 +1,29 @@
+meta {
+  name: TryToGetAFile
+  type: http
+  seq: 5
+}
+
+get {
+  url: {{HOST}}/file?id=1
+  body: none
+  auth: inherit
+}
+
+params:query {
+  id: 1
+}
+
+headers {
+  Authorization: {{TOKEN}}
+}
+
+assert {
+  res.status: eq 404
+  res.body.length: eq 0
+  res.headers["access-control-allow-origin"]: eq {{ALLOWED_ORIGIN}}
+}
+
+settings {
+  encodeUrl: true
+}

@@ -1,0 +1,44 @@
+meta {
+  name: GetRawFile
+  type: http
+  seq: 9
+}
+
+get {
+  url: {{HOST}}/file?id=1
+  body: none
+  auth: inherit
+}
+
+params:query {
+  id: 1
+}
+
+headers {
+  Authorization: {{TOKEN}}
+}
+
+assert {
+  res.status: eq 200
+  res.body.length: eq 2356
+  res.headers["content-type"]: eq image/jpeg
+}
+
+tests {
+  const generateHash = (string) => {
+    let hash = 0;
+    for (const char of string) {
+      hash = (hash << 5) - hash + char.charCodeAt(0);
+      hash |= 0; // Constrain to 32bit integer
+    }
+    return hash;
+  };
+  
+  test("hash is expected", function(){
+    expect(generateHash(res.body)).to.eql(860404287) 
+  })
+}
+
+settings {
+  encodeUrl: true
+}

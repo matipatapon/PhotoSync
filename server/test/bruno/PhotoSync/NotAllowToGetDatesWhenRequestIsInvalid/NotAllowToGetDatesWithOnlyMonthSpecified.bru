@@ -1,0 +1,29 @@
+meta {
+  name: NotAllowToGetDatesWithOnlyMonthSpecified
+  type: http
+  seq: 7
+}
+
+get {
+  url: {{HOST}}/dates?month=12
+  body: none
+  auth: inherit
+}
+
+params:query {
+  month: 12
+}
+
+headers {
+  Authorization: {{TOKEN}}
+}
+
+assert {
+  res.headers["access-control-allow-origin"]: eq {{ALLOWED_ORIGIN}}
+  res.status: eq 400
+  res.body.length: eq 0
+}
+
+settings {
+  encodeUrl: true
+}
