@@ -1,5 +1,5 @@
 import "./gallery.css"
-import { getFileData } from "../api/api"
+import { getFileData, getFile } from "../api/api"
 import { getDates } from "../api/get_dates"
 import { SUCCESS } from "../api/status"
 import { useRef, useEffect, useState, useLayoutEffect} from "react"
@@ -94,15 +94,18 @@ function alignScrollTop(elements, gallery, anchor)
     }
 }
 
-function Tile({fileData, size}){
-    return  <div className="tile" style={{width: `${size}px`, height: `${size}px`}}>
+function Tile({fileData, size, setFocusedFileData}){
+    function onClick(){
+        setFocusedFileData(fileData)
+    }
+    return  <div className="tile" style={{width: `${size}px`, height: `${size}px`}} onClick={onClick}>
                 <div className="content">
                         <img src={`data:image/jpg;base64, ${fileData.thumbnail}`}/>
                 </div>
             </div>
 }
 
-function Day({day, tileSize}){
+function Day({day, tileSize, setFocusedFileData}){
     let [fileData, setFileData] = useState([])
     useEffect(
         ()=>{
@@ -127,7 +130,7 @@ function Day({day, tileSize}){
 
     let tiles = []
     for(const fd of fileData){
-        tiles.push(<Tile key={fd.id} fileData={fd} size={tileSize}/>)
+        tiles.push(<Tile key={fd.id} fileData={fd} size={tileSize} setFocusedFileData={setFocusedFileData}/>)
     }
     return  <div className="day" style={{height: `${day.height}px`, transform: `translate(0px, ${day.start}px)`}}>
                 {tiles}
@@ -140,6 +143,43 @@ function Text({data}){
             </div>
 }
 
+function FocusedFile({focusedFileData, focusedFileUrl, setFocusedFileData}){
+    let [showInfo, setShowInfo] = useState(false)
+    let toggleShowInfo = () => { setShowInfo(!showInfo) }
+
+    if(focusedFileData === null || focusedFileUrl === null){
+        if(showInfo)
+        {
+            toggleShowInfo()
+        }
+        return null
+    }
+
+    function exit(){
+        setFocusedFileData(null)
+    }
+
+    function info(){
+        toggleShowInfo()
+    }
+
+    let descriptionClassName = showInfo ? "description" : "description hide"
+    return <div className="focused_file_container">
+                <div className="file">
+                    <img src={focusedFileUrl}/>
+                </div>
+                <div className="exit button" onClick={exit}>X</div>
+                <div className="info button" onClick={info}>I</div>
+                <div className="description_container">
+                    <div className={descriptionClassName}>
+                        <h1>{focusedFileData.filename}</h1>
+                        <h1>{focusedFileData.creation_date}</h1>
+                        <h1>{focusedFileData.mime_type}</h1>
+                    </div>
+                </div>
+            </div>
+}
+
 export default function Gallery(){
     let tileSize = useRef(null)
     let gallery = useRef(null)
@@ -149,6 +189,8 @@ export default function Gallery(){
     let [dates, setDates] = useState(null)
     let [elements, setElements] = useState(null)
     let [scrollData, setScrollData] = useState(new ScrollData(0, window.innerHeight))
+    let [focusedFileData, setFocusedFileData] = useState(null)
+    let [focusedFileUrl, setFocusedFileUrl] = useState(null)
     let navigate = useNavigate()
     const resizeObserver = new ResizeObserver((entries) => {
         for (const entry of entries) {
@@ -180,6 +222,32 @@ export default function Gallery(){
             return () => abort = true
         },[])
 
+    useEffect(
+        ()=>{
+            let abort = false
+            async function fun() {
+                if(focusedFileData === null)
+                {
+                    setFocusedFileUrl(null)
+                    return
+                }
+
+                const result = await getFile(focusedFileData.id)
+                if(!abort)
+                {
+                    if(result.status !== SUCCESS)
+                    {
+                        navigate("/error")
+                        return
+                    }
+                    setFocusedFileUrl(result.url)
+                }
+            }
+            fun()
+            return () => abort = true
+        },[focusedFileData]
+    )
+
     useLayoutEffect(
         () => {
             if(containerWidth === null || dates === null || gallery.current === null){
@@ -209,7 +277,7 @@ export default function Gallery(){
             {
                 if(element instanceof DayData)
                 {
-                    outlet.push(<Day key={element.date} day={element} tileSize={tileSize.current}/>)
+                    outlet.push(<Day key={element.date} day={element} tileSize={tileSize.current} setFocusedFileData={setFocusedFileData}/>)
                 }
                 else if(element instanceof TextData)
                 {
@@ -233,6 +301,7 @@ export default function Gallery(){
     }
 
     return <div className="gallery_container">
+                <FocusedFile focusedFileData={focusedFileData} setFocusedFileData={setFocusedFileData} focusedFileUrl={focusedFileUrl}/>
                 <header><Link className="button" to={"/upload"}>Upload</Link><Link className="button" to={"/login"}>Logout</Link></header>
                 <div ref={gallery} className="gallery" onScroll={scroll}>
                     <div ref={content} className="content">

@@ -31,10 +31,20 @@ header .button{
     padding: 5px;
     border-radius: 5px;
     text-decoration: none;
+    -webkit-user-select: none; /* Safari */
+    -ms-user-select: none; /* IE 10 and IE 11 */
+    user-select: none; /* Standard syntax */
+    border: solid 1px black;
+    transition: color 0.2s;
+    transition: border 0.2s;
+    transition: background-color 0.2s;
+
 }
 
 .button:hover{
-    background-color: rgb(215, 202, 255);
+    background-color: rgb(0, 0, 0);
+    color: white;
+    border: solid 1px white;
 }
 
 .window_container{
@@ -59,7 +69,6 @@ header .button{
     width: 100%;
     display: block;
     margin-top: 5px;
-    border: 0;
 }
 
 .window h1{

@@ -38,7 +38,14 @@
     display: inline-block;
     box-sizing: border-box;
     overflow: hidden;
-    padding: 3px;
+    border: 3px rgba(255, 255, 255, 0) solid;
+    transition: border 0.1s linear;
+    transition: border-radius 0.1s linear;
+}
+
+.tile:hover{
+    border: 3px white solid;
+    border-radius: 20px;
 }
 
 .tile .content{
@@ -65,4 +72,80 @@
     min-width: 100%;
     min-height: 100%;
     object-fit: cover;
+}
+
+.focused_file_container .file{
+    position: absolute;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    top: 0px;
+    left: 0px;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.9);
+    z-index: 2;
+}
+
+.focused_file_container .exit{
+    top: 20px;
+    left: 20px;
+}
+
+.focused_file_container .info{
+    top: 20px;
+    left: 70px;
+}
+
+.focused_file_container .button{
+    position: absolute;
+    z-index: 3;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.focused_file_container img{
+    max-width: 98%;
+    max-height: 98%;
+}
+
+.focused_file_container .description_container{
+    position: absolute;
+    top: 70px;
+    left: 20px;
+    z-index: 2;
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+}
+
+.description{
+    padding: 10px;
+    background-color: rgb(212, 212, 212);
+    color: black;
+    transition: opacity 0.2s;
+
+}
+
+.hide{
+    opacity: 0;
+}
+
+.focused_file_container h1{
+    font-size: 1.3em;
+    font-weight: normal;
+    margin: 10px;
+    display: block;
+    background-color: white;
+    padding: 10px;
+    margin: 0px;
+}
+
+.focused_file_container h1:not(:first-child){
+    margin-top: 10px;
 }
