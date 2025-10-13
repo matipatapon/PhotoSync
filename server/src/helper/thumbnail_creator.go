@@ -3,12 +3,12 @@ package helper
 import (
 	"bytes"
 	"errors"
-	"image"
 	"image/jpeg"
 	"log"
 	"os"
 	"photosync/src/metadata"
 
+	"github.com/disintegration/imageorient"
 	"github.com/nfnt/resize"
 )
 
@@ -29,7 +29,7 @@ func NewThumbnailCreator() ThumbnailCreator {
 
 func (tc *ThumbnailCreator) Create(file []byte, mimeType metadata.MIMEType) ([]byte, error) {
 	if mimeType == metadata.JPG {
-		image, _, err := image.Decode(bytes.NewReader((file)))
+		image, _, err := imageorient.Decode(bytes.NewReader((file)))
 		if err != nil {
 			log.Printf("Failed to decode image: '%s'", err.Error())
 			return nil, err
