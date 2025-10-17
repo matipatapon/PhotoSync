@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.input.TextFieldLineLimits
 import androidx.compose.foundation.text.input.rememberTextFieldState
+import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
 import androidx.compose.material3.Button
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SecureTextField
@@ -27,6 +28,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.unit.dp
 
 class MainActivity : ComponentActivity() {
+    private val serverRepository: ServerRepository = ServerRepository()
+    private val stage: Int = 1;
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -46,9 +50,10 @@ class MainActivity : ComponentActivity() {
         val username = rememberTextFieldState(initialText = "")
         val password = rememberTextFieldState(initialText = "")
         var showButton by remember {mutableStateOf(true)}
-        val onClick: () -> Unit = { showButton = false }
         Column(
-            Modifier.fillMaxSize().padding(innerPadding),
+            Modifier
+                .fillMaxSize()
+                .padding(innerPadding),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(10.dp, Alignment.CenterVertically),
             content = {
@@ -64,7 +69,10 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier,
                 )
                 Button(
-                    onClick = onClick,
+                    onClick = {
+                        showButton = false
+                        password.setTextAndPlaceCursorAtEnd("haha")
+                    },
                     enabled = showButton,
                     content = {
                         Text("Login")
