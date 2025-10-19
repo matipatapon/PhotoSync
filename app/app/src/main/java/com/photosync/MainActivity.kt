@@ -18,6 +18,7 @@ import androidx.compose.material3.SecureTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Modifier
 import com.photosync.ui.theme.AppTheme
@@ -28,8 +29,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.unit.dp
 
 class MainActivity : ComponentActivity() {
-    private val serverRepository: ServerRepository = ServerRepository()
-    private val stage: Int = 1;
+    private val mainViewModel: MainViewModel = MainViewModel()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -47,9 +47,16 @@ class MainActivity : ComponentActivity() {
 
     @Composable
     fun LoginForm(innerPadding: PaddingValues) {
+        val server = rememberTextFieldState(initialText = "")
         val username = rememberTextFieldState(initialText = "")
         val password = rememberTextFieldState(initialText = "")
         var showButton by remember {mutableStateOf(true)}
+        val loginStatus by mainViewModel.loginState.collectAsState()
+
+        if(loginStatus == LoginState.SUCCESS){
+            Text("Succeded")
+        }
+
         Column(
             Modifier
                 .fillMaxSize()
@@ -57,6 +64,12 @@ class MainActivity : ComponentActivity() {
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(10.dp, Alignment.CenterVertically),
             content = {
+                TextField(
+                    state = server,
+                    placeholder = { Text("server") },
+                    lineLimits = TextFieldLineLimits.SingleLine,
+                    modifier = Modifier
+                )
                 TextField(
                     state = username,
                     placeholder = { Text("login") },
@@ -71,7 +84,9 @@ class MainActivity : ComponentActivity() {
                 Button(
                     onClick = {
                         showButton = false
+                        mainViewModel.login(server.text.toString(), username.text.toString(), password.text.toString())
                         password.setTextAndPlaceCursorAtEnd("haha")
+
                     },
                     enabled = showButton,
                     content = {
