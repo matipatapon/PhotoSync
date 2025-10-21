@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.input.TextFieldLineLimits
 import androidx.compose.foundation.text.input.rememberTextFieldState
@@ -50,17 +51,17 @@ class MainActivity : ComponentActivity() {
         val server = rememberTextFieldState(initialText = "")
         val username = rememberTextFieldState(initialText = "")
         val password = rememberTextFieldState(initialText = "")
-        var showButton by remember {mutableStateOf(true)}
         val loginStatus by mainViewModel.loginState.collectAsState()
-
-        if(loginStatus == LoginState.SUCCESS){
-            Text("Succeded")
+        var errorMsg = ""
+        if(loginStatus == LoginState.ERROR){
+            errorMsg = "Something went wrong"
+        } else if(loginStatus == LoginState.INVALID_CREDENTIALS){
+            errorMsg = "Invalid credentials"
         }
-
         Column(
             Modifier
                 .fillMaxSize()
-                .padding(innerPadding),
+                .padding(50.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(10.dp, Alignment.CenterVertically),
             content = {
@@ -68,30 +69,30 @@ class MainActivity : ComponentActivity() {
                     state = server,
                     placeholder = { Text("server") },
                     lineLimits = TextFieldLineLimits.SingleLine,
-                    modifier = Modifier
+                    modifier = Modifier.fillMaxWidth()
                 )
                 TextField(
                     state = username,
                     placeholder = { Text("login") },
                     lineLimits = TextFieldLineLimits.SingleLine,
-                    modifier = Modifier
+                    modifier = Modifier.fillMaxWidth()
                 )
                 SecureTextField(
                     state = password,
                     placeholder = { Text("password") },
-                    modifier = Modifier,
+                    modifier = Modifier.fillMaxWidth(),
                 )
+                Text(errorMsg)
                 Button(
                     onClick = {
-                        showButton = false
                         mainViewModel.login(server.text.toString(), username.text.toString(), password.text.toString())
                         password.setTextAndPlaceCursorAtEnd("haha")
-
                     },
-                    enabled = showButton,
+                    enabled = loginStatus != LoginState.WORKING,
                     content = {
                         Text("Login")
-                    }
+                    },
+                    modifier = Modifier.fillMaxWidth(),
                 )
             })
     }
