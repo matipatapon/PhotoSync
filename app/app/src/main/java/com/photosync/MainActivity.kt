@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.input.TextFieldLineLimits
 import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
+import androidx.compose.foundation.text.input.setTextAndSelectAll
 import androidx.compose.material3.Button
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SecureTextField
@@ -28,11 +29,16 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.unit.dp
+import androidx.room.Room
+import com.photosync.daos.AppSettingsDao
+import com.photosync.databases.LocalDatabase
 
 class MainActivity : ComponentActivity() {
-    private val mainViewModel: MainViewModel = MainViewModel()
+    private var mainViewModel: MainViewModel? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        mainViewModel = MainViewModel(applicationContext)
+
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
@@ -48,12 +54,11 @@ class MainActivity : ComponentActivity() {
 
     @Composable
     fun View(innerPadding: PaddingValues){
-        val window by mainViewModel.window.collectAsState()
+        val window by mainViewModel!!.window.collectAsState()
         if(window == Window.Login){
             LoginForm()
         }
         else if(window == Window.Sync){
-            Text("Matrix?")
         }
     }
 
@@ -62,7 +67,7 @@ class MainActivity : ComponentActivity() {
         val server = rememberTextFieldState(initialText = "")
         val username = rememberTextFieldState(initialText = "")
         val password = rememberTextFieldState(initialText = "")
-        val loginStatus by mainViewModel.loginStatus.collectAsState()
+        val loginStatus by mainViewModel!!.loginStatus.collectAsState()
         Column(
             Modifier
                 .fillMaxSize()
@@ -93,7 +98,7 @@ class MainActivity : ComponentActivity() {
                 Text(loginStatus.getError())
                 Button(
                     onClick = {
-                        mainViewModel.login(server.text.toString(), username.text.toString(), password.text.toString())
+                        mainViewModel!!.login(server.text.toString(), username.text.toString(), password.text.toString())
                         password.setTextAndPlaceCursorAtEnd("haha")
                     },
                     enabled = !loginStatus.isPending(),

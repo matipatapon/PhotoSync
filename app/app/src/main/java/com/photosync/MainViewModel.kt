@@ -1,7 +1,11 @@
 package com.photosync
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.room.Room
+import com.photosync.databases.LocalDatabase
+import com.photosync.entities.AppSettings
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -27,7 +31,12 @@ class LoginStatus(private var error: String, private var pending: Boolean) {
     }
 }
 
-class MainViewModel : ViewModel() {
+class MainViewModel(private val applicationContext: Context) : ViewModel() {
+    private var localDatabase: LocalDatabase = Room.databaseBuilder(
+    applicationContext,
+    LocalDatabase::class.java, "PhotoSync"
+    ).build()
+
     private final val client: OkHttpClient = OkHttpClient();
     private val _loginStatus = MutableStateFlow<LoginStatus>(LoginStatus(error="", pending = false));
     private val _window = MutableStateFlow<Window>(Window.Login);
@@ -39,10 +48,13 @@ class MainViewModel : ViewModel() {
         viewModelScope.launch(Dispatchers.IO) {
             _loginStatus.value = LoginStatus(error="", pending = true)
             // http://192.168.68.60:8080/v1/login
+            val dao = localDatabase.appSettingsDao()
+            val settings = dao.getSettings()
+
             val payload = """
                 {
-                    "username": "${username}",
-                    "password": "${password}"
+                    "username": "${settings!!.login}",
+                    "password": "${settings!!.password}"
                 }
             """.trimIndent()
             try {
@@ -57,6 +69,7 @@ class MainViewModel : ViewModel() {
                 } else if(responseCode != 200){
                     _loginStatus.value = LoginStatus(error="Something went wrong", pending = false)
                 } else{
+                    dao.updateSettings(AppSettings(1, server, username, password))
                     token = response.body().toString()
                     _loginStatus.value = LoginStatus(error="", pending = false)
                     _window.value = Window.Sync
