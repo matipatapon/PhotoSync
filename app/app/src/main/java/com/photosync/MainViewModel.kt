@@ -4,8 +4,8 @@ import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.room.Room
-import com.photosync.databases.LocalDatabase
-import com.photosync.entities.AppSettings
+import com.photosync.Database.LocalDatabase
+import com.photosync.Database.AppSettings
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -17,6 +17,7 @@ import okhttp3.Request
 import okhttp3.RequestBody
 
 enum class Window {
+    Load,
     Login,
     Sync
 }
@@ -39,29 +40,34 @@ class MainViewModel(private val applicationContext: Context) : ViewModel() {
 
     private final val client: OkHttpClient = OkHttpClient();
     private val _loginStatus = MutableStateFlow<LoginStatus>(LoginStatus(error="", pending = false));
-    private val _window = MutableStateFlow<Window>(Window.Login);
+    private val _window = MutableStateFlow<Window>(Window.Load);
     val loginStatus: StateFlow<LoginStatus> = _loginStatus.asStateFlow()
     val window: StateFlow<Window> = _window.asStateFlow()
-    var token: String? = null;
+    var appSettings: AppSettings? = null
+
+    fun load(){
+        viewModelScope.launch(Dispatchers.IO) {
+            val dao = localDatabase.appSettingsDao()
+            appSettings = dao.getSettings()
+            _window.value = Window.Login
+        }
+    }
 
     fun login(server: String, username: String, password: String){
         viewModelScope.launch(Dispatchers.IO) {
             _loginStatus.value = LoginStatus(error="", pending = true)
             // http://192.168.68.60:8080/v1/login
-            val dao = localDatabase.appSettingsDao()
-            val settings = dao.getSettings()
-
             val payload = """
                 {
-                    "username": "${settings!!.login}",
-                    "password": "${settings!!.password}"
+                    "username": "$username",
+                    "password": "$password"
                 }
             """.trimIndent()
             try {
-            val request = Request.Builder()
-                .url("$server/v1/login")
-                .post(RequestBody.create(MediaType.parse("application/json; charset=utf-8"), payload))
-                .build();
+                val request = Request.Builder()
+                    .url("$server/v1/login")
+                    .post(RequestBody.create(MediaType.parse("application/json; charset=utf-8"), payload))
+                    .build();
                 val response = client.newCall(request).execute()
                 val responseCode = response.code()
                 if(responseCode == 401){
@@ -69,8 +75,10 @@ class MainViewModel(private val applicationContext: Context) : ViewModel() {
                 } else if(responseCode != 200){
                     _loginStatus.value = LoginStatus(error="Something went wrong", pending = false)
                 } else{
-                    dao.updateSettings(AppSettings(1, server, username, password))
-                    token = response.body().toString()
+                    val dao = localDatabase.appSettingsDao()
+                    val newAppSettings = AppSettings(1, server, username)
+                    dao.updateSettings(newAppSettings)
+                    appSettings = newAppSettings
                     _loginStatus.value = LoginStatus(error="", pending = false)
                     _window.value = Window.Sync
                 }

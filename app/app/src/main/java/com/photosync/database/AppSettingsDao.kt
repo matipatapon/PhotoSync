@@ -1,10 +1,9 @@
-package com.photosync.daos
+package com.photosync.Database
 
 import androidx.room.Dao
 import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.Query
-import com.photosync.entities.AppSettings
 
 @Dao
 interface AppSettingsDao{
@@ -21,5 +20,4 @@ interface AppSettingsDao{
         deleteSettings(appSettings)
         insertSettings(appSettings)
     }
-
 }

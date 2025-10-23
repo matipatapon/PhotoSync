@@ -1,4 +1,4 @@
-package com.photosync.entities
+package com.photosync.Database
 
 import androidx.room.ColumnInfo
 import androidx.room.Entity
@@ -9,5 +9,4 @@ data class AppSettings(
     @PrimaryKey val uid: Int,
     @ColumnInfo(name = "server") val server: String,
     @ColumnInfo(name = "login") val login: String,
-    @ColumnInfo(name = "password") val password: String
 )
