@@ -1,4 +1,4 @@
-package com.photosync.Database
+package com.photosync.database
 
 import androidx.room.ColumnInfo
 import androidx.room.Entity

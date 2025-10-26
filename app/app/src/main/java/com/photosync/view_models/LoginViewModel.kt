@@ -1,11 +1,9 @@
-package com.photosync
+package com.photosync.view_models
 
-import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.room.Room
-import com.photosync.Database.LocalDatabase
-import com.photosync.Database.AppSettings
+import com.photosync.database.LocalDatabase
+import com.photosync.database.AppSettings
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -23,24 +21,19 @@ enum class Window {
 }
 
 class LoginStatus(private var error: String, private var pending: Boolean) {
-    public fun getError(): String {
+    fun getError(): String {
         return this.error
     }
 
-    public fun isPending(): Boolean{
+    fun isPending(): Boolean{
         return this.pending
     }
 }
 
-class MainViewModel(private val applicationContext: Context) : ViewModel() {
-    private var localDatabase: LocalDatabase = Room.databaseBuilder(
-    applicationContext,
-    LocalDatabase::class.java, "PhotoSync"
-    ).build()
-
-    private final val client: OkHttpClient = OkHttpClient();
-    private val _loginStatus = MutableStateFlow<LoginStatus>(LoginStatus(error="", pending = false));
-    private val _window = MutableStateFlow<Window>(Window.Load);
+class LoginViewModel(private var localDatabase: LocalDatabase) : ViewModel() {
+    private val client: OkHttpClient = OkHttpClient()
+    private val _loginStatus = MutableStateFlow(LoginStatus(error="", pending = false))
+    private val _window = MutableStateFlow(Window.Load)
     val loginStatus: StateFlow<LoginStatus> = _loginStatus.asStateFlow()
     val window: StateFlow<Window> = _window.asStateFlow()
     var appSettings: AppSettings? = null
@@ -67,7 +60,7 @@ class MainViewModel(private val applicationContext: Context) : ViewModel() {
                 val request = Request.Builder()
                     .url("$server/v1/login")
                     .post(RequestBody.create(MediaType.parse("application/json; charset=utf-8"), payload))
-                    .build();
+                    .build()
                 val response = client.newCall(request).execute()
                 val responseCode = response.code()
                 if(responseCode == 401){
