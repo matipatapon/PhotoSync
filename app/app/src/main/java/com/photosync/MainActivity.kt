@@ -48,7 +48,7 @@ class MainActivity : ComponentActivity() {
             LocalDatabase::class.java, "PhotoSync"
         ).build()
         loginViewModel = LoginViewModel(localDatabase!!)
-        folderViewModel = FolderViewModel(localDatabase!!)
+        folderViewModel = FolderViewModel(localDatabase!!, applicationContext)
 
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -116,7 +116,11 @@ class MainActivity : ComponentActivity() {
         Text(error)
         Button(
             content= {Text("Add folder")},
-            onClick = {addFolderToSync() }
+            onClick = { addFolderToSync() }
+        )
+        Button(
+            content={Text("Sync")},
+            onClick = { folderViewModel!!.syncFolders() }
         )
     }
 

@@ -1,8 +1,11 @@
 package com.photosync.view_models
 
+import android.content.Context
 import android.database.sqlite.SQLiteConstraintException
 import android.net.Uri
+import android.util.Log
 import androidx.core.net.toUri
+import androidx.documentfile.provider.DocumentFile
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.photosync.database.Folder
@@ -13,7 +16,9 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 
-class FolderViewModel(private var localDatabase: LocalDatabase) : ViewModel(){
+class FolderViewModel(
+    private var localDatabase: LocalDatabase,
+    private var context: Context) : ViewModel(){
     private val _folders = MutableStateFlow(listOf<String>());
     val folders = _folders.asStateFlow()
     private val folderDao = localDatabase.folderDao()
@@ -32,6 +37,36 @@ class FolderViewModel(private var localDatabase: LocalDatabase) : ViewModel(){
     init{
         viewModelScope.launch(Dispatchers.IO) {
             refreshFolders()
+        }
+    }
+
+    private fun syncFile(file: DocumentFile){
+        val bytes = context.contentResolver.openInputStream(file.uri)!!.readBytes()
+        Log.d("Bobert", "${file.uri.path.toString()} ${bytes.size}")
+    }
+
+    private fun syncFolder(folder: DocumentFile){
+        for(file in folder.listFiles()){
+            if(file.isDirectory){
+                syncFolder(file)
+                continue
+            }
+            syncFile(file)
+            Log.d("RUBICON", "${file.uri.path.toString()} ${file.type}")
+        }
+    }
+
+    public fun syncFolders(){
+        viewModelScope.launch(Dispatchers.IO) {
+            for (folder in folderDao.getFolders()) {
+                val directory = androidx.documentfile.provider.DocumentFile.fromTreeUri(
+                    context,
+                    folder.uri.toUri()
+                )
+                if (directory != null && directory.isDirectory) {
+                    syncFolder(directory)
+                }
+            }
         }
     }
 
