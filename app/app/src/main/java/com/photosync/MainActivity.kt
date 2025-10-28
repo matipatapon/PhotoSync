@@ -1,11 +1,7 @@
 package com.photosync
 
-import android.app.Activity
 import android.content.Intent
-import android.database.Cursor
-import android.net.Uri
 import android.os.Bundle
-import android.provider.MediaStore
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -34,12 +30,12 @@ import androidx.room.Room
 import com.photosync.database.LocalDatabase
 import com.photosync.view_models.FolderViewModel
 import com.photosync.view_models.LoginViewModel
-import kotlin.coroutines.CoroutineContext
+import com.photosync.view_models.Window
 
 class MainActivity : ComponentActivity() {
-    private var localDatabase: LocalDatabase? = null;
+    private var localDatabase: LocalDatabase? = null
     private var loginViewModel: LoginViewModel? = null
-    private var folderViewModel: FolderViewModel? = null;
+    private var folderViewModel: FolderViewModel? = null
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -48,7 +44,7 @@ class MainActivity : ComponentActivity() {
             LocalDatabase::class.java, "PhotoSync"
         ).build()
         loginViewModel = LoginViewModel(localDatabase!!)
-        folderViewModel = FolderViewModel(localDatabase!!, applicationContext)
+        folderViewModel = FolderViewModel(localDatabase!!, application)
 
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -67,20 +63,21 @@ class MainActivity : ComponentActivity() {
     fun View(innerPadding: PaddingValues){
         val window by loginViewModel!!.window.collectAsState()
         Column(
-            modifier = Modifier.padding(50.dp).fillMaxSize(),
+            modifier = Modifier
+                .padding(50.dp)
+                .fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(10.dp, Alignment.CenterVertically),
             content = {
-                Folders()
 //                when (window) {
 //                    Window.Load -> {
-//                        mainViewModel!!.load()
+//                        loginViewModel!!.load()
 //                    }
-//
 //                    Window.Login -> {
 //                        LoginForm()
 //                    }
 //                    Window.Sync -> {
+                        Folders()
 //                    }
 //                }
             }
@@ -93,8 +90,7 @@ class MainActivity : ComponentActivity() {
     }
 
     var addFolderLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-        if (result.resultCode == Activity.RESULT_OK) {
-
+        if (result.resultCode == RESULT_OK) {
              result.data?.data?.let {
                 uri ->
                     val contentResolver = applicationContext.contentResolver
