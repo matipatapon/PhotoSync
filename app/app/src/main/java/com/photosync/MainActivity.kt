@@ -69,17 +69,17 @@ class MainActivity : ComponentActivity() {
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(10.dp, Alignment.CenterVertically),
             content = {
-//                when (window) {
-//                    Window.Load -> {
-//                        loginViewModel!!.load()
-//                    }
-//                    Window.Login -> {
-//                        LoginForm()
-//                    }
-//                    Window.Sync -> {
+                when (window) {
+                    Window.Load -> {
+                        loginViewModel!!.load()
+                    }
+                    Window.Login -> {
+                        LoginForm()
+                    }
+                    Window.Sync -> {
                         Folders()
-//                    }
-//                }
+                    }
+                }
             }
         )
     }
@@ -116,7 +116,12 @@ class MainActivity : ComponentActivity() {
         )
         Button(
             content={Text("Sync")},
-            onClick = { folderViewModel!!.syncFolders() }
+            onClick = {
+                val token = loginViewModel!!.token
+                if(token != null){
+                    folderViewModel!!.syncFolders(token)
+                }
+            }
         )
     }
 

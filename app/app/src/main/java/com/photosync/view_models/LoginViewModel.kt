@@ -36,6 +36,7 @@ class LoginViewModel(private var localDatabase: LocalDatabase) : ViewModel() {
     private val _window = MutableStateFlow(Window.Load)
     val loginStatus: StateFlow<LoginStatus> = _loginStatus.asStateFlow()
     val window: StateFlow<Window> = _window.asStateFlow()
+    var token: String? = null
     var appSettings: AppSettings? = null
 
     fun load(){
@@ -49,7 +50,6 @@ class LoginViewModel(private var localDatabase: LocalDatabase) : ViewModel() {
     fun login(server: String, username: String, password: String){
         viewModelScope.launch(Dispatchers.IO) {
             _loginStatus.value = LoginStatus(error="", pending = true)
-            // http://192.168.68.60:8080/v1/login
             val payload = """
                 {
                     "username": "$username",
@@ -69,8 +69,15 @@ class LoginViewModel(private var localDatabase: LocalDatabase) : ViewModel() {
                     _loginStatus.value = LoginStatus(error="Something went wrong", pending = false)
                 } else{
                     val dao = localDatabase.appSettingsDao()
+                    val currentSettings = dao.getSettings()
                     val newAppSettings = AppSettings(1, server, username)
-                    dao.updateSettings(newAppSettings)
+                    if(currentSettings == null){
+                        dao.insertSettings(newAppSettings)
+                    }else{
+                        dao.updateSettings(newAppSettings)
+                    }
+                    token = response.body().string()
+
                     appSettings = newAppSettings
                     _loginStatus.value = LoginStatus(error="", pending = false)
                     _window.value = Window.Sync
