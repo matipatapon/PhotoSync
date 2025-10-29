@@ -108,7 +108,17 @@ class FolderViewModel(
     fun addFolderToSync(uri: Uri){
         viewModelScope.launch(Dispatchers.IO){
             try {
-                folderDao.addFolder(Folder(uri.toString(), null))
+                val folders = folderDao.getFolders()
+                val uriStr = uri.toString()
+                for(folder in folders){
+                    if(uriStr.startsWith(folder.uri)){
+                        return@launch
+                    }
+                    if(folder.uri.startsWith(uriStr)){
+                        folderDao.deleteFolder(folder)
+                    }
+                }
+                folderDao.addFolder(Folder(uriStr, null))
                 refreshFolders()
             } catch (e: SQLiteConstraintException){
                 _error.value = e.toString()

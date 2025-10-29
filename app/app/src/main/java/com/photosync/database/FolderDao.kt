@@ -1,6 +1,7 @@
 package com.photosync.database
 
 import androidx.room.Dao
+import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.Query
 import androidx.room.Update
@@ -15,4 +16,7 @@ interface FolderDao {
 
     @Update
     fun updateFolder(folder: Folder)
+
+    @Delete
+    fun deleteFolder(folder: Folder)
 }
