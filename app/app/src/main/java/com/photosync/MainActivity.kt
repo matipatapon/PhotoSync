@@ -105,12 +105,12 @@ class MainActivity : ComponentActivity() {
     @Composable
     fun Folders(){
         val folders by folderViewModel!!.folders.collectAsState()
-        val error by folderViewModel!!.error.collectAsState()
+        val info by folderViewModel!!.info.collectAsState()
 
         for(folder in folders){
             Text(folder)
         }
-        Text(error)
+        Text(info)
         Button(
             content= {Text("Add folder")},
             onClick = { addFolderToSync() }

@@ -32,6 +32,8 @@ class FolderViewModel(
     private val folderDao = localDatabase.folderDao()
     private val _error = MutableStateFlow("")
     val error = _error.asStateFlow()
+    private val _info = MutableStateFlow("")
+    val info = _info.asStateFlow()
 
     private fun refreshFolders(){
         val newFolders = mutableListOf<String>()
@@ -47,47 +49,41 @@ class FolderViewModel(
         }
     }
 
-    private fun syncFile(file: DocumentFile){
-        val fileUri = file.uri
+    private fun syncFile(file: DocumentFile, lastSync: Long?){
         val filename = file.uri.path.toString().substringAfterLast("/")
-        val inputStream = application.contentResolver.openInputStream(file.uri)
-        if(inputStream == null)
-        {
-            throw Exception("$fileUri not found")
-        }
-        val bytes = inputStream.use {it.readBytes()}
-        val fileLastModified = Instant.ofEpochMilli(file.lastModified())
+        val filepath = file.uri.path
+        val fileLastModifiedUnix = file.lastModified()
+        val fileLastModified = Instant.ofEpochMilli(fileLastModifiedUnix)
             .atZone(ZoneId.systemDefault())
             .format(DateTimeFormatter.ofPattern("uuuu.MM.dd HH:mm:ss"))
         val mimeType: String? = file.type
-        if(mimeType == null || mimeType != "image/jpeg"){
+        if(lastSync != null && lastSync > fileLastModifiedUnix ){
+
+            logger.info("Ignoring file<path={$filepath} lastModified={$fileLastModified}>")
             return
         }
-        logger.info("Uploading file<name={$filename} size={${bytes.size}} lastModified={$fileLastModified} path={${fileUri.path}} mimeType={$mimeType}>")
+        if(mimeType == null || mimeType != "image/jpeg"){
+            logger.info("Ignoring file<path={$filepath} mimeType={$mimeType}>")
+            return
+        }
+        _info.value = "Syncing $filename"
+        val inputStream = application.contentResolver.openInputStream(file.uri)
+        if(inputStream == null)
+        {
+            throw Exception("$filepath not found")
+        }
+        val bytes = inputStream.use {it.readBytes()}
+        logger.info("Uploading file<path={$filepath} size={${bytes.size}} lastModified={$fileLastModified}  mimeType={$mimeType}>")
         apiHandler.uploadFile(bytes, filename, fileLastModified)
     }
 
     private fun syncFolder(folder: DocumentFile, lastSync: Long?){
-        var folderLastSynced = ""
-        val folderLastModified = Instant.ofEpochMilli(folder.lastModified())
-            .atZone(ZoneId.systemDefault())
-            .format(DateTimeFormatter.ofPattern("uuuu.MM.dd HH:mm:ss"))
-        if(lastSync != null) {
-            folderLastSynced = Instant.ofEpochMilli(folder.lastModified())
-                .atZone(ZoneId.systemDefault())
-                .format(DateTimeFormatter.ofPattern("uuuu.MM.dd HH:mm:ss"))
-            if(lastSync > folder.lastModified()){
-                logger.info("Skipping folder<path={${folder.uri.path}} lastModified={$folderLastModified} lastSynced={$folderLastSynced}>")
-                return
-            }
-        }
-        logger.info("Syncing folder<path={${folder.uri.path}} lastModified={$folderLastModified} lastSynced={$folderLastSynced}>> ")
         for(file in folder.listFiles()){
             if(file.isDirectory){
                 syncFolder(file, lastSync)
                 continue
             }
-            syncFile(file)
+            syncFile(file, lastSync)
         }
     }
 
@@ -99,9 +95,13 @@ class FolderViewModel(
                     folder.uri.toUri()
                 )
                 if (directory != null && directory.isDirectory) {
+                    val currentTime = System.currentTimeMillis()
                     syncFolder(directory, folder.lastSync)
+                    folder.lastSync = currentTime
+                    folderDao.updateFolder(folder)
                 }
             }
+            _info.value = ""
         }
     }
 
