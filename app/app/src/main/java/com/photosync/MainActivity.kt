@@ -27,6 +27,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.unit.dp
 import androidx.room.Room
+import com.photosync.api.ApiHandler
 import com.photosync.database.LocalDatabase
 import com.photosync.view_models.FolderViewModel
 import com.photosync.view_models.LoginViewModel
@@ -36,15 +37,15 @@ class MainActivity : ComponentActivity() {
     private var localDatabase: LocalDatabase? = null
     private var loginViewModel: LoginViewModel? = null
     private var folderViewModel: FolderViewModel? = null
-
+    private val apiHandler: ApiHandler = ApiHandler()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         localDatabase = Room.databaseBuilder(
             applicationContext,
             LocalDatabase::class.java, "PhotoSync"
         ).build()
-        loginViewModel = LoginViewModel(localDatabase!!)
-        folderViewModel = FolderViewModel(localDatabase!!, application)
+        loginViewModel = LoginViewModel(localDatabase!!, apiHandler)
+        folderViewModel = FolderViewModel(localDatabase!!, application, apiHandler)
 
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -117,10 +118,7 @@ class MainActivity : ComponentActivity() {
         Button(
             content={Text("Sync")},
             onClick = {
-                val token = loginViewModel!!.token
-                if(token != null){
-                    folderViewModel!!.syncFolders(token)
-                }
+                folderViewModel!!.syncFolders()
             }
         )
     }

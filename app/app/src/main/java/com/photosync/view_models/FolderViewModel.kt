@@ -7,17 +7,13 @@ import androidx.core.net.toUri
 import androidx.documentfile.provider.DocumentFile
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.photosync.api.ApiHandler
 import com.photosync.database.Folder
 import com.photosync.database.LocalDatabase
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import okhttp3.MediaType
-import okhttp3.MultipartBody
-import okhttp3.OkHttpClient
-import okhttp3.Request
-import okhttp3.RequestBody
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -26,16 +22,14 @@ import java.util.logging.Logger
 
 class FolderViewModel(
     localDatabase: LocalDatabase,
-    private var application: Application
+    private var application: Application,
+    private var apiHandler: ApiHandler
 ) : ViewModel(){
 
-    private val client: OkHttpClient = OkHttpClient()
     private val logger = Logger.getLogger(this.javaClass.name)
     private val _folders = MutableStateFlow(listOf<String>())
     val folders = _folders.asStateFlow()
     private val folderDao = localDatabase.folderDao()
-    private val appSettingsDao = localDatabase.appSettingsDao()
-
     private val _error = MutableStateFlow("")
     val error = _error.asStateFlow()
 
@@ -53,24 +47,7 @@ class FolderViewModel(
         }
     }
 
-    private fun uploadFile(file: ByteArray, filename: String, lastModified: String, mimeType: String, token: String){
-        val requestBody: MultipartBody = MultipartBody.Builder()
-            .setType(MultipartBody.FORM)
-            .addFormDataPart("filename", filename)
-            .addFormDataPart("modification_date", lastModified)
-            .addFormDataPart("file", "", RequestBody.create(MediaType.parse("image/jpeg"),file))
-            .build()
-        val server = appSettingsDao.getSettings()!!.server
-        val request = Request.Builder()
-            .header("Authorization", token)
-            .url("$server/v1/upload")
-            .post(requestBody)
-            .build()
-        val response = client.newCall(request).execute()
-        val responseCode = response.code()
-    }
-
-    private fun syncFile(file: DocumentFile, token: String){
+    private fun syncFile(file: DocumentFile){
         val fileUri = file.uri
         val filename = file.uri.path.toString().substringAfterLast("/")
         val inputStream = application.contentResolver.openInputStream(file.uri)
@@ -87,10 +64,10 @@ class FolderViewModel(
             return
         }
         logger.info("Uploading file<name={$filename} size={${bytes.size}} lastModified={$fileLastModified} path={${fileUri.path}} mimeType={$mimeType}>")
-        uploadFile(bytes, filename, fileLastModified, mimeType, token)
+        apiHandler.uploadFile(bytes, filename, fileLastModified)
     }
 
-    private fun syncFolder(folder: DocumentFile, lastSync: Long?, token: String){
+    private fun syncFolder(folder: DocumentFile, lastSync: Long?){
         var folderLastSynced = ""
         val folderLastModified = Instant.ofEpochMilli(folder.lastModified())
             .atZone(ZoneId.systemDefault())
@@ -107,14 +84,14 @@ class FolderViewModel(
         logger.info("Syncing folder<path={${folder.uri.path}} lastModified={$folderLastModified} lastSynced={$folderLastSynced}>> ")
         for(file in folder.listFiles()){
             if(file.isDirectory){
-                syncFolder(file, lastSync, token)
+                syncFolder(file, lastSync)
                 continue
             }
-            syncFile(file, token)
+            syncFile(file)
         }
     }
 
-    fun syncFolders(token: String){
+    fun syncFolders(){
         viewModelScope.launch(Dispatchers.IO) {
             for (folder in folderDao.getFolders()) {
                 val directory = DocumentFile.fromTreeUri(
@@ -122,7 +99,7 @@ class FolderViewModel(
                     folder.uri.toUri()
                 )
                 if (directory != null && directory.isDirectory) {
-                    syncFolder(directory, folder.lastSync, token)
+                    syncFolder(directory, folder.lastSync)
                 }
             }
         }
