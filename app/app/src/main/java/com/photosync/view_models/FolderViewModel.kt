@@ -89,19 +89,24 @@ class FolderViewModel(
 
     fun syncFolders(){
         viewModelScope.launch(Dispatchers.IO) {
-            for (folder in folderDao.getFolders()) {
-                val directory = DocumentFile.fromTreeUri(
-                    application.applicationContext,
-                    folder.uri.toUri()
-                )
-                if (directory != null && directory.isDirectory) {
+            try {
+                for (folder in folderDao.getFolders()) {
+                    val directory = DocumentFile.fromTreeUri(
+                        application.applicationContext,
+                        folder.uri.toUri()
+                    )
+                    if (directory == null || !directory.isDirectory) {
+                        throw Exception("Invalid folder")
+                    }
                     val currentTime = System.currentTimeMillis()
                     syncFolder(directory, folder.lastSync)
                     folder.lastSync = currentTime
                     folderDao.updateFolder(folder)
+                    _info.value = ""
                 }
+            } catch (e: Exception){
+                _info.value = e.toString()
             }
-            _info.value = ""
         }
     }
 
@@ -120,7 +125,7 @@ class FolderViewModel(
                 }
                 folderDao.addFolder(Folder(uriStr, null))
                 refreshFolders()
-            } catch (e: SQLiteConstraintException){
+            } catch (e: Exception){
                 _error.value = e.toString()
             }
         }

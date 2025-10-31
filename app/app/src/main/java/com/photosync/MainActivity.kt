@@ -6,14 +6,23 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.sizeIn
+import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.input.TextFieldLineLimits
 import androidx.compose.foundation.text.input.rememberTextFieldState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SecureTextField
@@ -25,7 +34,11 @@ import androidx.compose.ui.Modifier
 import com.photosync.ui.theme.AppTheme
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.room.Room
 import com.photosync.api.ApiHandler
 import com.photosync.database.LocalDatabase
@@ -51,7 +64,8 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             AppTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
+                Scaffold(modifier = Modifier.fillMaxSize(),
+                    ) { innerPadding ->
                     View(
                         innerPadding
                     )
@@ -65,11 +79,13 @@ class MainActivity : ComponentActivity() {
         val window by loginViewModel!!.window.collectAsState()
         Column(
             modifier = Modifier
-                .padding(50.dp)
-                .fillMaxSize(),
+                .fillMaxSize().padding(50.dp).verticalScroll(rememberScrollState()),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(10.dp, Alignment.CenterVertically),
             content = {
+                Text(text = "PhotoSync", Modifier.fillMaxWidth().wrapContentHeight(
+                    Alignment.Bottom), textAlign = TextAlign.Center, fontSize = 24.sp, fontWeight = FontWeight.Bold)
+                Spacer(Modifier.weight(0.5f))
                 when (window) {
                     Window.Load -> {
                         loginViewModel!!.load()
@@ -81,6 +97,7 @@ class MainActivity : ComponentActivity() {
                         Folders()
                     }
                 }
+                Spacer(Modifier.weight(0.5f))
             }
         )
     }
@@ -106,17 +123,29 @@ class MainActivity : ComponentActivity() {
     fun Folders(){
         val folders by folderViewModel!!.folders.collectAsState()
         val info by folderViewModel!!.info.collectAsState()
-
         for(folder in folders){
-            Text(folder)
+            Row(modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceEvenly,
+                content={
+                    Text(text=folder, textAlign = TextAlign.Center)
+                    Spacer(modifier = Modifier.weight(1f))
+                    Button(modifier = Modifier.fillMaxHeight(), content={ Text("X") }, onClick = {})
+                }
+            )
         }
-        Text(info)
         Button(
-            content= {Text("Add folder")},
+            content= {Text("+")},
+            modifier = Modifier.fillMaxWidth(),
             onClick = { addFolderToSync() }
         )
+        Spacer(Modifier.height(25.dp))
+        if(info != ""){
+            Text(text=info)
+        }
         Button(
             content={Text("Sync")},
+            modifier = Modifier.fillMaxWidth(),
             onClick = {
                 folderViewModel!!.syncFolders()
             }
