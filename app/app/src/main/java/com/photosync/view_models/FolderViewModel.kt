@@ -1,7 +1,6 @@
 package com.photosync.view_models
 
 import android.app.Application
-import android.database.sqlite.SQLiteConstraintException
 import android.net.Uri
 import androidx.core.net.toUri
 import androidx.documentfile.provider.DocumentFile
@@ -19,6 +18,16 @@ import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.logging.Logger
 
+data class FolderStatus(
+    val type: Type,
+    val info: String
+){
+    enum class Type {
+        Idle,
+        Sync,
+        Error
+    }
+}
 
 class FolderViewModel(
     localDatabase: LocalDatabase,
@@ -27,18 +36,16 @@ class FolderViewModel(
 ) : ViewModel(){
 
     private val logger = Logger.getLogger(this.javaClass.name)
-    private val _folders = MutableStateFlow(listOf<String>())
+    private val _folders = MutableStateFlow(listOf<Folder>())
     val folders = _folders.asStateFlow()
     private val folderDao = localDatabase.folderDao()
-    private val _error = MutableStateFlow("")
-    val error = _error.asStateFlow()
-    private val _info = MutableStateFlow("")
-    val info = _info.asStateFlow()
+    private val _status = MutableStateFlow(FolderStatus(FolderStatus.Type.Idle, ""))
+    val status = _status.asStateFlow()
 
     private fun refreshFolders(){
-        val newFolders = mutableListOf<String>()
+        val newFolders = mutableListOf<Folder>()
         for (folder in folderDao.getFolders()){
-            newFolders.add(folder.uri.toUri().path.toString())
+            newFolders.add(folder)
         }
         _folders.value = newFolders
     }
@@ -58,7 +65,6 @@ class FolderViewModel(
             .format(DateTimeFormatter.ofPattern("uuuu.MM.dd HH:mm:ss"))
         val mimeType: String? = file.type
         if(lastSync != null && lastSync > fileLastModifiedUnix ){
-
             logger.info("Ignoring file<path={$filepath} lastModified={$fileLastModified}>")
             return
         }
@@ -66,7 +72,7 @@ class FolderViewModel(
             logger.info("Ignoring file<path={$filepath} mimeType={$mimeType}>")
             return
         }
-        _info.value = "Syncing $filename"
+        _status.value = FolderStatus(FolderStatus.Type.Sync, filename)
         val inputStream = application.contentResolver.openInputStream(file.uri)
         if(inputStream == null)
         {
@@ -88,6 +94,7 @@ class FolderViewModel(
     }
 
     fun syncFolders(){
+        _status.value = FolderStatus(FolderStatus.Type.Sync, "")
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 for (folder in folderDao.getFolders()) {
@@ -102,10 +109,10 @@ class FolderViewModel(
                     syncFolder(directory, folder.lastSync)
                     folder.lastSync = currentTime
                     folderDao.updateFolder(folder)
-                    _info.value = ""
+                    _status.value = FolderStatus(FolderStatus.Type.Idle, "")
                 }
             } catch (e: Exception){
-                _info.value = e.toString()
+                _status.value = FolderStatus(FolderStatus.Type.Error, e.toString())
             }
         }
     }
@@ -126,8 +133,19 @@ class FolderViewModel(
                 folderDao.addFolder(Folder(uriStr, null))
                 refreshFolders()
             } catch (e: Exception){
-                _error.value = e.toString()
+                _status.value = FolderStatus(FolderStatus.Type.Error, e.toString())
             }
         }
+    }
+
+    fun deleteFolder(folder: Folder){
+        viewModelScope.launch(Dispatchers.IO){
+            folderDao.deleteFolder(folder)
+            refreshFolders()
+        }
+    }
+
+    fun resetStatus(){
+        _status.value = FolderStatus(FolderStatus.Type.Idle, "")
     }
 }

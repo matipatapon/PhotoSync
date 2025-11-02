@@ -8,14 +8,13 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.layout.wrapContentHeight
@@ -39,9 +38,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.net.toUri
 import androidx.room.Room
 import com.photosync.api.ApiHandler
 import com.photosync.database.LocalDatabase
+import com.photosync.ui.theme.Purple40
+import com.photosync.ui.theme.White
+import com.photosync.view_models.FolderStatus
 import com.photosync.view_models.FolderViewModel
 import com.photosync.view_models.LoginViewModel
 import com.photosync.view_models.Window
@@ -75,31 +78,28 @@ class MainActivity : ComponentActivity() {
     }
 
     @Composable
+    fun Header(){
+        Text(text = "PhotoSync", Modifier
+            .fillMaxWidth()
+            .wrapContentHeight(
+                Alignment.Bottom
+            ), textAlign = TextAlign.Center, fontSize = 24.sp, fontWeight = FontWeight.Bold)
+    }
+    
+    @Composable
     fun View(innerPadding: PaddingValues){
         val window by loginViewModel!!.window.collectAsState()
-        Column(
-            modifier = Modifier
-                .fillMaxSize().padding(50.dp).verticalScroll(rememberScrollState()),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(10.dp, Alignment.CenterVertically),
-            content = {
-                Text(text = "PhotoSync", Modifier.fillMaxWidth().wrapContentHeight(
-                    Alignment.Bottom), textAlign = TextAlign.Center, fontSize = 24.sp, fontWeight = FontWeight.Bold)
-                Spacer(Modifier.weight(0.5f))
-                when (window) {
-                    Window.Load -> {
-                        loginViewModel!!.load()
-                    }
-                    Window.Login -> {
-                        LoginForm()
-                    }
-                    Window.Sync -> {
-                        Folders()
-                    }
-                }
-                Spacer(Modifier.weight(0.5f))
+        when (window) {
+            Window.Load -> {
+                loginViewModel!!.load()
             }
-        )
+            Window.Login -> {
+                LoginForm()
+            }
+            Window.Sync -> {
+                Folders()
+            }
+        }
     }
 
     fun addFolderToSync() {
@@ -120,36 +120,106 @@ class MainActivity : ComponentActivity() {
     }
 
     @Composable
-    fun Folders(){
-        val folders by folderViewModel!!.folders.collectAsState()
-        val info by folderViewModel!!.info.collectAsState()
-        for(folder in folders){
-            Row(modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceEvenly,
-                content={
-                    Text(text=folder, textAlign = TextAlign.Center)
-                    Spacer(modifier = Modifier.weight(1f))
-                    Button(modifier = Modifier.fillMaxHeight(), content={ Text("X") }, onClick = {})
+    private fun Popup(){
+        val folderStatus = folderViewModel!!.status.collectAsState()
+        if(folderStatus.value.type == FolderStatus.Type.Idle){
+            return
+        }
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color(0, 0, 0, 203)),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center,
+            content = {
+                Column(
+                    modifier = Modifier
+                        .sizeIn(maxWidth = 300.dp, maxHeight = 400.dp)
+                        .background(color = Purple40)
+                        .padding(25.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(10.dp, Alignment.CenterVertically),
+                    ){
+                    if(folderStatus.value.type == FolderStatus.Type.Sync){
+                        Text(text = "Syncing",
+                            color = White,
+                            textAlign = TextAlign.Center)
+                        Text(text = folderStatus.value.info,
+                            color = White,
+                            textAlign = TextAlign.Center,
+                            maxLines = 1)
+                    } else if(folderStatus.value.type == FolderStatus.Type.Error){
+                        Text(text = "Error",
+                            color = White,
+                            textAlign = TextAlign.Center)
+                        Text(text = folderStatus.value.info,
+                            color = White,
+                            textAlign = TextAlign.Center,
+                            maxLines = 1)
+                        Button(
+                            content = {Text("Ok")},
+                            onClick = {
+                                folderViewModel!!.resetStatus()
+                            }
+                        )
+                    }
                 }
-            )
-        }
-        Button(
-            content= {Text("+")},
-            modifier = Modifier.fillMaxWidth(),
-            onClick = { addFolderToSync() }
-        )
-        Spacer(Modifier.height(25.dp))
-        if(info != ""){
-            Text(text=info)
-        }
-        Button(
-            content={Text("Sync")},
-            modifier = Modifier.fillMaxWidth(),
-            onClick = {
-                folderViewModel!!.syncFolders()
             }
         )
+    }
+
+    @Composable
+    fun Folders(){
+        val folders by folderViewModel!!.folders.collectAsState()
+        Box(content= {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(50.dp)
+                    .verticalScroll(rememberScrollState()),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(10.dp, Alignment.CenterVertically),
+                content = {
+                    Header()
+                    Spacer(Modifier.weight(0.5f))
+                    for (folder in folders) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceEvenly,
+                            content = {
+                                Text(
+                                    text = folder.uri.toUri().path.toString(),
+                                    textAlign = TextAlign.Center,
+                                    maxLines = 1
+                                )
+                                Spacer(Modifier.weight(1f))
+                                Button(
+                                    content = { Text("X") },
+                                    onClick = {
+                                        folderViewModel!!.deleteFolder(folder)
+                                    }
+                                )
+                            }
+                        )
+                    }
+                    Spacer(Modifier.weight(0.5f))
+                    Button(
+                        content = { Text("+") },
+                        modifier = Modifier.fillMaxWidth(),
+                        onClick = { addFolderToSync() }
+                    )
+                    Button(
+                        content = { Text("Sync") },
+                        modifier = Modifier.fillMaxWidth(),
+                        onClick = {
+                            folderViewModel!!.syncFolders()
+                        }
+                    )
+                }
+            )
+            Popup()
+        })
     }
 
     @Composable
@@ -165,36 +235,56 @@ class MainActivity : ComponentActivity() {
         val username = rememberTextFieldState(initialText = initialUsername)
         val password = rememberTextFieldState(initialText = "")
         val loginStatus by loginViewModel!!.loginStatus.collectAsState()
-        TextField(
-            state = server,
-            placeholder = { Text("server") },
-            lineLimits = TextFieldLineLimits.SingleLine,
-            modifier = Modifier.fillMaxWidth(),
-            enabled = !loginStatus.isPending()
-        )
-        TextField(
-            state = username,
-            placeholder = { Text("login") },
-            lineLimits = TextFieldLineLimits.SingleLine,
-            modifier = Modifier.fillMaxWidth(),
-            enabled = !loginStatus.isPending()
-        )
-        SecureTextField(
-            state = password,
-            placeholder = { Text("password") },
-            modifier = Modifier.fillMaxWidth(),
-            enabled = !loginStatus.isPending(),
-        )
-        Text(loginStatus.getError())
-        Button(
-            onClick = {
-                loginViewModel!!.login(server.text.toString(), username.text.toString(), password.text.toString())
-            },
-            enabled = !loginStatus.isPending(),
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(50.dp)
+                .verticalScroll(rememberScrollState()),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(10.dp, Alignment.CenterVertically),
             content = {
-                Text("Login")
-            },
-            modifier = Modifier.fillMaxWidth(),
+                Header()
+                Spacer(Modifier.weight(0.5f))
+                TextField(
+                    state = server,
+                    placeholder = { Text("server") },
+                    lineLimits = TextFieldLineLimits.SingleLine,
+                    modifier = Modifier.fillMaxWidth(),
+                    enabled = !loginStatus.isPending()
+                )
+                TextField(
+                    state = username,
+                    placeholder = { Text("login") },
+                    lineLimits = TextFieldLineLimits.SingleLine,
+                    modifier = Modifier.fillMaxWidth(),
+                    enabled = !loginStatus.isPending()
+                )
+                SecureTextField(
+                    state = password,
+                    placeholder = { Text("password") },
+                    modifier = Modifier.fillMaxWidth(),
+                    enabled = !loginStatus.isPending(),
+                )
+                val error = loginStatus.getError()
+                if(error != ""){
+                    Text(error)
+                }
+                Button(
+                    onClick = {
+                        loginViewModel!!.login(
+                            server.text.toString(),
+                            username.text.toString(),
+                            password.text.toString()
+                        )
+                    },
+                    enabled = !loginStatus.isPending(),
+                    content = {
+                        Text("Login")
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                )
+                Spacer(Modifier.weight(0.5f))
+            }
         )
     }
 }
