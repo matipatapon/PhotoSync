@@ -61,7 +61,7 @@ func (fe *FileDataEndpoint) Get(c *gin.Context) {
 		return
 	}
 
-	rows, err := fe.db.Query("SELECT id, filename, TO_CHAR(creation_date, 'YYYY.MM.DD HH24:MI:SS') AS date, mime_type, size, thumbnail FROM files WHERE user_id = $1 AND TO_CHAR(creation_date, 'YYYY.MM.DD') ILIKE $2 || '%' ORDER BY id DESC, creation_date DESC", jwt.UserId, date)
+	rows, err := fe.db.Query("SELECT id, filename, TO_CHAR(creation_date, 'YYYY.MM.DD HH24:MI:SS') AS date, mime_type, size, CASE WHEN thumbnail IS NOT NULL THEN thumbnail ELSE file END FROM files WHERE user_id = $1 AND TO_CHAR(creation_date, 'YYYY.MM.DD') ILIKE $2 || '%' ORDER BY id DESC, creation_date DESC", jwt.UserId, date)
 	if err != nil {
 		c.Status(500)
 		fe.logger.Printf("Query failed: '%s'", err.Error())
@@ -76,25 +76,7 @@ func (fe *FileDataEndpoint) Get(c *gin.Context) {
 		mime_type_raw := row[3].(int16)
 		mime_type := metadata.MIMETypeToString(metadata.MIMEType(mime_type_raw))
 		size := row[4].(int64)
-
-		var thumbnail string = ""
-		if row[5] != nil {
-			thumbnail = base64.StdEncoding.EncodeToString(row[5].([]byte))
-		} else {
-			file, err := fe.db.Query("SELECT file FROM files WHERE id = $1", id)
-			if err != nil {
-				c.Status(500)
-				fe.logger.Printf("Image query failed: '%s'", err.Error())
-				return
-			}
-			if len(file) == 0 || len(file[0]) == 0 {
-				c.Status(500)
-				fe.logger.Printf("No image with id {%d}, probably got removed", id)
-				return
-			}
-			thumbnail = base64.StdEncoding.EncodeToString(file[0][0].([]byte))
-		}
-
+		thumbnail := base64.StdEncoding.EncodeToString(row[5].([]byte))
 		fileData = append(fileData, FileData{
 			Id:           strconv.FormatInt(id, 10),
 			Filename:     filename,
