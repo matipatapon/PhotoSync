@@ -18,7 +18,7 @@ import (
 	"testing"
 )
 
-var FILE_DATA_QUERY string = "SELECT id, filename, TO_CHAR(creation_date, 'YYYY.MM.DD HH24:MI:SS') AS date, mime_type, size, thumbnail FROM files WHERE user_id = $1 AND TO_CHAR(creation_date, 'YYYY.MM.DD') ILIKE $2 || '%' ORDER BY id DESC, creation_date DESC"
+var FILE_DATA_QUERY string = "SELECT id, filename, TO_CHAR(creation_date, 'YYYY.MM.DD HH24:MI:SS') AS date, mime_type, size, CASE WHEN thumbnail IS NOT NULL THEN thumbnail ELSE file END FROM files WHERE user_id = $1 AND TO_CHAR(creation_date, 'YYYY.MM.DD') ILIKE $2 || '%' ORDER BY id DESC, creation_date DESC"
 var OFFSET int64 = 10
 var COUNT int64 = 15
 var NEGATIVE_OFFSET int64 = -10
@@ -208,102 +208,6 @@ func TestFileDataEndpointShouldReturn403WhenTokenIsInvalid(t *testing.T) {
 	}
 	if responseRecorder.Body.Len() != 0 {
 		t.Error("Expected empty response")
-	}
-}
-
-func TestFileDataEndpointShouldReturn500WhenFileGotDeleted(t *testing.T) {
-	results := [][][]any{{{}}, {}}
-	for _, result := range results {
-		fileId, _ := strconv.ParseInt(FILE_DATA_WITHOUT_THUMBNAIL[0].Id, 10, 64)
-
-		databaseMock := mock.NewDatabaseMock(t)
-		databaseMock.ExpectQuery(FILE_DATA_QUERY, fileDataToRequestArgs(FILE_DATA_WITHOUT_THUMBNAIL), []any{USER_ID, PARAM_DATE}, nil)
-		databaseMock.ExpectQuery("SELECT file FROM files WHERE id = $1", result, []any{fileId}, nil)
-		defer databaseMock.AssertAllExpectionsSatisfied()
-
-		jwtManagerMock := mock.NewJwtManagerMock(t)
-		jwtManagerMock.ExpectDecode(TOKEN_STRING, jwt.JwtPayload{
-			UserId: USER_ID,
-		}, nil)
-		defer jwtManagerMock.AssertAllExpectionsSatisfied()
-
-		sut := endpoint.NewFileDataEndpoint(&databaseMock, &jwtManagerMock)
-		router, responseRecorder := prepareGin()
-		router.GET("/", sut.Get)
-
-		router.ServeHTTP(responseRecorder, prepareRequest(&PARAM_DATE))
-
-		if responseRecorder.Code != 500 {
-			t.Error(responseRecorder.Code)
-		}
-		if responseRecorder.Body.Len() != 0 {
-			t.Error("Expected empty response")
-		}
-	}
-}
-
-func TestFileDataEndpointShouldReturn500WhenFailedToGetAImage(t *testing.T) {
-	fileId, _ := strconv.ParseInt(FILE_DATA_WITHOUT_THUMBNAIL[0].Id, 10, 64)
-
-	databaseMock := mock.NewDatabaseMock(t)
-	databaseMock.ExpectQuery(FILE_DATA_QUERY, fileDataToRequestArgs(FILE_DATA_WITHOUT_THUMBNAIL), []any{USER_ID, PARAM_DATE}, nil)
-	databaseMock.ExpectQuery("SELECT file FROM files WHERE id = $1", [][]any{{}}, []any{fileId}, errors.New("failed to get a file"))
-	defer databaseMock.AssertAllExpectionsSatisfied()
-
-	jwtManagerMock := mock.NewJwtManagerMock(t)
-	jwtManagerMock.ExpectDecode(TOKEN_STRING, jwt.JwtPayload{
-		UserId: USER_ID,
-	}, nil)
-	defer jwtManagerMock.AssertAllExpectionsSatisfied()
-
-	sut := endpoint.NewFileDataEndpoint(&databaseMock, &jwtManagerMock)
-	router, responseRecorder := prepareGin()
-	router.GET("/", sut.Get)
-
-	router.ServeHTTP(responseRecorder, prepareRequest(&PARAM_DATE))
-
-	if responseRecorder.Code != 500 {
-		t.Error(responseRecorder.Code)
-	}
-	if responseRecorder.Body.Len() != 0 {
-		t.Error("Expected empty response")
-	}
-}
-
-func TestFileDataEndpointShouldReturnImageAsThumbnailWhenThereIsNoThumbnail(t *testing.T) {
-	expectedFileData := make([]endpoint.FileData, len(FILE_DATA_WITHOUT_THUMBNAIL))
-	copy(expectedFileData, FILE_DATA_WITHOUT_THUMBNAIL)
-	expectedFileData[0].Thumbnail = base64.StdEncoding.EncodeToString(FILE)
-	fileId, _ := strconv.ParseInt(expectedFileData[0].Id, 10, 64)
-
-	databaseMock := mock.NewDatabaseMock(t)
-	databaseMock.ExpectQuery(FILE_DATA_QUERY, fileDataToRequestArgs(FILE_DATA_WITHOUT_THUMBNAIL), []any{USER_ID, PARAM_DATE}, nil)
-	databaseMock.ExpectQuery("SELECT file FROM files WHERE id = $1", [][]any{{FILE}}, []any{fileId}, nil)
-	defer databaseMock.AssertAllExpectionsSatisfied()
-
-	jwtManagerMock := mock.NewJwtManagerMock(t)
-	jwtManagerMock.ExpectDecode(TOKEN_STRING, jwt.JwtPayload{
-		UserId: USER_ID,
-	}, nil)
-	defer jwtManagerMock.AssertAllExpectionsSatisfied()
-
-	sut := endpoint.NewFileDataEndpoint(&databaseMock, &jwtManagerMock)
-	router, responseRecorder := prepareGin()
-	router.GET("/", sut.Get)
-
-	router.ServeHTTP(responseRecorder, prepareRequest(&PARAM_DATE))
-
-	if responseRecorder.Code != 200 {
-		t.Error(responseRecorder.Code)
-	}
-
-	var result []endpoint.FileData
-	err := json.Unmarshal(responseRecorder.Body.Bytes(), &result)
-	if err != nil {
-		t.Error(err.Error())
-	}
-	if !reflect.DeepEqual(result, expectedFileData) {
-		t.Error("Expected different file data")
 	}
 }
 
