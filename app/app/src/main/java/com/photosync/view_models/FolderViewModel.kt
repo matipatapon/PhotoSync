@@ -7,6 +7,7 @@ import androidx.documentfile.provider.DocumentFile
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.photosync.api.ApiHandler
+import com.photosync.api.UploadStatus
 import com.photosync.database.Folder
 import com.photosync.database.LocalDatabase
 import kotlinx.coroutines.Dispatchers
@@ -80,7 +81,10 @@ class FolderViewModel(
         }
         val bytes = inputStream.use {it.readBytes()}
         logger.info("Uploading file<path={$filepath} size={${bytes.size}} lastModified={$fileLastModified}  mimeType={$mimeType}>")
-        apiHandler.uploadFile(bytes, filename, fileLastModified)
+        val result = apiHandler.uploadFile(bytes, filename, fileLastModified)
+        if(result == UploadStatus.ERROR){
+            throw Exception("API error")
+        }
     }
 
     private fun syncFolder(folder: DocumentFile, lastSync: Long?){
