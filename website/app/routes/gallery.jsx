@@ -16,17 +16,16 @@ function log(string){
 
 class ElementData
 {
-    constructor(start, end, height){
+    constructor(start, height){
         this.start = start
-        this.end = end
         this.height = height
     }
 }
 
 class DayData extends ElementData
 {
-    constructor(start, end, height, date){
-        super(start, end, height)
+    constructor(start, height, date){
+        super(start, height)
         this.date = date
     }
 }
@@ -61,13 +60,12 @@ function createElements(dates, containerWidth, tileSize){
         const rowCount = Math.ceil(date.file_count / tilesPerRow)
         const height = rowCount * tileSize.current + DATE_HEIGHT
         let end = start + height
-        elements.push(new DayData(start, end, height, date.date))
+        elements.push(new DayData(start, height, date.date))
         lastDayEnd = end
     }
 
     let start = lastDayEnd + 1
-    let end = start + EMPTY_SPACE_AT_THE_END_HEIGHT
-    elements.push(new ElementData(start, end, EMPTY_SPACE_AT_THE_END_HEIGHT))
+    elements.push(new ElementData(start, EMPTY_SPACE_AT_THE_END_HEIGHT))
     return elements
 }
 
@@ -276,7 +274,7 @@ export default function Gallery(){
         {
             const element = elements[i]
             totalHeight += element.height
-            if(element.start - LOAD_MARGIN <= scrollData.bottom && element.end + LOAD_MARGIN >= scrollData.top)
+            if(element.start - LOAD_MARGIN <= scrollData.bottom && element.start + element.height + LOAD_MARGIN >= scrollData.top)
             {
                 if(element instanceof DayData)
                 {
@@ -286,7 +284,7 @@ export default function Gallery(){
                 {
                     outlet.push(<div key={element.start} style={{height: `${EMPTY_SPACE_AT_THE_END_HEIGHT}px`}}/>)
                 }
-                if(newScrollAnchor === null && element.start <= scrollData.bottom && element.end >= scrollData.top)
+                if(newScrollAnchor === null && element.start <= scrollData.bottom && element.start + element.height >= scrollData.top)
                 {
                     newScrollAnchor = i
                 }
