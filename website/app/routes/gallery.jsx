@@ -145,6 +145,7 @@ function Text({data}){
 
 function FocusedFile({focusedFileData, focusedFileUrl, setFocusedFileData}){
     let [showInfo, setShowInfo] = useState(false)
+    let [showConfirmation, setShowConfirmation] = useState(false)
     let toggleShowInfo = () => { setShowInfo(!showInfo) }
 
     if(focusedFileData === null || focusedFileUrl === null){
@@ -163,21 +164,37 @@ function FocusedFile({focusedFileData, focusedFileUrl, setFocusedFileData}){
         toggleShowInfo()
     }
 
+    function del(){
+        setShowConfirmation(true)
+    }
+
+    let removalConfirmationPopUp = showConfirmation ? <div className="removal_confirmation_container">
+            <div className="removal_confirmation"><h2>Are you sure?</h2>
+            <div className="button">Yes</div>
+            <div className="button" onClick={()=>{setShowConfirmation(false)}}>No</div>
+            </div>
+        </div>
+        : null
+
     let descriptionClassName = showInfo ? "description" : "description hide"
-    return <div className="focused_file_container">
-                <div className="file">
-                    <img src={focusedFileUrl}/>
-                </div>
-                <div className="exit button" onClick={exit}>X</div>
-                <div className="info button" onClick={info}>I</div>
-                <div className="description_container">
-                    <div className={descriptionClassName}>
-                        <h1>{focusedFileData.filename}</h1>
-                        <h1>{focusedFileData.creation_date}</h1>
-                        <h1>{focusedFileData.mime_type}</h1>
+    return <>
+                {removalConfirmationPopUp}
+                <div className="focused_file_container">
+                    <div className="file">
+                        <img src={focusedFileUrl}/>
+                    </div>
+                    <div className="exit button" onClick={exit}>X</div>
+                    <div className="info button" onClick={info}>I</div>
+                    <div className="del button" onClick={del}>D</div>
+                    <div className="description_container">
+                        <div className={descriptionClassName}>
+                            <h1>{focusedFileData.filename}</h1>
+                            <h1>{focusedFileData.creation_date}</h1>
+                            <h1>{focusedFileData.mime_type}</h1>
+                        </div>
                     </div>
                 </div>
-            </div>
+            </>
 }
 
 export default function Gallery(){

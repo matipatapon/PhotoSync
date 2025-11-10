@@ -97,7 +97,12 @@
     left: 70px;
 }
 
-.focused_file_container .button{
+.focused_file_container .del{
+    top: 20px;
+    left: 120px;
+}
+
+.focused_file_container>.button{
     position: absolute;
     z-index: 3;
     width: 30px;
@@ -148,4 +153,33 @@
 
 .focused_file_container h1:not(:first-child){
     margin-top: 10px;
+}
+
+.removal_confirmation_container{
+    width:100vw;
+    height:100vh;
+    background-color: rgba(0, 0, 0, 0.8);
+    z-index: 4;
+    position: absolute;
+    top:0;
+    left: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.removal_confirmation{
+    padding: 25px;
+    background-color: black;
+    border-radius: 25px;
+}
+
+.removal_confirmation>.button{
+    width:40%;
+    margin: 0px 5%;
+}
+
+.removal_confirmation>h2{
+    margin: 0;
+    margin-bottom: 25px;
 }
