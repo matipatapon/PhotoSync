@@ -1,5 +1,5 @@
 import "./gallery.css"
-import { getFileData, getFile } from "../api/api"
+import { getFileData, getFile, removeFile} from "../api/api"
 import { getDates } from "../api/get_dates"
 import { SUCCESS } from "../api/status"
 import { useRef, useEffect, useState, useLayoutEffect} from "react"
@@ -60,7 +60,7 @@ function createElements(dates, containerWidth, tileSize){
         const rowCount = Math.ceil(date.file_count / tilesPerRow)
         const height = rowCount * tileSize.current + DATE_HEIGHT
         let end = start + height
-        elements.push(new DayData(start, height, date.date))
+        elements.push(new DayData(start, height, date))
         lastDayEnd = end
     }
 
@@ -102,7 +102,7 @@ function Day({day, tileSize, setFocusedFileData}){
                 {
                     if(!abort)
                     {
-                        const result = await getFileData(day.date)
+                        const result = await getFileData(day.date.date)
                         if(!abort)
                         {
                             const fd = result.fileData
@@ -121,25 +121,26 @@ function Day({day, tileSize, setFocusedFileData}){
     }
     return  <div className="day" style={{height: `${day.height}px`, transform: `translate(0px, ${day.start}px)`}}>
                 <div className="text" style={{height: `${DATE_HEIGHT}px`}}>
-                    <div className="content">{day.date}</div>
+                    <div className="content">{day.date.date}</div>
                 </div>
                 {tiles}
             </div>
 }
 
-function FocusedFile({focusedFileData, focusedFileUrl, setFocusedFileData}){
+function FocusedFile({focusedFileData, focusedFileUrl, setFocusedFileData, removePhoto}){
     let [showInfo, setShowInfo] = useState(false)
     let [showConfirmation, setShowConfirmation] = useState(false)
     let toggleShowInfo = () => { setShowInfo(!showInfo) }
-
     if(focusedFileData === null || focusedFileUrl === null){
         if(showInfo)
         {
             toggleShowInfo()
         }
+        if(showConfirmation){
+            setShowConfirmation(false)
+        }
         return null
     }
-
     function exit(){
         setFocusedFileData(null)
     }
@@ -154,7 +155,7 @@ function FocusedFile({focusedFileData, focusedFileUrl, setFocusedFileData}){
 
     let removalConfirmationPopUp = showConfirmation ? <div className="removal_confirmation_container">
             <div className="removal_confirmation"><h2>Are you sure?</h2>
-            <div className="button">Yes</div>
+            <div className="button" onClick={()=>{removePhoto(focusedFileData.id, focusedFileData.creation_date.substring(0, focusedFileData.creation_date.indexOf(" ")))}}>Yes</div>
             <div className="button" onClick={()=>{setShowConfirmation(false)}}>No</div>
             </div>
         </div>
@@ -278,7 +279,7 @@ export default function Gallery(){
             {
                 if(element instanceof DayData)
                 {
-                    outlet.push(<Day key={element.date} day={element} tileSize={tileSize.current} setFocusedFileData={setFocusedFileData}/>)
+                    outlet.push(<Day key={element.date.date + " " + element.date.file_count} day={element} tileSize={tileSize.current} setFocusedFileData={setFocusedFileData}/>)
                 }
                 else
                 {
@@ -301,8 +302,31 @@ export default function Gallery(){
         setScrollData(new ScrollData(scrollTop, scrollBottom))
     }
 
+    function removePhoto(id, date){
+        let fun = async () => {
+            let datesCopy = structuredClone(dates)
+            for(let i = 0 ; i < dates.length ; i++){
+                if(datesCopy[i].date == date){
+                    const result = await removeFile(id)
+                    if(result != "SUCCESS"){
+                        navigate("/error")
+                        return
+                    }
+                    datesCopy[i].file_count -= 1
+                    if(datesCopy[i].file_count == 0){
+                        datesCopy.splice(i, 1)
+                    }
+                    setDates(datesCopy)
+                    setFocusedFileData(null)
+                    break
+                }
+            }
+        }
+        fun()
+    }
+
     return <div className="gallery_container">
-                <FocusedFile focusedFileData={focusedFileData} setFocusedFileData={setFocusedFileData} focusedFileUrl={focusedFileUrl}/>
+                <FocusedFile focusedFileData={focusedFileData} setFocusedFileData={setFocusedFileData} focusedFileUrl={focusedFileUrl} setDates={setDates} removePhoto={removePhoto}/>
                 <header><Link className="button" to={"/upload"}>Upload</Link><Link className="button" to={"/login"}>Logout</Link></header>
                 <div ref={gallery} className="gallery" onScroll={scroll}>
                     <div ref={content} className="content">

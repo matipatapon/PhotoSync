@@ -171,3 +171,29 @@ export async function getFile(id){
 return result
 
 }
+
+export async function removeFile(id){
+    const token = sessionStorage.getItem("Authorization")
+
+    if(token === null){
+        return "NOT_LOGGED_IN"
+    }
+
+    try{
+        let response = await fetch(
+            `${getApiUrl("file")}?${new URLSearchParams({id:id})}`,
+            {
+                method: "DELETE",
+                headers: {
+                    "Authorization": token,
+                },
+            }
+        )
+        if(response.status === 200){
+            return "SUCCESS"
+        } else {
+            return "ERROR"
+        }
+} catch(e){
+}
+}
