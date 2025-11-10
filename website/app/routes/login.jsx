@@ -21,9 +21,7 @@ function Message({status}){
     if(status === "INVALID_USER_OR_PASSWORD"){
         return <h2>User or Password is invalid</h2>
     }
-    if(status === "ERROR"){
-        return <h2>Error occured</h2>
-    }
+    return <h2>{`${status}`}</h2>
 }
 
 export default function Login(){

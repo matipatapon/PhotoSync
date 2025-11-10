@@ -191,9 +191,8 @@ export async function removeFile(id){
         )
         if(response.status === 200){
             return "SUCCESS"
-        } else {
-            return "ERROR"
         }
-} catch(e){
-}
+    } catch(e){
+    }
+    return "ERROR"
 }
