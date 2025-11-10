@@ -31,14 +31,6 @@ class DayData extends ElementData
     }
 }
 
-class TextData extends ElementData
-{
-    constructor(start, end, height, text){
-        super(start, end, height)
-        this.text = text
-    }
-}
-
 function ScrollData(
     top,
     bottom
@@ -65,20 +57,17 @@ function createElements(dates, containerWidth, tileSize){
     tileSize.current = Math.floor(containerWidth / tilesPerRow)
     for(const date of dates){
         let start = lastDayEnd + 1
-        let end = start + DATE_HEIGHT
-        elements.push(new TextData(start, end, DATE_HEIGHT, date.date))
 
         const rowCount = Math.ceil(date.file_count / tilesPerRow)
-        const height = rowCount * tileSize.current
-        start = end + 1
-        end = start + height
+        const height = rowCount * tileSize.current + DATE_HEIGHT
+        let end = start + height
         elements.push(new DayData(start, end, height, date.date))
         lastDayEnd = end
     }
 
     let start = lastDayEnd + 1
     let end = start + EMPTY_SPACE_AT_THE_END_HEIGHT
-    elements.push(new TextData(start, end, EMPTY_SPACE_AT_THE_END_HEIGHT, ""))
+    elements.push(new ElementData(start, end, EMPTY_SPACE_AT_THE_END_HEIGHT))
     return elements
 }
 
@@ -133,13 +122,10 @@ function Day({day, tileSize, setFocusedFileData}){
         tiles.push(<Tile key={fd.id} fileData={fd} size={tileSize} setFocusedFileData={setFocusedFileData}/>)
     }
     return  <div className="day" style={{height: `${day.height}px`, transform: `translate(0px, ${day.start}px)`}}>
+                <div className="text" style={{height: `${DATE_HEIGHT}px`}}>
+                    <div className="content">{day.date}</div>
+                </div>
                 {tiles}
-            </div>
-}
-
-function Text({data}){
-    return <div className="text" style={{height: `${data.height}px`, transform: `translate(0px, ${data.start}px)`}}>
-                <div className="content">{data.text}</div>
             </div>
 }
 
@@ -296,9 +282,9 @@ export default function Gallery(){
                 {
                     outlet.push(<Day key={element.date} day={element} tileSize={tileSize.current} setFocusedFileData={setFocusedFileData}/>)
                 }
-                else if(element instanceof TextData)
+                else
                 {
-                    outlet.push(<Text key={element.start} data={element}/>)
+                    outlet.push(<div key={element.start} style={{height: `${EMPTY_SPACE_AT_THE_END_HEIGHT}px`}}/>)
                 }
                 if(newScrollAnchor === null && element.start <= scrollData.bottom && element.end >= scrollData.top)
                 {

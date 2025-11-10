@@ -59,7 +59,6 @@
 }
 
 .gallery .text{
-    position: absolute;
     box-sizing: border-box;
     padding: 20px;
     display: flex;
