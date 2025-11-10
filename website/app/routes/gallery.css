@@ -1,10 +1,12 @@
 .gallery_container{
     height: 100vh;
+    width: 100%;
 }
 
 .gallery{
     overflow-y: scroll;
     height: calc(100% - 40px);
+    width: 100%;
 }
 
 .gallery>.content{

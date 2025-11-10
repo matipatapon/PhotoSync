@@ -56,14 +56,12 @@ function createElements(dates, containerWidth, tileSize){
     tileSize.current = Math.floor(containerWidth / tilesPerRow)
     for(const date of dates){
         let start = lastDayEnd + 1
-
         const rowCount = Math.ceil(date.file_count / tilesPerRow)
         const height = rowCount * tileSize.current + DATE_HEIGHT
         let end = start + height
         elements.push(new DayData(start, height, date))
         lastDayEnd = end
     }
-
     let start = lastDayEnd + 1
     elements.push(new ElementData(start, EMPTY_SPACE_AT_THE_END_HEIGHT))
     return elements
@@ -92,7 +90,7 @@ function Tile({fileData, size, setFocusedFileData}){
             </div>
 }
 
-function Day({day, tileSize, setFocusedFileData}){
+function Day({day, tileSize, setFocusedFileData, resizeDay}){
     let [fileData, setFileData] = useState([])
     useEffect(
         ()=>{
@@ -106,6 +104,10 @@ function Day({day, tileSize, setFocusedFileData}){
                         if(!abort)
                         {
                             const fd = result.fileData
+                            if(fd.length != day.date.file_count){
+                                resizeDay(day.date.date, fd.length,)
+                                return
+                            }
                             setFileData(fd) 
                         }
                     }
@@ -121,7 +123,7 @@ function Day({day, tileSize, setFocusedFileData}){
     }
     return  <div className="day" style={{height: `${day.height}px`, transform: `translate(0px, ${day.start}px)`}}>
                 <div className="text" style={{height: `${DATE_HEIGHT}px`}}>
-                    <div className="content">{day.date.date}</div>
+                    {day.date.date}
                 </div>
                 {tiles}
             </div>
@@ -141,6 +143,7 @@ function FocusedFile({focusedFileData, focusedFileUrl, setFocusedFileData, remov
         }
         return null
     }
+
     function exit(){
         setFocusedFileData(null)
     }
@@ -153,10 +156,12 @@ function FocusedFile({focusedFileData, focusedFileUrl, setFocusedFileData, remov
         setShowConfirmation(true)
     }
 
+    const date = focusedFileData.creation_date.substring(0, focusedFileData.creation_date.indexOf(" "))
     let removalConfirmationPopUp = showConfirmation ? <div className="removal_confirmation_container">
-            <div className="removal_confirmation"><h2>Are you sure?</h2>
-            <div className="button" onClick={()=>{removePhoto(focusedFileData.id, focusedFileData.creation_date.substring(0, focusedFileData.creation_date.indexOf(" ")))}}>Yes</div>
-            <div className="button" onClick={()=>{setShowConfirmation(false)}}>No</div>
+            <div className="removal_confirmation">
+                <h2>Are you sure?</h2>
+                <div className="button" onClick={()=>{removePhoto(focusedFileData.id, date)}}>Yes</div>
+                <div className="button" onClick={()=>{setShowConfirmation(false)}}>No</div>
             </div>
         </div>
         : null
@@ -187,6 +192,7 @@ export default function Gallery(){
     let gallery = useRef(null)
     let content = useRef(null)
     let anchor = useRef(0)
+    let shouldAlignScrollTop = useRef(true)
     let [containerWidth, setContainerWidth] = useState(null)
     let [dates, setDates] = useState(null)
     let [elements, setElements] = useState(null)
@@ -204,8 +210,8 @@ export default function Gallery(){
 
     useEffect(
         () => {
-            let abort = false
             resizeObserver.observe(content.current)
+            let abort = false
             async function fun(){
                 const result = await getDates()
                 if(!abort)
@@ -256,10 +262,32 @@ export default function Gallery(){
                 return
             }
             const elements = createElements(dates, containerWidth, tileSize)
-            alignScrollTop(elements, gallery.current, anchor.current)
+            if(shouldAlignScrollTop.current){
+                alignScrollTop(elements, gallery.current, anchor.current)
+            } else{
+                shouldAlignScrollTop.current = true
+            }
             setElements(elements)
         },[containerWidth, dates]
     )
+
+    function resizeDay(date, newFileCount){
+        let fun = async () => {
+            let datesCopy = structuredClone(dates)
+            for(let i = 0 ; i < dates.length ; i++){
+                if(datesCopy[i].date == date){
+                    datesCopy[i].file_count = newFileCount
+                    if(datesCopy[i].file_count == 0){
+                        datesCopy.splice(i, 1)
+                    }
+                    shouldAlignScrollTop.current = false
+                    setDates(datesCopy)
+                    break
+                }
+            }
+        }
+        fun()
+    }
 
     let outlet = null
     if(elements === null)
@@ -279,7 +307,7 @@ export default function Gallery(){
             {
                 if(element instanceof DayData)
                 {
-                    outlet.push(<Day key={element.date.date + " " + element.date.file_count} day={element} tileSize={tileSize.current} setFocusedFileData={setFocusedFileData}/>)
+                    outlet.push(<Day key={element.date.date + "_" + element.date.file_count} day={element} tileSize={tileSize.current} setFocusedFileData={setFocusedFileData} resizeDay={resizeDay}/>)
                 }
                 else
                 {
@@ -316,6 +344,7 @@ export default function Gallery(){
                     if(datesCopy[i].file_count == 0){
                         datesCopy.splice(i, 1)
                     }
+                    shouldAlignScrollTop.current = false
                     setDates(datesCopy)
                     setFocusedFileData(null)
                     break
