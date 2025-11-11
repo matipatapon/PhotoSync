@@ -10,22 +10,11 @@ const EMPTY_SPACE_AT_THE_END_HEIGHT = 50
 const LOAD_MARGIN = 1000
 const FILE_DATA_LOAD_DELAY_MS = 100
 
-function log(string){
-    console.log(`[Gallery]: ` + string)
-}
-
-class ElementData
-{
-    constructor(start, height){
-        this.start = start
-        this.height = height
-    }
-}
-
-class DayData extends ElementData
+class DayData
 {
     constructor(start, height, date){
-        super(start, height)
+        this.start = start
+        this.height = height
         this.date = date
     }
 }
@@ -62,21 +51,7 @@ function createElements(dates, containerWidth, tileSize){
         elements.push(new DayData(start, height, date))
         lastDayEnd = end
     }
-    let start = lastDayEnd + 1
-    elements.push(new ElementData(start, EMPTY_SPACE_AT_THE_END_HEIGHT))
     return elements
-}
-
-function alignScrollTop(elements, gallery, anchor)
-{
-    for(let i = 0 ; i < elements.length ; i++)
-    {
-        if(anchor === i)
-        {
-            gallery.scrollTop = elements[i].start
-            return
-        }
-    }
 }
 
 function Tile({fileData, size, setFocusedFileData}){
@@ -132,11 +107,10 @@ function Day({day, tileSize, setFocusedFileData, resizeDay}){
 function FocusedFile({focusedFileData, focusedFileUrl, setFocusedFileData, removePhoto}){
     let [showInfo, setShowInfo] = useState(false)
     let [showConfirmation, setShowConfirmation] = useState(false)
-    let toggleShowInfo = () => { setShowInfo(!showInfo) }
     if(focusedFileData === null || focusedFileUrl === null){
         if(showInfo)
         {
-            toggleShowInfo()
+            setShowInfo(false)
         }
         if(showConfirmation){
             setShowConfirmation(false)
@@ -149,7 +123,7 @@ function FocusedFile({focusedFileData, focusedFileUrl, setFocusedFileData, remov
     }
 
     function info(){
-        toggleShowInfo()
+        setShowInfo(!showInfo)
     }
 
     function del(){
@@ -191,12 +165,11 @@ export default function Gallery(){
     let tileSize = useRef(null)
     let gallery = useRef(null)
     let content = useRef(null)
-    let anchor = useRef(0)
-    let shouldAlignScrollTop = useRef(true)
     let [containerWidth, setContainerWidth] = useState(null)
     let [dates, setDates] = useState(null)
     let [elements, setElements] = useState(null)
     let [scrollData, setScrollData] = useState(new ScrollData(0, window.innerHeight))
+    let lastScrollData = useRef(new ScrollData(0, window.innerHeight))
     let [focusedFileData, setFocusedFileData] = useState(null)
     let [focusedFileUrl, setFocusedFileUrl] = useState(null)
     let navigate = useNavigate()
@@ -262,11 +235,6 @@ export default function Gallery(){
                 return
             }
             const elements = createElements(dates, containerWidth, tileSize)
-            if(shouldAlignScrollTop.current){
-                alignScrollTop(elements, gallery.current, anchor.current)
-            } else{
-                shouldAlignScrollTop.current = true
-            }
             setElements(elements)
         },[containerWidth, dates]
     )
@@ -280,7 +248,6 @@ export default function Gallery(){
                     if(datesCopy[i].file_count == 0){
                         datesCopy.splice(i, 1)
                     }
-                    shouldAlignScrollTop.current = false
                     setDates(datesCopy)
                     break
                 }
@@ -289,45 +256,32 @@ export default function Gallery(){
         fun()
     }
 
-    let outlet = null
-    if(elements === null)
-    {
-        outlet = <h2>Loading...</h2>
-    }
-    else
+    let outlet = <h2>Loading...</h2>
+    if(elements !== null)
     {
         outlet = []
         let totalHeight = 0
-        let newScrollAnchor = null
         for(let i = 0 ; i < elements.length ; i++)
         {
             const element = elements[i]
             totalHeight += element.height
             if(element.start - LOAD_MARGIN <= scrollData.bottom && element.start + element.height + LOAD_MARGIN >= scrollData.top)
             {
-                if(element instanceof DayData)
-                {
-                    outlet.push(<Day key={element.date.date + "_" + element.date.file_count} day={element} tileSize={tileSize.current} setFocusedFileData={setFocusedFileData} resizeDay={resizeDay}/>)
-                }
-                else
-                {
-                    outlet.push(<div key={element.start} style={{height: `${EMPTY_SPACE_AT_THE_END_HEIGHT}px`}}/>)
-                }
-                if(newScrollAnchor === null && element.start <= scrollData.bottom && element.start + element.height >= scrollData.top)
-                {
-                    newScrollAnchor = i
-                }
+                outlet.push(<Day key={element.date.date + "_" + element.date.file_count} day={element} tileSize={tileSize.current} setFocusedFileData={setFocusedFileData} resizeDay={resizeDay}/>)
             }
         }
-        anchor.current = newScrollAnchor
-        outlet.push(<div key={totalHeight} style={{height: `${totalHeight}px`}}></div>)
+        outlet.push(<div key={totalHeight} style={{height: `${totalHeight + EMPTY_SPACE_AT_THE_END_HEIGHT}px`}}></div>)
     }
 
     function scroll(e){
         let gallery = e.currentTarget
         const scrollTop = gallery.scrollTop
         const scrollBottom = scrollTop + gallery.offsetHeight
-        setScrollData(new ScrollData(scrollTop, scrollBottom))
+        const updateThreshold = LOAD_MARGIN / 2
+        if(Math.abs(lastScrollData.current.top - scrollTop) > updateThreshold || Math.abs(lastScrollData.current.bottom - scrollBottom) > updateThreshold){
+            lastScrollData.current = new ScrollData(scrollTop, scrollBottom)
+            setScrollData(lastScrollData.current)
+        }
     }
 
     function removePhoto(id, date){
@@ -344,7 +298,6 @@ export default function Gallery(){
                     if(datesCopy[i].file_count == 0){
                         datesCopy.splice(i, 1)
                     }
-                    shouldAlignScrollTop.current = false
                     setDates(datesCopy)
                     setFocusedFileData(null)
                     break
