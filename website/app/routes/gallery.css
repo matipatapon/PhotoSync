@@ -135,11 +135,6 @@
     background-color: rgb(212, 212, 212);
     color: black;
     transition: opacity 0.2s;
-
-}
-
-.hide{
-    opacity: 0;
 }
 
 .focused_file_container h1{

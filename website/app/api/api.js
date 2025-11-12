@@ -70,18 +70,30 @@ export async function loginUser(username, password){
     return "ERROR"
 }
 
+function addLeadingZero(x){
+    if(x < 10){
+        return `0${x}`
+    }
+    return `${x}`
+}
+
 export async function uploadPhoto(file){
     let formData = new FormData()
+    const date = new Date(file.lastModified)
+    const day = addLeadingZero(date.getDate())
+    const month = addLeadingZero(date.getMonth() + 1)
+    const year = `${date.getFullYear()}`
+    const hour = addLeadingZero(date.getHours())
+    const minutes = addLeadingZero(date.getMinutes())
+    const seconds = addLeadingZero(date.getSeconds())
+    const dateStr = `${year}.${month}.${day} ${hour}:${minutes}:${seconds}`
     formData.append("file", file)
     formData.append("filename", file.name)
-    formData.append("modification_date", "2025.05.16 16:30:12")
-    // TODO FIX DATE
-
+    formData.append("modification_date", dateStr)
     const token = sessionStorage.getItem("Authorization")
     if(token === null){
         return "NOT_LOGGED_IN"
     }
-
     try{
         let response = await fetch(
             getApiUrl("upload"),
@@ -106,20 +118,15 @@ export async function uploadPhoto(file){
         if(response.status === 403){
             return "TOKEN_EXPIRED"
         }
-    } catch(e){
-    }
+    } catch(e){}
     return "ERROR"
 }
 
 export async function getFileData(date){
-    let result = {status: null, fileData: null}
     const token = sessionStorage.getItem("Authorization")
-
     if(token === null){
-        result.status = "NOT_LOGGED_IN"
-        return result
+        return {status: "NOT_LOGGED_IN", fileData: null}
     }
-
     try{
         let response = await fetch(
             `${getApiUrl("file_data")}?${new URLSearchParams({date: date})}`,
@@ -132,21 +139,16 @@ export async function getFileData(date){
         )
         if(response.status === 200){
              let fileData = await response.text()
-             result.fileData = JSON.parse(fileData)
-             result.status = "SUCCESS"
+             return {status: "SUCCESS", fileData: JSON.parse(fileData)}
         }
-    } catch(e){
-    }
-    return result
+    } catch(e){}
+    return {status: "ERROR", fileData: null}
 }
 
 export async function getFile(id){
-    let result = {status: null, url: null}
     const token = sessionStorage.getItem("Authorization")
-
     if(token === null){
-        result.status = "NOT_LOGGED_IN"
-        return result
+        return {status: "NOT_LOGGED_IN", url: null}
     }
 
     try{
@@ -161,20 +163,14 @@ export async function getFile(id){
         )
         if(response.status === 200){
             let file = await response.blob()
-            result.url = URL.createObjectURL(file)
-            result.status = "SUCCESS"
-        } else {
-            result.status = "ERROR"
+            return {status: "SUCCESS", url: URL.createObjectURL(file)}
         }
-} catch(e){
-}
-return result
-
+    } catch(e){}
+    return {status: "ERROR", url: null}
 }
 
 export async function removeFile(id){
     const token = sessionStorage.getItem("Authorization")
-
     if(token === null){
         return "NOT_LOGGED_IN"
     }
@@ -192,7 +188,6 @@ export async function removeFile(id){
         if(response.status === 200){
             return "SUCCESS"
         }
-    } catch(e){
-    }
+    } catch(e){}
     return "ERROR"
 }

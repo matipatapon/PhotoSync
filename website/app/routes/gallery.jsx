@@ -65,7 +65,7 @@ function Tile({fileData, size, setFocusedFileData}){
             </div>
 }
 
-function Day({day, tileSize, setFocusedFileData, resizeDay}){
+function Day({day, tileSize, setFocusedFileData, resizeDay, navigate}){
     let [fileData, setFileData] = useState([])
     useEffect(
         ()=>{
@@ -76,6 +76,11 @@ function Day({day, tileSize, setFocusedFileData, resizeDay}){
                     if(!abort)
                     {
                         const result = await getFileData(day.date.date)
+                        if(result.status != "SUCCESS"){
+                            navigate("/error")
+                            return
+                        }
+
                         if(!abort)
                         {
                             const fd = result.fileData
@@ -139,8 +144,15 @@ function FocusedFile({focusedFileData, focusedFileUrl, setFocusedFileData, remov
             </div>
         </div>
         : null
-
-    let descriptionClassName = showInfo ? "description" : "description hide"
+    let description = showInfo ?
+        <div className="description_container">
+            <div className="description">
+                <h1>{focusedFileData.filename}</h1>
+                <h1>{focusedFileData.creation_date}</h1>
+                <h1>{focusedFileData.mime_type}</h1>
+            </div>
+        </div>
+        : null
     return <>
                 {removalConfirmationPopUp}
                 <div className="focused_file_container">
@@ -150,13 +162,7 @@ function FocusedFile({focusedFileData, focusedFileUrl, setFocusedFileData, remov
                     <div className="exit button" onClick={exit}>X</div>
                     <div className="info button" onClick={info}>I</div>
                     <div className="del button" onClick={del}>D</div>
-                    <div className="description_container">
-                        <div className={descriptionClassName}>
-                            <h1>{focusedFileData.filename}</h1>
-                            <h1>{focusedFileData.creation_date}</h1>
-                            <h1>{focusedFileData.mime_type}</h1>
-                        </div>
-                    </div>
+                    {description}
                 </div>
             </>
 }
@@ -173,16 +179,21 @@ export default function Gallery(){
     let [focusedFileData, setFocusedFileData] = useState(null)
     let [focusedFileUrl, setFocusedFileUrl] = useState(null)
     let navigate = useNavigate()
-    const resizeObserver = new ResizeObserver((entries) => {
-        for (const entry of entries) {
-            if (entry.contentBoxSize) {
-                setContainerWidth(entry.contentBoxSize[0].inlineSize)
-            }
-        }
-    })
 
     useEffect(
         () => {
+            let timeout = null
+            const resizeObserver = new ResizeObserver((entries) => {
+                    for (const entry of entries) {
+                        if (entry.contentBoxSize) {
+                            if(timeout !== null){
+                                clearTimeout(timeout)
+                            }
+                            timeout = setTimeout(()=>{setContainerWidth(entry.contentBoxSize[0].inlineSize)}, 200)
+                        }
+                    }
+               }
+            )
             resizeObserver.observe(content.current)
             let abort = false
             async function fun(){
@@ -200,7 +211,7 @@ export default function Gallery(){
                 }
             }
             fun()
-            return () => abort = true
+            return () => {abort = true ; resizeObserver.disconnect()}
         },[])
 
     useEffect(
@@ -267,7 +278,7 @@ export default function Gallery(){
             totalHeight += element.height
             if(element.start - LOAD_MARGIN <= scrollData.bottom && element.start + element.height + LOAD_MARGIN >= scrollData.top)
             {
-                outlet.push(<Day key={element.date.date + "_" + element.date.file_count} day={element} tileSize={tileSize.current} setFocusedFileData={setFocusedFileData} resizeDay={resizeDay}/>)
+                outlet.push(<Day key={element.date.date + "_" + element.date.file_count} day={element} tileSize={tileSize.current} setFocusedFileData={setFocusedFileData} resizeDay={resizeDay} navigate={navigate}/>)
             }
         }
         outlet.push(<div key={totalHeight} style={{height: `${totalHeight + EMPTY_SPACE_AT_THE_END_HEIGHT}px`}}></div>)
