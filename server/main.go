@@ -24,23 +24,6 @@ func getDirectory() string {
 	return ""
 }
 
-func runTLSIfEnabled(router *gin.Engine, envGetter helper.IEnvGetter) {
-	isTlsEnabled := envGetter.Get("TLS_ENABLED")
-	if isTlsEnabled == "true" {
-		certPath := envGetter.Get("CERT_PATH")
-		if certPath == "" {
-			panic(errors.New("TLS enabled but 'CERT_PATH' not specified"))
-		}
-		certKeyPath := envGetter.Get("CERT_PRIVATE_KEY_PATH")
-		if certKeyPath == "" {
-			panic(errors.New("TLS enabled but 'CERT_PRIVATE_KEY_PATH' not specified"))
-		}
-		router.RunTLS(":8080", certPath, certKeyPath)
-	} else if isTlsEnabled != "false" {
-		panic(errors.New("TLS_ENABLED' has invalid value"))
-	}
-}
-
 func includeAllowedOriginInResponses(router *gin.Engine, envGetter helper.IEnvGetter) {
 	allowedOrigin := envGetter.Get("ALLOWED_ORIGIN")
 	if allowedOrigin == "" {
@@ -107,6 +90,20 @@ func main() {
 		panic(errors.New("'TESTING' has invalid value"))
 	}
 
-	runTLSIfEnabled(router, &envGetter)
-	router.Run()
+	isTlsEnabled := envGetter.Get("TLS_ENABLED")
+	if isTlsEnabled == "true" {
+		certPath := envGetter.Get("CERT_PATH")
+		if certPath == "" {
+			panic(errors.New("TLS enabled but 'CERT_PATH' not specified"))
+		}
+		certKeyPath := envGetter.Get("CERT_PRIVATE_KEY_PATH")
+		if certKeyPath == "" {
+			panic(errors.New("TLS enabled but 'CERT_PRIVATE_KEY_PATH' not specified"))
+		}
+		router.RunTLS(":8080", certPath, certKeyPath)
+	} else if isTlsEnabled == "false" {
+		router.Run()
+	} else {
+		panic(errors.New("TLS_ENABLED' has invalid value"))
+	}
 }
