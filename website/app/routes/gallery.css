@@ -179,3 +179,49 @@
     margin: 0;
     margin-bottom: 25px;
 }
+
+.filtration_menu_container{
+    position:absolute;
+    top:0px;
+    left:0px;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgb(255, 255, 255, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2;
+}
+
+.filtration_menu{
+    background-color: black;
+    display: block;
+    box-sizing: border-box;
+    width: 10vw;
+    min-width: 200px;
+    padding: 10px;
+    border-radius: 10px;
+}
+
+.filtration_menu input{
+    display: block;
+    width: 100%;
+    box-sizing: border-box;
+    text-align: center;
+    margin-bottom: 10px;
+    padding: 5px;
+}
+
+.filtration_menu input:invalid{
+    color: rgb(255, 0, 0);
+    background-color: rgb(255, 192, 192);
+    border: 5px solid red;
+}
+
+.filtration_menu input:focus{
+    outline: none;
+}
+
+.filtration_menu button{
+    width: 100%;
+}

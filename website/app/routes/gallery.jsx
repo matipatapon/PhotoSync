@@ -19,6 +19,15 @@ class DayData
     }
 }
 
+class FiltrationData
+{
+    constructor(year, month){
+        this.year = year
+        this.month = month
+    }
+}
+
+
 function ScrollData(
     top,
     bottom
@@ -167,10 +176,30 @@ function FocusedFile({focusedFileData, focusedFileUrl, setFocusedFileData, remov
             </>
 }
 
+function FiltrationMenu({setFiltration, setShowFiltrationMenu, setDates}){
+    return  <div className="filtration_menu_container">
+                <div className="filtration_menu">
+                    <input type="number" max="9999" min="0" placeholder="year" id="year"/>
+                    <input type="number" min="1" max="12" placeholder="month" id="month"/>
+                    <button className="button" onClick={()=>{
+                        const yearInput = document.getElementById("year")
+                        const monthInput = document.getElementById("month")
+                        if(yearInput.checkValidity() && month.checkValidity()){
+                            setDates(null)
+                            setFiltration(new FiltrationData(yearInput.value, monthInput.value))
+                            setShowFiltrationMenu(false)
+                        }
+                    }}>Apply</button>
+                </div>
+            </div>
+}
+
 export default function Gallery(){
     let tileSize = useRef(null)
     let gallery = useRef(null)
     let content = useRef(null)
+    let [showFiltrationMenu, setShowFiltrationMenu] = useState(false)
+    let [filtration, setFiltration] = useState(new FiltrationData("", ""))
     let [containerWidth, setContainerWidth] = useState(null)
     let [dates, setDates] = useState(null)
     let [elements, setElements] = useState(null)
@@ -195,24 +224,30 @@ export default function Gallery(){
                }
             )
             resizeObserver.observe(content.current)
-            let abort = false
-            async function fun(){
-                const result = await getDates()
-                if(!abort)
-                {
-                    if(result.status !== SUCCESS)
+            return () => {resizeObserver.disconnect()}
+        },[])
+
+        useEffect(
+            ()=>{
+                let abort = false
+                async function fun(){
+                    const result = await getDates(filtration)
+                    if(!abort)
                     {
-                        navigate("/error")
-                    }
-                    else
-                    {
-                        setDates(result.dates)
+                        if(result.status !== SUCCESS)
+                        {
+                            navigate("/error")
+                        }
+                        else
+                        {
+                            setDates(result.dates)
+                        }
                     }
                 }
-            }
-            fun()
-            return () => {abort = true ; resizeObserver.disconnect()}
-        },[])
+                fun()
+                return () => {abort = true}
+            }, [filtration]
+        )
 
     useEffect(
         ()=>{
@@ -243,6 +278,7 @@ export default function Gallery(){
     useLayoutEffect(
         () => {
             if(containerWidth === null || dates === null || gallery.current === null){
+                setElements(null)
                 return
             }
             const elements = createElements(dates, containerWidth, tileSize)
@@ -275,7 +311,7 @@ export default function Gallery(){
         for(let i = 0 ; i < elements.length ; i++)
         {
             const element = elements[i]
-            totalHeight += element.height
+            totalHeight += element.height + 1
             if(element.start - LOAD_MARGIN <= scrollData.bottom && element.start + element.height + LOAD_MARGIN >= scrollData.top)
             {
                 outlet.push(<Day key={element.date.date + "_" + element.date.file_count} day={element} tileSize={tileSize.current} setFocusedFileData={setFocusedFileData} resizeDay={resizeDay} navigate={navigate}/>)
@@ -319,8 +355,9 @@ export default function Gallery(){
     }
 
     return <div className="gallery_container">
+                {showFiltrationMenu ? <FiltrationMenu setFiltration={setFiltration} setShowFiltrationMenu={setShowFiltrationMenu} setDates={setDates}/> : null}
                 <FocusedFile focusedFileData={focusedFileData} setFocusedFileData={setFocusedFileData} focusedFileUrl={focusedFileUrl} setDates={setDates} removePhoto={removePhoto}/>
-                <header><Link className="button" to={"/upload"}>Upload</Link><Link className="button" to={"/login"}>Logout</Link></header>
+                <header><div className="button" onClick={()=>{setShowFiltrationMenu(true)}}>Filter</div><Link className="button" to={"/upload"}>Upload</Link><Link className="button" to={"/login"}>Logout</Link></header>
                 <div ref={gallery} className="gallery" onScroll={scroll}>
                     <div ref={content} className="content">
                         {outlet}

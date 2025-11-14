@@ -9,7 +9,7 @@ class GET_DATES_RESULT
     }
 }
 
-export async function getDates()
+export async function getDates(filtration)
 {
     let result = new GET_DATES_RESULT()
     const token = sessionStorage.getItem("Authorization")
@@ -19,9 +19,18 @@ export async function getDates()
         return result
     }
 
+    let url = getApiUrl("dates")
+    const year = filtration.year
+    const month = filtration.month
+    if(filtration.month !== "" && filtration.year !== ""){
+        url += `?${new URLSearchParams({year: year, month: month})}`
+    } else if (filtration.year !== ""){
+        url += `?${new URLSearchParams({year: year})}`
+    }
+
     try{
         let response = await fetch(
-            `${getApiUrl("dates")}`,
+            url,
             {
                 method: "GET",
                 headers: {
