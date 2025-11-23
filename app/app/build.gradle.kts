@@ -48,7 +48,7 @@ dependencies {
     val room_version = "2.8.2"
     implementation("androidx.room:room-runtime:$room_version")
     ksp("androidx.room:room-compiler:$room_version")
-    implementation("com.squareup.okhttp3:okhttp:3.2.0")
+    implementation("com.squareup.okhttp3:okhttp:5.3.2")
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
     implementation(libs.material)

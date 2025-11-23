@@ -1,10 +1,12 @@
 package com.photosync.api
 
 import okhttp3.MediaType
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody
+import okhttp3.RequestBody.Companion.toRequestBody
 import java.util.logging.Logger
 import kotlin.math.log
 
@@ -34,16 +36,15 @@ class ApiHandler {
                     "password": "$password"
                 }
             """.trimIndent()
-            val requestBody = RequestBody
-                .create(MediaType.parse("application/json; charset=utf-8"), payload)
+            val requestBody = payload.toRequestBody("application/json; charset=utf-8".toMediaTypeOrNull())
             val request = Request.Builder()
                 .url("$server/v1/login")
                 .post(requestBody)
                 .build()
             val response = client.newCall(request).execute()
-            val responseCode = response.code()
+            val responseCode = response.code
             if(responseCode == 200){
-                token = response.body().string()
+                token = response.body.string()
                 return LoginStatus.SUCCESS
             } else if(responseCode == 401){
                 return LoginStatus.INVALID_CREDENTIALS
@@ -63,16 +64,16 @@ class ApiHandler {
                 .addFormDataPart(
                     "file",
                     "",
-                    RequestBody.create(MediaType.parse("image/jpeg"), file)
+                    file.toRequestBody("image/jpeg".toMediaTypeOrNull())
                 )
                 .build()
             val request = Request.Builder()
-                .header("Authorization", token)
+                .header("Authorization", token!!)
                 .url("$server/v1/upload")
                 .post(requestBody)
                 .build()
             val response = client.newCall(request).execute()
-            val responseCode = response.code()
+            val responseCode = response.code
             if (responseCode == 200 || responseCode == 402) {
                 logger.info("Uploaded file<filename={$filename} lastModified={$lastModified}>")
                 return UploadStatus.SUCCESS
