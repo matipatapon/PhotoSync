@@ -113,8 +113,8 @@ class FolderViewModel(
                     syncFolder(directory, folder.lastSync)
                     folder.lastSync = currentTime
                     folderDao.updateFolder(folder)
-                    _status.value = FolderStatus(FolderStatus.Type.Idle, "")
                 }
+                _status.value = FolderStatus(FolderStatus.Type.Idle, "")
             } catch (e: Exception){
                 _status.value = FolderStatus(FolderStatus.Type.Error, e.toString())
             }
