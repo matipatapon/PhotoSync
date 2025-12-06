@@ -39,12 +39,11 @@ export default function Login(){
         <>
             <header><Link className="button" to={"/register"}>Register</Link></header>
             <div className="window_container">
-                <fetcher.Form className="window" method="post" action="">
+                <fetcher.Form className="pop_up_window" method="post" action="">
+                    <h1>Login</h1>
                     <input type="text" name="username" placeholder="username" disabled={!isIdle}/>
                     <input type="password" name="password" placeholder="password" disabled={!isIdle}/>
-                    <div className="buttons">
-                        <button className="button" type="submit" disabled={!isIdle}>Login</button>
-                    </div>
+                    <button className="button" type="submit" disabled={!isIdle}>Login</button>
                 </fetcher.Form>
                 <Message status={status}/>
             </div>

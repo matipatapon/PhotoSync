@@ -4,6 +4,7 @@ import { getDates } from "../api/get_dates"
 import { SUCCESS } from "../api/status"
 import { useRef, useEffect, useState, useLayoutEffect} from "react"
 import { useNavigate, Link} from "react-router"
+import Upload from "./upload"
 
 const DATE_HEIGHT = 70
 const EMPTY_SPACE_AT_THE_END_HEIGHT = 50
@@ -145,9 +146,9 @@ function FocusedFile({focusedFileData, focusedFileUrl, setFocusedFileData, remov
     }
 
     const date = focusedFileData.creation_date.substring(0, focusedFileData.creation_date.indexOf(" "))
-    let removalConfirmationPopUp = showConfirmation ? <div className="removal_confirmation_container">
-            <div className="removal_confirmation">
-                <h2>Are you sure?</h2>
+    let removalConfirmationPopUp = showConfirmation ? <div className="pop_up_container">
+            <div className="pop_up_window">
+                <h1>Are you sure?</h1>
                 <div className="button" onClick={()=>{removePhoto(focusedFileData.id, date)}}>Yes</div>
                 <div className="button" onClick={()=>{setShowConfirmation(false)}}>No</div>
             </div>
@@ -177,21 +178,55 @@ function FocusedFile({focusedFileData, focusedFileUrl, setFocusedFileData, remov
             </>
 }
 
-function FiltrationMenu({setFiltration, setShowFiltrationMenu, setDates}){
-    return  <div className="filtration_menu_container">
-                <div className="filtration_menu">
-                    <input type="number" max="9999" min="0" placeholder="year" id="year"/>
-                    <input type="number" min="1" max="12" placeholder="month" id="month"/>
-                    <button className="button" onClick={()=>{
-                        const yearInput = document.getElementById("year")
-                        const monthInput = document.getElementById("month")
-                        if(yearInput.checkValidity() && month.checkValidity()){
-                            setDates(null)
-                            setFiltration(new FiltrationData(yearInput.value, monthInput.value))
-                            setShowFiltrationMenu(false)
-                        }
-                    }}>Apply</button>
-                </div>
+function FiltrationMenu({setFiltration, setPopUp, setDates}){
+    return  <div className="pop_up_window">
+                <h1>Set filter</h1>
+                <input type="number" max="9999" min="0" placeholder="year" id="year"/>
+                <input type="number" min="1" max="12" placeholder="month" id="month"/>
+                <button className="button" onClick={()=>{
+                    const yearInput = document.getElementById("year")
+                    const monthInput = document.getElementById("month")
+                    if(yearInput.checkValidity() && month.checkValidity()){
+                        setDates(null)
+                        setFiltration(new FiltrationData(yearInput.value, monthInput.value))
+                        setPopUp("NONE")
+                    }
+                }}>Apply</button>
+            </div>
+}
+
+function PopUpContainer({setDates, dates, setFiltration, focusedFileData, setFocusedFileData, focusedFileUrl, setPopUp, popUp}){
+    function removePhoto(id, date){
+        let fun = async () => {
+            let datesCopy = structuredClone(dates)
+            for(let i = 0 ; i < dates.length ; i++){
+                if(datesCopy[i].date == date){
+                    const result = await removeFile(id)
+                    if(result != "SUCCESS"){
+                        navigate("/error")
+                        return
+                    }
+                    datesCopy[i].file_count -= 1
+                    if(datesCopy[i].file_count == 0){
+                        datesCopy.splice(i, 1)
+                    }
+                    setDates(datesCopy)
+                    setFocusedFileData(null)
+                    break
+                }
+            }
+        }
+        fun()
+    }
+
+    if(popUp == "NONE" && focusedFileData == null){
+        return null;
+    }
+
+    return  <div className="pop_up_container">
+                {popUp == "FILTRATION" ? <FiltrationMenu setFiltration={setFiltration} setPopUp={setPopUp} setDates={setDates}/> : null}
+                {focusedFileData != null ? <FocusedFile focusedFileData={focusedFileData} setFocusedFileData={setFocusedFileData} focusedFileUrl={focusedFileUrl} setDates={setDates} removePhoto={removePhoto}/> : null}
+                {popUp == "UPLOAD" ? <Upload exit={() => setPopUp("NONE")}/> : null}
             </div>
 }
 
@@ -208,6 +243,7 @@ export default function Gallery(){
     let lastScrollData = useRef(new ScrollData(0, window.innerHeight))
     let [focusedFileData, setFocusedFileData] = useState(null)
     let [focusedFileUrl, setFocusedFileUrl] = useState(null)
+    let [popUp, setPopUp] = useState("NONE")
     let navigate = useNavigate()
 
     useEffect(
@@ -332,37 +368,13 @@ export default function Gallery(){
         }
     }
 
-    function removePhoto(id, date){
-        let fun = async () => {
-            let datesCopy = structuredClone(dates)
-            for(let i = 0 ; i < dates.length ; i++){
-                if(datesCopy[i].date == date){
-                    const result = await removeFile(id)
-                    if(result != "SUCCESS"){
-                        navigate("/error")
-                        return
-                    }
-                    datesCopy[i].file_count -= 1
-                    if(datesCopy[i].file_count == 0){
-                        datesCopy.splice(i, 1)
-                    }
-                    setDates(datesCopy)
-                    setFocusedFileData(null)
-                    break
-                }
-            }
-        }
-        fun()
-    }
-
     return <div className="gallery_container">
-                {showFiltrationMenu ? <FiltrationMenu setFiltration={setFiltration} setShowFiltrationMenu={setShowFiltrationMenu} setDates={setDates}/> : null}
-                <FocusedFile focusedFileData={focusedFileData} setFocusedFileData={setFocusedFileData} focusedFileUrl={focusedFileUrl} setDates={setDates} removePhoto={removePhoto}/>
-                <header><div className="button" onClick={()=>{setShowFiltrationMenu(true)}}>Filter</div><Link className="button" to={"/upload"}>Upload</Link><Link className="button" to={"/login"}>Logout</Link></header>
+                <PopUpContainer dates={dates} setFiltration={setFiltration} setDates={setDates} focusedFileData={focusedFileData} setFocusedFileData={setFocusedFileData} focusedFileUrl={focusedFileUrl} popUp={popUp} setPopUp={setPopUp}/>
+                <header><div className="button" onClick={()=>{setPopUp("FILTRATION")}}>Filter</div><div className="button" onClick={()=>{setPopUp("UPLOAD")}}>Upload</div><Link className="button" to={"/login"}>Logout</Link></header>
                 <div ref={gallery} className="gallery" onScroll={scroll}>
                     <div ref={content} className="content">
                         {outlet}
                     </div>
                 </div>
-           </div>
+            </div>
 }

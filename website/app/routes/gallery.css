@@ -46,7 +46,7 @@
 }
 
 .tile:hover{
-    border: 3px #ffffff solid;
+    border: 3px #e9b7fb solid;
     border-radius: 20px;
 }
 
@@ -150,7 +150,7 @@
     margin: 10px;
     display: block;
     color: #000000;
-    background-color:  #ffffff;
+    background-color:  #bb92ca;
     padding: 10px;
     margin: 0px;
 }
@@ -159,77 +159,3 @@
     margin-top: 10px;
 }
 
-.removal_confirmation_container{
-    width:100vw;
-    height:100vh;
-    background-color: rgba(0, 0, 0, 0.8);
-    z-index: 4;
-    position: absolute;
-    top:0;
-    left: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.removal_confirmation{
-    padding: 25px;
-    background-color: black;
-    border-radius: 25px;
-}
-
-.removal_confirmation>.button{
-    width:40%;
-    margin: 0px 5%;
-}
-
-.removal_confirmation>h2{
-    margin: 0;
-    margin-bottom: 25px;
-}
-
-.filtration_menu_container{
-    position:absolute;
-    top:0px;
-    left:0px;
-    width: 100vw;
-    height: 100vh;
-    background-color: rgb(0, 0, 0, 0.9);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 2;
-}
-
-.filtration_menu{
-    background-color: rgb(26,26,26);
-    display: block;
-    box-sizing: border-box;
-    width: 10vw;
-    min-width: 200px;
-    padding: 10px;
-    border-radius: 10px;
-}
-
-.filtration_menu input{
-    display: block;
-    width: 100%;
-    box-sizing: border-box;
-    text-align: center;
-    margin-bottom: 10px;
-    padding: 5px;
-}
-
-.filtration_menu input:invalid{
-    color: rgb(255, 0, 0);
-    background-color: rgb(255, 192, 192);
-    border: 5px solid red;
-}
-
-.filtration_menu input:focus{
-    outline: none;
-}
-
-.filtration_menu button{
-    width: 100%;
-}

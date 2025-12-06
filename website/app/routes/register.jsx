@@ -65,16 +65,14 @@ export default function Register(){
             <>
                 <header><Link className="button" to={"/login"}>Login</Link></header>
                 <div className="window_container">
-
-                <fetcher.Form className="window" method="post" action="">
-                    <input type="text" name="username" disabled={!isIdle}/>
-                    <input type="password" name="password" disabled={!isIdle}/>
-                    <input type="password" name="password_repeated" disabled={!isIdle}/>
-                    <div className="buttons">
+                    <fetcher.Form className="pop_up_window" method="post" action="">
+                        <h1>Register</h1>
+                        <input type="text" name="username" disabled={!isIdle}/>
+                        <input type="password" name="password" disabled={!isIdle}/>
+                        <input type="password" name="password_repeated" disabled={!isIdle}/>
                         <button className="button" type="submit" disabled={!isIdle}>Register</button>
-                    </div>
-                </fetcher.Form>
-                <Message status={isIdle ? status : "WORKING"}/>
+                    </fetcher.Form>
+                    <Message status={isIdle ? status : "WORKING"}/>
                 </div>
             </>
     )
