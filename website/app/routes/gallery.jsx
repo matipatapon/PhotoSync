@@ -171,7 +171,7 @@ function FocusedFile({focusedFileData, focusedFileUrl, setFocusedFileData, remov
                 <div className="exit button" onClick={exit}><img src="exit.png"/></div>
                 <div className="info button" onClick={info}><img src="info.png"/></div>
                 <div className="del button" onClick={del}><img src="trash.png"/></div>
-                <div className="download button" onClick={()=>{}}><img src="arrow.png"/></div>
+                <a className="download button" href={focusedFileUrl} download={focusedFileData.filename}><img src="arrow.png"/></a>
                 {description}
             </>
 }

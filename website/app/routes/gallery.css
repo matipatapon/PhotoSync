@@ -161,13 +161,13 @@
 }
 
 .filelist_container>h1{
-    font-size:20px;
+    font-size:24px;
     margin: 10px 10px 0px 10px;
     white-space: nowrap;
 }
 
 .filelist>div{
-    font-size: 14px;
+    font-size: 16px;
     display: inline-block;
     margin-bottom: 3px;
     white-space: nowrap;
