@@ -51,34 +51,48 @@ function getFilesFromItems(items, output, callback){
 
 export default function Upload({exit}){
     let files = useRef([])
-    let nameOfLastUploadedFile = useRef(null)
     let [stage, setStage] = useState("SELECT")
-    let [uploadedFileCount, setUploadedFileCount] = useState(0)
+    let [processedFileCount, setProcessedFileCount] = useState(0)
+    let uploadedFiles = useRef([])
+    let alreadyExistedFiles = useRef([])
+    let unsupportedFiles = useRef([])
     let navigate = useNavigate()
 
-    if(stage !== "UPLOAD" && uploadedFileCount !== 0)
+    if(stage !== "UPLOAD" && processedFileCount !== 0)
     {
-        setUploadedFileCount(0)
+        setProcessedFileCount(0)
     }
 
     useEffect(
         () => {
             if(stage === "UPLOAD")
             {
+                if(processedFileCount == 0){
+                    uploadedFiles.current = [];
+                    unsupportedFiles.current = [];
+                    alreadyExistedFiles.current = [];
+                }
+                if(processedFileCount === files.current.length){
+                    setStage("FINISH")
+                    return
+                }
                 async function upload(){
-                    const file = files.current[uploadedFileCount]
+                    const file = files.current[processedFileCount]
+                    const filename = file.path + file.file.name
                     const status = await uploadPhoto(file.file)
-                    if(status === "SUCCESS" || status === "ALREADY_EXISTS")
+                    if(status === "SUCCESS")
                     {
-                        nameOfLastUploadedFile.current = file.path + file.file.name
-                        if(uploadedFileCount + 1 === files.current.length)
-                        {
-                            setStage("FINISH")
-                        }
-                        else
-                        {
-                            setUploadedFileCount(uploadedFileCount + 1)
-                        }
+                        uploadedFiles.current.push(filename)
+                        setProcessedFileCount(processedFileCount + 1)
+                    }
+                    else if(status === "ALREADY_EXISTS"){
+                        alreadyExistedFiles.current.push(filename)
+                        setProcessedFileCount(processedFileCount + 1)
+                    }
+                    else if(status === "UNSUPPORTED")
+                    {
+                        unsupportedFiles.current.push(filename)
+                        setProcessedFileCount(processedFileCount + 1)
                     }
                     else
                     {
@@ -87,7 +101,7 @@ export default function Upload({exit}){
                 }
                 upload()
             }
-        }, [stage, uploadedFileCount])
+        }, [stage, processedFileCount])
 
     function select(event){
         files.current = []
@@ -119,13 +133,45 @@ export default function Upload({exit}){
     }
     if(stage === "UPLOAD"){
         outlet = <>
-            <h1>Uploading {uploadedFileCount}/{files.current.length}</h1>
+            <h1>Processed {processedFileCount}/{files.current.length}</h1>
             <div className='button' onClick={() => setStage("SELECT")}>Cancel</div>
         </>
     }
     if(stage === "FINISH"){
+        let uploadedFilenames = []
+        uploadedFiles.current.forEach(fn => {
+            uploadedFilenames.push([<div>&#x25CF; {fn}</div>, <br/>])
+        });
+
+        let unsupportedFilenames = []
+        unsupportedFiles.current.forEach(fn => {
+            unsupportedFilenames.push([<div>&#x25CF; {fn}</div>, <br/>])
+        });
+
+        let alreadyExistsFilenames = []
+        alreadyExistedFiles.current.forEach(fn => {
+            alreadyExistsFilenames.push([<div>&#x25CF; {fn}</div>, <br/>])
+        });
+
         outlet = <>
-            <h1>All files uploaded</h1>
+            <div className='filelist_container' style={{display: uploadedFiles.current.length != 0 ? "block" : "none"}}>
+                <h1>{uploadedFiles.current.length} files uploaded</h1>
+                <div className='filelist'>
+                    {uploadedFilenames}
+                </div>
+            </div>
+            <div className='filelist_container' style={{display: unsupportedFiles.current.length != 0 ? "block" : "none"}}>
+                <h1>{unsupportedFiles.current.length} files unsupported</h1>
+                <div className='filelist'>
+                    {unsupportedFilenames}
+                </div>
+            </div>
+            <div className='filelist_container' style={{display: alreadyExistedFiles.current.length != 0 ? "block" : "none"}}>
+                <h1>{alreadyExistedFiles.current.length} files already uploaded</h1>
+                <div className='filelist'>
+                    {alreadyExistsFilenames}
+                </div>
+            </div>
             <div className='button' onClick={() => setStage("SELECT")}>Ok</div>
         </>
     }

@@ -65,11 +65,12 @@ header .button{
     display: flex;
     align-items: center;
     justify-content: center;
+    overflow: scroll;
 }
 
 .pop_up_window{
     display: block;
-    margin-bottom: 30vh;
+    margin-bottom: 10vh;
     background-color: rgb(0, 0, 0);
     padding: 20px;
     border-radius: 25px;
