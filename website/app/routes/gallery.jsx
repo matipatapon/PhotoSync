@@ -165,16 +165,14 @@ function FocusedFile({focusedFileData, focusedFileUrl, setFocusedFileData, remov
         : null
     return <>
                 {removalConfirmationPopUp}
-                <div className="focused_file_container">
-                    <div className="file">
-                        <img src={focusedFileUrl}/>
-                    </div>
-                    <div className="exit button" onClick={exit}><img src="exit.png"/></div>
-                    <div className="info button" onClick={info}><img src="info.png"/></div>
-                    <div className="del button" onClick={del}><img src="trash.png"/></div>
-                    <div className="download button" onClick={()=>{}}><img src="arrow.png"/></div>
-                    {description}
+                <div className="file">
+                    <img src={focusedFileUrl}/>
                 </div>
+                <div className="exit button" onClick={exit}><img src="exit.png"/></div>
+                <div className="info button" onClick={info}><img src="info.png"/></div>
+                <div className="del button" onClick={del}><img src="trash.png"/></div>
+                <div className="download button" onClick={()=>{}}><img src="arrow.png"/></div>
+                {description}
             </>
 }
 

@@ -75,6 +75,7 @@ header .button{
     border-radius: 25px;
     display: flex;
     flex-direction: column;
+    min-width: 200px;
 }
 
 .pop_up_window h1{

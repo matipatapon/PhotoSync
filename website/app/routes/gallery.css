@@ -75,20 +75,15 @@
     object-fit: cover;
 }
 
-.focused_file_container .file{
-    position: absolute;
+.file{
     display: flex;
     justify-content: center;
     align-items: center;
-    top: 0px;
-    left: 0px;
     width: 100vw;
     height: 100vh;
-    background-color: rgba(0, 0, 0, 0.9);
-    z-index: 2;
 }
 
-.focused_file_container .button{
+.pop_up_container>.button{
     position: absolute;
     z-index: 3;
     width: 30px;
@@ -101,32 +96,32 @@
     top: 20px;
 }
 
-.focused_file_container .button img{
+.button img{
     height:100%;
 }
 
-.focused_file_container .exit{
+.exit{
     left: 20px;
 }
 
-.focused_file_container .info{
+.info{
     left: 70px;
 }
 
-.focused_file_container .del{
+.del{
     left: 120px;
 }
 
-.focused_file_container .download{
+.download{
     left: 170px;
 }
 
-.focused_file_container img{
+.file img{
     max-width: 98%;
     max-height: 98%;
 }
 
-.focused_file_container .description_container{
+.description_container{
     position: absolute;
     top: 70px;
     left: 20px;
@@ -143,19 +138,3 @@
     background-color: #1f1f1f;
     transition: opacity 0.2s;
 }
-
-.focused_file_container h1{
-    font-size: 1.3em;
-    font-weight: normal;
-    margin: 10px;
-    display: block;
-    color: #000000;
-    background-color:  #bb92ca;
-    padding: 10px;
-    margin: 0px;
-}
-
-.focused_file_container h1:not(:first-child){
-    margin-top: 10px;
-}
-
