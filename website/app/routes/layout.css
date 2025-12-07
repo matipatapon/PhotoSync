@@ -4,7 +4,7 @@ body, html{
     color: #bb92ca;
     font-weight: bold;
     height: 100vh;
-    font-family: Sans-serif;
+    font-family: 'Helvetica';
 }
 
 header{
@@ -90,6 +90,18 @@ header .button{
     margin-bottom: 10px;
     display: inline-block;
     text-align: center;
+    padding: 2px;
+    border: 3px #ffffff solid;
+}
+
+.pop_up_window input:focus{
+    outline: none;
+    border: 3px #e9b7fb solid;
+}
+
+.pop_up_window input:invalid{
+    background-color: rgb(255, 185, 185);
+    border: 3px red solid;
 }
 
 .pop_up_window .button{
@@ -99,4 +111,9 @@ header .button{
 
 .pop_up_window .button:last-child{
     margin-bottom: 0px;
+}
+
+.error{
+    color:red;
+    margin-bottom: 10px;
 }

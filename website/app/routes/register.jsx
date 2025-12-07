@@ -48,7 +48,7 @@ function Message({status}){
     if(status === "WORKING"){
         msg = "Please wait..."
     }
-    return <h2>{msg}</h2>
+    return <span className="error">{msg}</span>
 }
 
 export default function Register(){
@@ -67,12 +67,12 @@ export default function Register(){
                 <div className="window_container">
                     <fetcher.Form className="pop_up_window" method="post" action="">
                         <h1>Register</h1>
-                        <input type="text" name="username" disabled={!isIdle}/>
-                        <input type="password" name="password" disabled={!isIdle}/>
-                        <input type="password" name="password_repeated" disabled={!isIdle}/>
+                        <input type="text" name="username" placeholder="username" disabled={!isIdle}/>
+                        <input type="password" name="password" placeholder="password" disabled={!isIdle}/>
+                        <input type="password" name="password_repeated" placeholder="password" disabled={!isIdle}/>
+                        <Message status={isIdle ? status : "WORKING"}/>
                         <button className="button" type="submit" disabled={!isIdle}>Register</button>
                     </fetcher.Form>
-                    <Message status={isIdle ? status : "WORKING"}/>
                 </div>
             </>
     )

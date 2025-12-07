@@ -19,10 +19,10 @@ export async function clientAction({request}) {
 
 function Message({status}){
     if(status === "INVALID_USER_OR_PASSWORD"){
-        return <h2>User or Password is invalid</h2>
+        return <span className="error">User or Password is invalid</span>
     }
     if(status === "ERROR"){
-        return <h2>Error occured</h2>
+        return <span className="error">Error occured</span>
     }
 }
 
@@ -43,9 +43,9 @@ export default function Login(){
                     <h1>Login</h1>
                     <input type="text" name="username" placeholder="username" disabled={!isIdle}/>
                     <input type="password" name="password" placeholder="password" disabled={!isIdle}/>
+                    <Message status={status}/>
                     <button className="button" type="submit" disabled={!isIdle}>Login</button>
                 </fetcher.Form>
-                <Message status={status}/>
             </div>
         </>
     )

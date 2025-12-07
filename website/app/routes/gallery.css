@@ -134,7 +134,15 @@
 }
 
 .description{
-    padding: 10px;
-    background-color: #1f1f1f;
+    background-color: #000000;
     transition: opacity 0.2s;
+    border-radius: 10px;
+}
+
+.description>h1{
+    padding: 5px;
+    background-color: #bb92ca;
+    color: black;
+    margin: 10px 10px;
+    font-size: 21px;
 }
