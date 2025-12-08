@@ -56,7 +56,7 @@ export default function Upload({exit}){
     let uploadedFilenames = useRef([])
     let alreadyExistedFilenames = useRef([])
     let unsupportedFilenames = useRef([])
-    let navigate = useNavigate()
+    let failedFilenames = useRef([])
 
     if(stage !== "UPLOAD" && processedFileCount !== 0)
     {
@@ -95,7 +95,8 @@ export default function Upload({exit}){
                     }
                     else
                     {
-                        navigate("/error")
+                        failedFilenames.current.push(filenameToHtml(filename))
+                        setProcessedFileCount(processedFileCount + 1)
                     }
                 }
                 upload()
@@ -134,26 +135,32 @@ export default function Upload({exit}){
         outlet = <>
             {stage === "UPLOAD" ? <h1>Processed {processedFileCount}/{files.current.length}</h1> : <h1>Finished</h1>}
             <div className='filelist_container' style={{display: uploadedFilenames.current.length != 0 ? "block" : "none"}}>
-                <h1>{uploadedFilenames.current.length} files uploaded</h1>
+                <h1>{uploadedFilenames.current.length} files were uploaded</h1>
                 <div className='filelist'>
                     {uploadedFilenames.current}
                 </div>
             </div>
-            <div className='filelist_container' style={{display: unsupportedFilenames.current.length != 0 ? "block" : "none"}}>
-                <h1>{unsupportedFilenames.current.length} files unsupported</h1>
-                <div className='filelist'>
-                    {unsupportedFilenames.current}
-                </div>
-            </div>
             <div className='filelist_container' style={{display: alreadyExistedFilenames.current.length != 0 ? "block" : "none"}}>
-                <h1>{alreadyExistedFilenames.current.length} files already uploaded</h1>
+                <h1>{alreadyExistedFilenames.current.length} files are already uploaded</h1>
                 <div className='filelist'>
                     {alreadyExistedFilenames.current}
                 </div>
             </div>
+            <div className='filelist_container error' style={{display: failedFilenames.current.length != 0 ? "block" : "none"}}>
+                <h1>{failedFilenames.current.length} files failed to upload</h1>
+                <div className='filelist'>
+                    {failedFilenames.current}
+                </div>
+            </div>
+            <div className='filelist_container error' style={{display: unsupportedFilenames.current.length != 0 ? "block" : "none"}}>
+                <h1>{unsupportedFilenames.current.length} files are unsupported</h1>
+                <div className='filelist'>
+                    {unsupportedFilenames.current}
+                </div>
+            </div>
             {stage === "UPLOAD"
                 ? <div className='button' onClick={() => setStage("SELECT")}>Cancel</div>
-                : <div className='button' onClick={() => setStage("SELECT")}>Ok</div>}
+                : <div className='button' onClick={exit}>Ok</div>}
         </>
     }
 
