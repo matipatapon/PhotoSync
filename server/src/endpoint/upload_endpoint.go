@@ -1,6 +1,7 @@
 package endpoint
 
 import (
+	"encoding/json"
 	"errors"
 	"io"
 	"log"
@@ -9,10 +10,13 @@ import (
 	"photosync/src/helper"
 	"photosync/src/jwt"
 	"photosync/src/metadata"
-	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
+
+type UploadResult struct {
+	CreationDate string `json:"creation_date"`
+}
 
 type UploadEndpoint struct {
 	db     database.IDataBase
@@ -96,14 +100,17 @@ func (ue *UploadEndpoint) Post(c *gin.Context) {
 		c.Status(500)
 		return
 	}
+
 	if len(result) == 0 || len(result[0]) == 0 {
 		ue.logger.Print("File already exists")
-		c.Status(402)
-		return
+		c.Status(201)
+	} else {
+		ue.logger.Print("Sucessfully saved a file")
 	}
 
-	ue.logger.Print("Sucessfully saved a file")
-	c.String(200, strconv.FormatInt(result[0][0].(int64), 10))
+	body := UploadResult{CreationDate: modificationDate.ToString()}
+	bytes, _ := json.Marshal(body)
+	c.Writer.Write(bytes)
 }
 
 func (ue *UploadEndpoint) authorize(c *gin.Context) (jwt.JwtPayload, error) {

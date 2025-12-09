@@ -103,21 +103,23 @@ paths:
           content:
             text/plain:
               schema:
-                type: integer
-                description: id of the photo
-                example: 102
+                $ref: "#/components/schemas/UploadedFileData"
           headers:
             Access-Control-Allow-Origin:
               schema:
                 type: string
                 example: "'*', 'http://localhost:3200'"
               description: allows web browser to share response with given origin
+        "201":
+          description: file already exists
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/UploadedFileData"
         "400":
           description: invalid request
         "401":
           description: file is unsupported
-        "402":
-          description: file already exists
         "403":
           description: token expired or is invalid
         "500":
@@ -379,6 +381,13 @@ paths:
           description: "failed to clear database"
 components:
   schemas:
+    UploadedFileData:
+      type: object
+      properties:
+        creation_date:
+          type: string
+          example: 2025.12.30 12:50:34
+          description: creation date of the file deduced by API
     UserCredentials:
       type: object
       properties:

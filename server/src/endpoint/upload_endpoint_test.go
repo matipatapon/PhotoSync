@@ -12,7 +12,6 @@ import (
 	"photosync/src/jwt"
 	"photosync/src/metadata"
 	"photosync/src/mock"
-	"strconv"
 	"testing"
 )
 
@@ -57,6 +56,8 @@ func TestUploadEndpointShouldReturnProperHeadersDuringPreflight(t *testing.T) {
 var UPLOAD_SQL string = "INSERT INTO files(user_id, creation_date, filename, mime_type, file, thumbnail, hash, size) VALUES($1, TO_TIMESTAMP($2, 'YYYY.MM.DD HH24:MI:SS'), $3, $4, $5, $6, $7, $8) RETURNING id"
 var NO_THUMBNAIL []byte
 var THUMBNAIL []byte = []byte("SOME THUMBNAIL DATA")
+var MODIFICATION_DATE_JSON string = "{\"creation_date\":\"2025.08.03 15:24:13\"}"
+var CREATION_DATE_JSON string = "{\"creation_date\":\"2024.07.01 12:31:32\"}"
 
 func createRequest(fields map[string][]byte, token string) *http.Request {
 	var body bytes.Buffer
@@ -74,7 +75,7 @@ func createRequest(fields map[string][]byte, token string) *http.Request {
 	return request
 }
 
-func TestUploadEndpointShouldReturn202WhenImageAlreadyExistsInDb(t *testing.T) {
+func TestUploadEndpointShouldReturn201WhenImageAlreadyExistsInDb(t *testing.T) {
 	queryResults := [][][]any{
 		{},
 		{{}},
@@ -115,10 +116,10 @@ func TestUploadEndpointShouldReturn202WhenImageAlreadyExistsInDb(t *testing.T) {
 		router.POST("/", sut.Post)
 		router.ServeHTTP(responseRecorder, request)
 
-		if responseRecorder.Code != 402 {
+		if responseRecorder.Code != 201 {
 			t.Error(responseRecorder.Code)
 		}
-		if responseRecorder.Body.String() != "" {
+		if responseRecorder.Body.String() != MODIFICATION_DATE_JSON {
 			fmt.Print("Expected body to be empty")
 			t.FailNow()
 		}
@@ -249,8 +250,8 @@ func TestUploadEndpointShouldPrioritizeCreationDateFromMetadata(t *testing.T) {
 	if responseRecorder.Code != 200 {
 		t.Error(responseRecorder.Code)
 	}
-	if responseRecorder.Body.String() != strconv.FormatInt(FILE_ID, 10) {
-		fmt.Printf("Expected '%s', got '%s'", strconv.FormatInt(FILE_ID, 10), responseRecorder.Body.String())
+	if responseRecorder.Body.String() != CREATION_DATE_JSON {
+		fmt.Printf("Expected '%s', got '%s'", CREATION_DATE_JSON, responseRecorder.Body.String())
 		t.FailNow()
 	}
 }
@@ -553,8 +554,8 @@ func TestUploadEndpointShouldSaveThumbnailToDb(t *testing.T) {
 	if responseRecorder.Code != 200 {
 		t.Error(responseRecorder.Code)
 	}
-	if responseRecorder.Body.String() != strconv.FormatInt(FILE_ID, 10) {
-		fmt.Printf("Expected '%s', got '%s'", strconv.FormatInt(FILE_ID, 10), responseRecorder.Body.String())
+	if responseRecorder.Body.String() != MODIFICATION_DATE_JSON {
+		fmt.Printf("Expected '%s', got '%s'", MODIFICATION_DATE_JSON, responseRecorder.Body.String())
 		t.FailNow()
 	}
 }
@@ -598,8 +599,8 @@ func TestUploadEndpointShouldSaveGivenImageToDb(t *testing.T) {
 	if responseRecorder.Code != 200 {
 		t.Error(responseRecorder.Code)
 	}
-	if responseRecorder.Body.String() != strconv.FormatInt(FILE_ID, 10) {
-		fmt.Printf("Expected '%s', got '%s'", strconv.FormatInt(FILE_ID, 10), responseRecorder.Body.String())
+	if responseRecorder.Body.String() != MODIFICATION_DATE_JSON {
+		fmt.Printf("Expected '%s', got '%s'", MODIFICATION_DATE_JSON, responseRecorder.Body.String())
 		t.FailNow()
 	}
 }
@@ -643,8 +644,8 @@ func TestUploadEndpointShouldHandleRequestPartsInDifferentOrder(t *testing.T) {
 	if responseRecorder.Code != 200 {
 		t.Error(responseRecorder.Code)
 	}
-	if responseRecorder.Body.String() != strconv.FormatInt(FILE_ID, 10) {
-		fmt.Printf("Expected '%s', got '%s'", strconv.FormatInt(FILE_ID, 10), responseRecorder.Body.String())
+	if responseRecorder.Body.String() != MODIFICATION_DATE_JSON {
+		fmt.Printf("Expected '%s', got '%s'", MODIFICATION_DATE_JSON, responseRecorder.Body.String())
 		t.FailNow()
 	}
 }
