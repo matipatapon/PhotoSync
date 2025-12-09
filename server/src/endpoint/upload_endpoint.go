@@ -60,6 +60,8 @@ func (ue *UploadEndpoint) Post(c *gin.Context) {
 		return
 	}
 
+	ue.logger.Printf("Processing '%s' for user with id '%d'", filename, jwt.UserId)
+
 	hash, err := ue.h.Hash(file)
 	if err != nil {
 		ue.logger.Printf("Failed to hash a file: '%s'", err.Error())
@@ -101,16 +103,29 @@ func (ue *UploadEndpoint) Post(c *gin.Context) {
 		return
 	}
 
-	if len(result) == 0 || len(result[0]) == 0 {
-		ue.logger.Print("File already exists")
-		c.Status(201)
-	} else {
+	if len(result) != 0 && len(result[0]) != 0 {
+		bytes, _ := json.Marshal(UploadResult{CreationDate: modificationDate.ToString()})
+		c.Writer.Write(bytes)
 		ue.logger.Print("Sucessfully saved a file")
+		return
 	}
 
-	body := UploadResult{CreationDate: modificationDate.ToString()}
-	bytes, _ := json.Marshal(body)
+	result, err = ue.db.Query("SELECT TO_CHAR(creation_date, 'YYYY.MM.DD HH24:MI:SS') FROM files WHERE user_id = $1 AND size = $2 AND hash = $3", jwt.UserId, len(file), hash)
+	if err != nil {
+		ue.logger.Printf("Failed to fetch creation_date: '%s'", err.Error())
+		c.Status(500)
+		return
+	}
+	if len(result) == 0 || len(result[0]) == 0 {
+		ue.logger.Print("Failed to fetch creation_date")
+		c.Status(500)
+		return
+	}
+
+	c.Status(201)
+	bytes, _ := json.Marshal(UploadResult{CreationDate: result[0][0].(string)})
 	c.Writer.Write(bytes)
+	ue.logger.Print("File already exists")
 }
 
 func (ue *UploadEndpoint) authorize(c *gin.Context) (jwt.JwtPayload, error) {
