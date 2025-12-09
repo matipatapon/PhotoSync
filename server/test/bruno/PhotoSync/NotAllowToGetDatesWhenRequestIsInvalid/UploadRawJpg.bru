@@ -22,10 +22,11 @@ body:multipart-form {
 
 assert {
   res.status: eq 200
-  res.body: eq 1
+  res.body.creation_date: eq 2023.06.07 15:40:00
   res.headers["access-control-allow-origin"]: eq {{ALLOWED_ORIGIN}}
 }
 
 settings {
   encodeUrl: true
+  timeout: 0
 }

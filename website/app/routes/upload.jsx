@@ -1,11 +1,16 @@
 import { useState, useEffect, useRef} from 'react'
-import { Link, useNavigate } from 'react-router'
+import { useNavigate } from 'react-router'
 import { uploadPhoto } from '../api/api'
 import './upload.css'
 
 function File(file, path){
     this.file = file
     this.path = path
+}
+
+function UploadedFile(filename, creationDate){
+    this.filename = filename
+    this.creationDate = creationDate
 }
 
 function getFilesFromItems(items, output, callback){
@@ -49,46 +54,81 @@ function getFilesFromItems(items, output, callback){
     setFilesIfAllFilesGathered()
 }
 
-
-export default function Upload(){
+export default function Upload({exit}){
     let files = useRef([])
-    let nameOfLastUploadedFile = useRef(null)
     let [stage, setStage] = useState("SELECT")
-    let [uploadedFileCount, setUploadedFileCount] = useState(0)
-    let navigate = useNavigate()
+    let [processedFileCount, setProcessedFileCount] = useState(0)
+    let uploadedFiles = useRef([])
+    let failedFiles = useRef([])
 
-    if(stage !== "UPLOAD" && uploadedFileCount !== 0)
+    if(stage !== "UPLOAD" && processedFileCount !== 0)
     {
-        setUploadedFileCount(0)
+        setProcessedFileCount(0)
+    }
+
+    const addFailedFile = (filename) => {
+        failedFiles.current.push([<div key={failedFiles.current.length + "_" + 1}>&#x25CF; {filename}</div>, <br key={failedFiles.current.length + "_" + 2}/>])
+    }
+
+    const generateListForUploadedFiles = () => {
+        let dateToFilenames = new Map()
+        uploadedFiles.current.forEach(uploadedFile => {
+            const creationDay = uploadedFile.creationDate.split([" "])[0]
+            if(dateToFilenames.has(creationDay)){
+                dateToFilenames.get(creationDay).push(uploadedFile.filename)
+            } else{
+                dateToFilenames.set(creationDay, [uploadedFile.filename])
+            }
+        });
+
+        let html = []
+        const dateToFilenamesSorted = new Map([...dateToFilenames.entries()].sort((a, b) => {
+            if(a == b) return 0;
+            else if(a > b) return -1;
+            else return 1;
+        }))
+        dateToFilenamesSorted.forEach((value, key) => {
+            console.log(value)
+            html.push(<h2>{key}</h2>)
+            value.forEach((filename) => {html.push(<div>&#x25CF; {filename}</div>) ; html.push(<br/>)})
+        })
+        return html
+    }
+
+    const generateSummaryForFiles = (filenames, postfix) => {
+        return <div className={'filelist_container'} style={{display: filenames.length != 0 ? "block" : "none"}}>
+                <h1>{filenames.length} {postfix}</h1>
+                <div className='filelist'>
+                    {filenames}
+                </div>
+            </div>
     }
 
     useEffect(
         () => {
             if(stage === "UPLOAD")
             {
+                if(processedFileCount === files.current.length){
+                    setStage("FINISH")
+                    return
+                }
                 async function upload(){
-                    const file = files.current[uploadedFileCount]
-                    const status = await uploadPhoto(file.file)
-                    if(status === "SUCCESS" || status === "ALREADY_EXISTS")
+                    const file = files.current[processedFileCount]
+                    const filename = file.path + file.file.name
+                    const result = await uploadPhoto(file.file)
+                    if(result.status === "SUCCESS" || result.status === "ALREADY_EXISTS")
                     {
-                        nameOfLastUploadedFile.current = file.path + file.file.name
-                        if(uploadedFileCount + 1 === files.current.length)
-                        {
-                            setStage("FINISH")
-                        }
-                        else
-                        {
-                            setUploadedFileCount(uploadedFileCount + 1)
-                        }
+                        uploadedFiles.current.push(new UploadedFile(filename, result.creationDate))
                     }
                     else
                     {
-                        navigate("/error")
+                        addFailedFile(filename)
                     }
+                    setProcessedFileCount(processedFileCount + 1)
                 }
                 upload()
             }
-        }, [stage, uploadedFileCount])
+        }, [stage, processedFileCount])
 
     function select(event){
         files.current = []
@@ -102,11 +142,10 @@ export default function Upload(){
     let outlet
     if(stage === "SELECT"){
         outlet = <>
-                <h1>Select files</h1>
-                <div className='buttons'>
-                    <label className="button" htmlFor="file_upload">Select</label>
-                    <input id="file_upload" type='file' multiple={true} onChange={select}/>
-                </div>
+                <h1>Upload your files</h1>
+                <label className="button" htmlFor="file_upload">Select</label>
+                <input id="file_upload" type='file' multiple={true} onChange={select}/>
+                <div className='button' onClick={exit}>Cancel</div>
         </>
     }
     if(stage === "LOAD"){
@@ -114,27 +153,24 @@ export default function Upload(){
     }
     if(stage === "OPTIONS"){
         outlet = <>
-                <h1>{files.current.length} files selected</h1>
-                <div className='buttons'>
-                    <div className='button' onClick={() => setStage("UPLOAD")}>Upload</div>
-                    <div className='button' onClick={() => setStage("SELECT")}>Clear</div>
-                </div>
+            <h1>{files.current.length} files selected</h1>
+            <div className='button' onClick={() => {setStage("UPLOAD") ; uploadedFiles.current = []; failedFiles.current = [];}}>Upload</div>
+            <div className='button' onClick={() => setStage("SELECT")}>Clear</div>
         </>
     }
     if(stage === "UPLOAD"){
         outlet = <>
-                <h1>Uploading {uploadedFileCount}/{files.current.length}</h1>
-                <div className='buttons'>
-                    <div className='button' onClick={() => setStage("SELECT")}>Cancel</div>
-                </div>
+            <h1>Processing {processedFileCount}/{files.current.length}</h1>
+            {generateSummaryForFiles(failedFiles.current, "files failed to be uploaded")}
+            <div className='button' onClick={() => setStage("FINISH")}>Cancel</div>
         </>
     }
     if(stage === "FINISH"){
         outlet = <>
-        <h1>All files uploaded</h1>
-        <div className='buttons'>
-            <div className='button' onClick={() => setStage("SELECT")}>Ok</div>
-        </div>
+            <h1>Finished</h1>
+            {generateSummaryForFiles(generateListForUploadedFiles(), "files were uploaded")}
+            {generateSummaryForFiles(failedFiles.current, "files failed to be uploaded")}
+            <div className='button' onClick={() => {window.location.reload(), exit()}}>Ok</div>
         </>
     }
 
@@ -151,12 +187,7 @@ export default function Upload(){
         }
     }
 
-    return  <>
-                <header><Link className="button" to={"/gallery"}>Gallery</Link><Link className="button" to={"/login"}>Logout</Link></header>
-                <div className='window_container'>
-                    <div className='window' onDragOver={dragOver} onDrop={drop}>
-                        {outlet}
-                    </div>
-                </div>
-            </>
+    return <div className='pop_up_window' onDragOver={dragOver} onDrop={drop}>
+                {outlet}
+            </div>
 }

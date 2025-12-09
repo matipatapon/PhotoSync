@@ -1,3 +1,42 @@
 #file_upload{
     display:none;
 }
+
+.filelist_container{
+    background-color: #1f1f1f;
+    margin-bottom: 20px;
+    border-radius: 10px;
+}
+
+.filelist{
+    overflow: scroll;
+    max-width: calc(min(80vw, 600px));
+    max-height: 20vh;
+    margin-top: 10px;
+    padding: 0px 10px 10px 10px;
+}
+
+.filelist_container>h1{
+    font-size:24px;
+    margin: 10px 10px 0px 10px;
+    white-space: nowrap;
+}
+
+.filelist>div{
+    font-size: 15px;
+    display: inline-block;
+    margin-bottom: 3px;
+    margin-left: 5px;
+    white-space: nowrap;
+    font-weight: normal;
+}
+
+.filelist>h2{
+    font-size: 17px;
+    white-space: nowrap;
+    margin: 20px 0px 3px 0px;
+}
+
+.filelist>h2:first-child{
+    margin-top: 0px;
+}

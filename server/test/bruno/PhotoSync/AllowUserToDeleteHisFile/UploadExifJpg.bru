@@ -22,9 +22,10 @@ body:multipart-form {
 
 assert {
   res.status: eq 200
-  res.body: eq 2
+  res.body.creation_date: eq 2023.06.07 12:30:45
 }
 
 settings {
   encodeUrl: true
+  timeout: 0
 }

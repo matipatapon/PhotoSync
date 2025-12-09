@@ -1,10 +1,29 @@
 import {
   isRouteErrorResponse,
   Outlet,
+  Scripts,
 } from "react-router";
+import "./root.css"
+
+export function Layout({children}) {
+    return <html style={{backgroundColor: "#1c1c1c"}}>
+                <head>
+                    <title>PhotoSync</title>
+                    <link rel="icon" type="image/x-icon" href="favicon.ico"></link>
+                </head>
+                <body>
+                    {children}
+                    <Scripts/>
+                </body>
+            </html>
+}
 
 export default function App() {
-  return <Outlet />;
+  return <Outlet/>
+}
+
+export function HydrateFallback() {
+  return <div></div>
 }
 
 export function ErrorBoundary({ error }) {

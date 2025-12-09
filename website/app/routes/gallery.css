@@ -46,7 +46,7 @@
 }
 
 .tile:hover{
-    border: 3px #ffffff solid;
+    border: 3px #e9b7fb solid;
     border-radius: 20px;
 }
 
@@ -75,20 +75,15 @@
     object-fit: cover;
 }
 
-.focused_file_container .file{
-    position: absolute;
+.file{
     display: flex;
     justify-content: center;
     align-items: center;
-    top: 0px;
-    left: 0px;
     width: 100vw;
     height: 100vh;
-    background-color: rgba(0, 0, 0, 0.9);
-    z-index: 2;
 }
 
-.focused_file_container .button{
+.pop_up_container>.button{
     position: absolute;
     z-index: 3;
     width: 30px;
@@ -101,32 +96,32 @@
     top: 20px;
 }
 
-.focused_file_container .button img{
+.button img{
     height:100%;
 }
 
-.focused_file_container .exit{
+.exit{
     left: 20px;
 }
 
-.focused_file_container .info{
+.info{
     left: 70px;
 }
 
-.focused_file_container .del{
+.del{
     left: 120px;
 }
 
-.focused_file_container .download{
+.download{
     left: 170px;
 }
 
-.focused_file_container img{
+.file img{
     max-width: 98%;
     max-height: 98%;
 }
 
-.focused_file_container .description_container{
+.description_container{
     position: absolute;
     top: 70px;
     left: 20px;
@@ -139,97 +134,16 @@
 }
 
 .description{
-    padding: 10px;
-    background-color: #1f1f1f;
+    background-color: #000000;
     transition: opacity 0.2s;
-}
-
-.focused_file_container h1{
-    font-size: 1.3em;
-    font-weight: normal;
-    margin: 10px;
-    display: block;
-    color: #000000;
-    background-color:  #ffffff;
-    padding: 10px;
-    margin: 0px;
-}
-
-.focused_file_container h1:not(:first-child){
-    margin-top: 10px;
-}
-
-.removal_confirmation_container{
-    width:100vw;
-    height:100vh;
-    background-color: rgba(0, 0, 0, 0.8);
-    z-index: 4;
-    position: absolute;
-    top:0;
-    left: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.removal_confirmation{
-    padding: 25px;
-    background-color: black;
-    border-radius: 25px;
-}
-
-.removal_confirmation>.button{
-    width:40%;
-    margin: 0px 5%;
-}
-
-.removal_confirmation>h2{
-    margin: 0;
-    margin-bottom: 25px;
-}
-
-.filtration_menu_container{
-    position:absolute;
-    top:0px;
-    left:0px;
-    width: 100vw;
-    height: 100vh;
-    background-color: rgb(0, 0, 0, 0.9);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 2;
-}
-
-.filtration_menu{
-    background-color: rgb(26,26,26);
-    display: block;
-    box-sizing: border-box;
-    width: 10vw;
-    min-width: 200px;
-    padding: 10px;
     border-radius: 10px;
 }
 
-.filtration_menu input{
-    display: block;
-    width: 100%;
-    box-sizing: border-box;
-    text-align: center;
-    margin-bottom: 10px;
+.description>h1{
     padding: 5px;
+    background-color: #bb92ca;
+    color: black;
+    margin: 10px 10px;
+    font-size: 21px;
 }
 
-.filtration_menu input:invalid{
-    color: rgb(255, 0, 0);
-    background-color: rgb(255, 192, 192);
-    border: 5px solid red;
-}
-
-.filtration_menu input:focus{
-    outline: none;
-}
-
-.filtration_menu button{
-    width: 100%;
-}
