@@ -78,6 +78,7 @@ function addLeadingZero(x){
 }
 
 export async function uploadPhoto(file){
+    let result = {status: null, creationDate: null}
     let formData = new FormData()
     const date = new Date(file.lastModified)
     const day = addLeadingZero(date.getDate())
@@ -92,7 +93,8 @@ export async function uploadPhoto(file){
     formData.append("modification_date", dateStr)
     const token = sessionStorage.getItem("Authorization")
     if(token === null){
-        return "NOT_LOGGED_IN"
+        result.status = "NOT_LOGGED_IN"
+        return result
     }
     try{
         let response = await fetch(
@@ -105,21 +107,30 @@ export async function uploadPhoto(file){
                 body: formData,
             }
         )
+        if(response.status === 200 || response.status === 201){
+             let fileDataJSON = await response.text()
+             let fileData = JSON.parse(fileDataJSON)
+             result.creationDate = fileData.creation_date
+        }
         if(response.status === 200){
-             let file_id = await response.text()
-             return "SUCCESS"
+            result.status = "SUCCESS"
+            return result
+        }
+        if(response.status === 201){
+            result.status = "ALREADY_EXISTS"
+            return result
         }
         if(response.status === 401){
-            return "UNSUPPORTED"
-        }
-        if(response.status === 402){
-            return "ALREADY_EXISTS"
+            result.status = "UNSUPPORTED"
+            return result
         }
         if(response.status === 403){
-            return "TOKEN_EXPIRED"
+            result.status = "TOKEN_EXPIRED"
+            return result
         }
     } catch(e){}
-    return "ERROR"
+    result.status = "ERROR"
+    return result
 }
 
 export async function getFileData(date){

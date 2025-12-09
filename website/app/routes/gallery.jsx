@@ -223,7 +223,7 @@ function PopUpContainer({setDates, dates, setFiltration, focusedFileData, setFoc
 
     return  <div className="pop_up_container">
                 {popUp == "FILTRATION" ? <FiltrationMenu setFiltration={setFiltration} setPopUp={setPopUp} setDates={setDates}/> : null}
-                {focusedFileData != null ? <FocusedFile focusedFileData={focusedFileData} setFocusedFileData={setFocusedFileData} focusedFileUrl={focusedFileUrl} setDates={setDates} removePhoto={removePhoto}/> : null}
+                {focusedFileData != null ? <FocusedFile focusedFileData={focusedFileData} setFocusedFileData={setFocusedFileData} focusedFileUrl={focusedFileUrl} removePhoto={removePhoto}/> : null}
                 {popUp == "UPLOAD" ? <Upload exit={() => setPopUp("NONE")}/> : null}
             </div>
 }
@@ -232,7 +232,6 @@ export default function Gallery(){
     let tileSize = useRef(null)
     let gallery = useRef(null)
     let content = useRef(null)
-    let [showFiltrationMenu, setShowFiltrationMenu] = useState(false)
     let [filtration, setFiltration] = useState(new FiltrationData("", ""))
     let [containerWidth, setContainerWidth] = useState(null)
     let [dates, setDates] = useState(null)

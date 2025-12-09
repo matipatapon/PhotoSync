@@ -147,28 +147,3 @@
     font-size: 21px;
 }
 
-.filelist_container{
-    background-color: #1f1f1f;
-    margin-bottom: 20px;
-    border-radius: 10px;
-}
-
-.filelist{
-    overflow: scroll;
-    max-width: 50vw;
-    max-height: 20vh;
-    padding: 10px;
-}
-
-.filelist_container>h1{
-    font-size:24px;
-    margin: 10px 10px 0px 10px;
-    white-space: nowrap;
-}
-
-.filelist>div{
-    font-size: 16px;
-    display: inline-block;
-    margin-bottom: 3px;
-    white-space: nowrap;
-}

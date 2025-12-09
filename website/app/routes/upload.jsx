@@ -8,6 +8,11 @@ function File(file, path){
     this.path = path
 }
 
+function UploadedFile(filename, creationDate){
+    this.filename = filename
+    this.creationDate = creationDate
+}
+
 function getFilesFromItems(items, output, callback){
     let pendingFileCount = 0
     let pendingDirs = 0
@@ -53,18 +58,50 @@ export default function Upload({exit}){
     let files = useRef([])
     let [stage, setStage] = useState("SELECT")
     let [processedFileCount, setProcessedFileCount] = useState(0)
-    let uploadedFilenames = useRef([])
-    let alreadyExistedFilenames = useRef([])
-    let unsupportedFilenames = useRef([])
-    let failedFilenames = useRef([])
+    let uploadedFiles = useRef([])
+    let failedFiles = useRef([])
 
     if(stage !== "UPLOAD" && processedFileCount !== 0)
     {
         setProcessedFileCount(0)
     }
 
-    const filenameToHtml = (filename) => {
-        return [<div>&#x25CF; {filename}</div>, <br/>]
+    const addFailedFile = (filename) => {
+        failedFiles.current.push([<div key={failedFiles.current.length + "_" + 1}>&#x25CF; {filename}</div>, <br key={failedFiles.current.length + "_" + 2}/>])
+    }
+
+    const generateListForUploadedFiles = () => {
+        let dateToFilenames = new Map()
+        uploadedFiles.current.forEach(uploadedFile => {
+            const creationDay = uploadedFile.creationDate.split([" "])[0]
+            if(dateToFilenames.has(creationDay)){
+                dateToFilenames.get(creationDay).push(uploadedFile.filename)
+            } else{
+                dateToFilenames.set(creationDay, [uploadedFile.filename])
+            }
+        });
+
+        let html = []
+        const dateToFilenamesSorted = new Map([...dateToFilenames.entries()].sort((a, b) => {
+            if(a == b) return 0;
+            else if(a > b) return -1;
+            else return 1;
+        }))
+        dateToFilenamesSorted.forEach((value, key) => {
+            console.log(value)
+            html.push(<h2>{key}</h2>)
+            value.forEach((filename) => {html.push(<div>&#x25CF; {filename}</div>) ; html.push(<br/>)})
+        })
+        return html
+    }
+
+    const generateSummaryForFiles = (filenames, postfix) => {
+        return <div className={'filelist_container'} style={{display: filenames.length != 0 ? "block" : "none"}}>
+                <h1>{filenames.length} {postfix}</h1>
+                <div className='filelist'>
+                    {filenames}
+                </div>
+            </div>
     }
 
     useEffect(
@@ -78,26 +115,16 @@ export default function Upload({exit}){
                 async function upload(){
                     const file = files.current[processedFileCount]
                     const filename = file.path + file.file.name
-                    const status = await uploadPhoto(file.file)
-                    if(status === "SUCCESS")
+                    const result = await uploadPhoto(file.file)
+                    if(result.status === "SUCCESS" || result.status === "ALREADY_EXISTS")
                     {
-                        uploadedFilenames.current.push(filenameToHtml(filename))
-                        setProcessedFileCount(processedFileCount + 1)
-                    }
-                    else if(status === "ALREADY_EXISTS"){
-                        alreadyExistedFilenames.current.push(filenameToHtml(filename))
-                        setProcessedFileCount(processedFileCount + 1)
-                    }
-                    else if(status === "UNSUPPORTED")
-                    {
-                        unsupportedFilenames.current.push(filenameToHtml(filename))
-                        setProcessedFileCount(processedFileCount + 1)
+                        uploadedFiles.current.push(new UploadedFile(filename, result.creationDate))
                     }
                     else
                     {
-                        failedFilenames.current.push(filenameToHtml(filename))
-                        setProcessedFileCount(processedFileCount + 1)
+                        addFailedFile(filename)
                     }
+                    setProcessedFileCount(processedFileCount + 1)
                 }
                 upload()
             }
@@ -127,40 +154,23 @@ export default function Upload({exit}){
     if(stage === "OPTIONS"){
         outlet = <>
             <h1>{files.current.length} files selected</h1>
-            <div className='button' onClick={() => {setStage("UPLOAD") ; uploadedFilenames.current = []; unsupportedFilenames.current = []; alreadyExistedFilenames.current = [];}}>Upload</div>
+            <div className='button' onClick={() => {setStage("UPLOAD") ; uploadedFiles.current = []; failedFiles.current = [];}}>Upload</div>
             <div className='button' onClick={() => setStage("SELECT")}>Clear</div>
         </>
     }
-    if(stage === "FINISH" || stage === "UPLOAD"){
+    if(stage === "UPLOAD"){
         outlet = <>
-            {stage === "UPLOAD" ? <h1>Processed {processedFileCount}/{files.current.length}</h1> : <h1>Finished</h1>}
-            <div className='filelist_container' style={{display: uploadedFilenames.current.length != 0 ? "block" : "none"}}>
-                <h1>{uploadedFilenames.current.length} files were uploaded</h1>
-                <div className='filelist'>
-                    {uploadedFilenames.current}
-                </div>
-            </div>
-            <div className='filelist_container' style={{display: alreadyExistedFilenames.current.length != 0 ? "block" : "none"}}>
-                <h1>{alreadyExistedFilenames.current.length} files are already uploaded</h1>
-                <div className='filelist'>
-                    {alreadyExistedFilenames.current}
-                </div>
-            </div>
-            <div className='filelist_container error' style={{display: failedFilenames.current.length != 0 ? "block" : "none"}}>
-                <h1>{failedFilenames.current.length} files failed to upload</h1>
-                <div className='filelist'>
-                    {failedFilenames.current}
-                </div>
-            </div>
-            <div className='filelist_container error' style={{display: unsupportedFilenames.current.length != 0 ? "block" : "none"}}>
-                <h1>{unsupportedFilenames.current.length} files are unsupported</h1>
-                <div className='filelist'>
-                    {unsupportedFilenames.current}
-                </div>
-            </div>
-            {stage === "UPLOAD"
-                ? <div className='button' onClick={() => setStage("SELECT")}>Cancel</div>
-                : <div className='button' onClick={exit}>Ok</div>}
+            <h1>Processing {processedFileCount}/{files.current.length}</h1>
+            {generateSummaryForFiles(failedFiles.current, "files failed to be uploaded")}
+            <div className='button' onClick={() => setStage("FINISH")}>Cancel</div>
+        </>
+    }
+    if(stage === "FINISH"){
+        outlet = <>
+            <h1>Finished</h1>
+            {generateSummaryForFiles(generateListForUploadedFiles(), "files were uploaded")}
+            {generateSummaryForFiles(failedFiles.current, "files failed to be uploaded")}
+            <div className='button' onClick={() => {window.location.reload(), exit()}}>Ok</div>
         </>
     }
 
