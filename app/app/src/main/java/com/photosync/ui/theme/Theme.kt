@@ -6,12 +6,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 
 private val LightColorScheme = lightColorScheme(
-    primary = White,
+    primary = Purple,
     onPrimary = Black,
-    secondary = Black,
-    onSecondary = White,
-    background = BackgroundColor,
-    tertiary = Color.Cyan,
+    secondary = White,
+    onSecondary = Black,
+    background = Background,
+    tertiary = PurpleFocus,
     error = Color(0xFF460000),
     onError = Color(0xFFFF0000),
     errorContainer = Color(0xFF330000)
