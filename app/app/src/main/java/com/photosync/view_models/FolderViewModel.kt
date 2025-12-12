@@ -26,7 +26,8 @@ data class FolderStatus(
     enum class Type {
         Idle,
         Sync,
-        Error
+        Error,
+        Confirmation
     }
 }
 
@@ -114,7 +115,7 @@ class FolderViewModel(
                     folder.lastSync = currentTime
                     folderDao.updateFolder(folder)
                 }
-                _status.value = FolderStatus(FolderStatus.Type.Idle, "")
+                _status.value = FolderStatus(FolderStatus.Type.Confirmation, "")
             } catch (e: Exception){
                 _status.value = FolderStatus(FolderStatus.Type.Error, e.toString())
             }

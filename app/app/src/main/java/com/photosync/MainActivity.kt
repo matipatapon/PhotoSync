@@ -2,6 +2,7 @@ package com.photosync
 
 import android.content.Intent
 import android.os.Bundle
+import android.widget.Space
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -203,45 +204,52 @@ class MainActivity : ComponentActivity() {
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center,
             content = {
-                val columnColor = if (folderStatus.value.type == FolderStatus.Type.Error) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary
                 Column(
                     modifier = Modifier
                         .clip(RoundedCornerShape(10.dp))
-                        .sizeIn(maxWidth = 300.dp, maxHeight = 400.dp)
-                        .background(color = columnColor)
+                        .background(color = LightGray)
+                        .width(200.dp)
                         .padding(10.dp),
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(10.dp, Alignment.CenterVertically),
                     ){
                     if(folderStatus.value.type == FolderStatus.Type.Sync){
                         Text(text = "Uploading",
-                            color = MaterialTheme.colorScheme.onPrimary,
+                            color = MaterialTheme.colorScheme.primary,
                             textAlign = TextAlign.Center,
                             fontSize = 20.sp)
                         if(folderStatus.value.info != ""){
                             Text(text = folderStatus.value.info,
-                                color = MaterialTheme.colorScheme.onPrimary,
+                                color = MaterialTheme.colorScheme.primary,
                                 textAlign = TextAlign.Center,
-                                maxLines = 1)
+                                maxLines = 1,
+                                fontSize = 11.sp)
                         }
                     } else if(folderStatus.value.type == FolderStatus.Type.Error){
                         Text(text = "Error",
-                            color = MaterialTheme.colorScheme.onError,
+                            color = MaterialTheme.colorScheme.primary,
                             textAlign = TextAlign.Center,
                             fontSize = 20.sp)
                         Text(text = folderStatus.value.info,
-                            color = MaterialTheme.colorScheme.onError,
+                            color = MaterialTheme.colorScheme.primary,
                             textAlign = TextAlign.Center,
-                            maxLines = 1)
-                        Button(
-                            content = {Text("Ok")},
-                            onClick = {
-                                folderViewModel!!.resetStatus()
-                            },
-                            colors = ButtonDefaults.buttonColors(
-                                contentColor = MaterialTheme.colorScheme.onError,
-                                containerColor = MaterialTheme.colorScheme.errorContainer
-                            )
+                            maxLines = 1,
+                            fontSize = 12.sp)
+                        MyButton(
+                            text = "Ok",
+                            enabled = true,
+                            onClick = { folderViewModel!!.resetStatus() }
+                        )
+                    } else if(folderStatus.value.type == FolderStatus.Type.Confirmation) {
+                        Text(text = "Finished",
+                            color = MaterialTheme.colorScheme.primary,
+                            textAlign = TextAlign.Center,
+                            fontSize = 20.sp)
+                        Spacer(modifier = Modifier.height(10.dp))
+                        MyButton(
+                            text = "Ok",
+                            enabled = true,
+                            onClick = { folderViewModel!!.resetStatus() }
                         )
                     }
                 }
