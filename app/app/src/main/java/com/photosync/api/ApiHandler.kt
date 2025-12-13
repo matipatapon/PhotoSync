@@ -74,7 +74,7 @@ class ApiHandler {
                 .build()
             val response = client.newCall(request).execute()
             val responseCode = response.code
-            if (responseCode == 200 || responseCode == 402) {
+            if (responseCode == 200 || responseCode == 201) {
                 logger.info("Uploaded file<filename={$filename} lastModified={$lastModified}>")
                 return UploadStatus.SUCCESS
             } else{

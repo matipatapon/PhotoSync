@@ -200,16 +200,20 @@ class MainActivity : ComponentActivity() {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Background),
+                .background(Background)
+                .padding(50.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center,
             content = {
+                Header()
+                Spacer(Modifier.height(20.dp))
+                Spacer(modifier = Modifier.weight(0.3f))
                 Column(
                     modifier = Modifier
                         .clip(RoundedCornerShape(10.dp))
                         .background(color = LightGray)
-                        .width(200.dp)
-                        .padding(10.dp),
+                        .padding(10.dp)
+                        .fillMaxWidth(),
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(10.dp, Alignment.CenterVertically),
                     ){
@@ -222,8 +226,7 @@ class MainActivity : ComponentActivity() {
                             Text(text = folderStatus.value.info,
                                 color = MaterialTheme.colorScheme.primary,
                                 textAlign = TextAlign.Center,
-                                maxLines = 1,
-                                fontSize = 11.sp)
+                                fontSize = 12.sp)
                         }
                     } else if(folderStatus.value.type == FolderStatus.Type.Error){
                         Text(text = "Error",
@@ -232,8 +235,7 @@ class MainActivity : ComponentActivity() {
                             fontSize = 20.sp)
                         Text(text = folderStatus.value.info,
                             color = MaterialTheme.colorScheme.primary,
-                            textAlign = TextAlign.Center,
-                            maxLines = 1,
+                            textAlign = TextAlign.Left,
                             fontSize = 12.sp)
                         MyButton(
                             text = "Ok",
@@ -253,6 +255,7 @@ class MainActivity : ComponentActivity() {
                         )
                     }
                 }
+                Spacer(modifier = Modifier.weight(0.7f))
             }
         )
     }

@@ -84,7 +84,7 @@ class FolderViewModel(
         logger.info("Uploading file<path={$filepath} size={${bytes.size}} lastModified={$fileLastModified}  mimeType={$mimeType}>")
         val result = apiHandler.uploadFile(bytes, filename, fileLastModified)
         if(result == UploadStatus.ERROR){
-            throw Exception("API error")
+            throw Exception("Failed to upload $filepath")
         }
     }
 
