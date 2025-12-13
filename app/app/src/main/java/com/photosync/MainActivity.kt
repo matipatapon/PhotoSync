@@ -264,6 +264,7 @@ class MainActivity : ComponentActivity() {
     fun Folders(){
         val folders by folderViewModel!!.folders.collectAsState()
         val folderStatus = folderViewModel!!.status.collectAsState()
+        val lastSynchronizationMsg = folderViewModel!!.lastSynchronizationMsg.collectAsState()
         val enabled = folderStatus.value.type == FolderStatus.Type.Idle
         Box(content= {
             Column(
@@ -280,6 +281,7 @@ class MainActivity : ComponentActivity() {
                             .clip(RoundedCornerShape(10.dp))
                             .background(LightGray)
                             .weight(1f, true)
+                            .fillMaxWidth()
                             .padding(20.dp),
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.spacedBy(10.dp),
@@ -325,11 +327,16 @@ class MainActivity : ComponentActivity() {
                             }
                     })
                     Spacer(Modifier.height(10.dp))
-                    Text(text = "256 files are not synchronized",
+                    Text(text = "Last successful synchronization",
                         color = MaterialTheme.colorScheme.primary,
                         modifier = Modifier
                             .fillMaxWidth(),
                         textAlign = TextAlign.Center, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                    Text(text = lastSynchronizationMsg.value,
+                        color = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier
+                            .fillMaxWidth(),
+                        textAlign = TextAlign.Center, fontSize = 14.sp, fontWeight = FontWeight.Bold)
                     Spacer(Modifier.height(10.dp))
                     MyButton(
                         text = "Add folder",

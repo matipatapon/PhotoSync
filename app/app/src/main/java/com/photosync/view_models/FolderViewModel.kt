@@ -43,6 +43,8 @@ class FolderViewModel(
     private val folderDao = localDatabase.folderDao()
     private val _status = MutableStateFlow(FolderStatus(FolderStatus.Type.Idle, ""))
     val status = _status.asStateFlow()
+    private val _lastSynchronizationMsg = MutableStateFlow("Please wait...");
+    val lastSynchronizationMsg = _lastSynchronizationMsg.asStateFlow()
 
     private fun refreshFolders(){
         val newFolders = mutableListOf<Folder>()
@@ -50,6 +52,7 @@ class FolderViewModel(
             newFolders.add(folder)
         }
         _folders.value = newFolders
+        updateLastSynchronizationMsg()
     }
 
     init{
@@ -58,13 +61,17 @@ class FolderViewModel(
         }
     }
 
+    private fun unixToDate(epochMili: Long): String{
+        return Instant.ofEpochMilli(epochMili)
+            .atZone(ZoneId.systemDefault())
+            .format(DateTimeFormatter.ofPattern("uuuu.MM.dd HH:mm:ss"));
+    }
+
     private fun syncFile(file: DocumentFile, lastSync: Long?){
         val filename = file.uri.path.toString().substringAfterLast("/")
         val filepath = file.uri.path
         val fileLastModifiedUnix = file.lastModified()
-        val fileLastModified = Instant.ofEpochMilli(fileLastModifiedUnix)
-            .atZone(ZoneId.systemDefault())
-            .format(DateTimeFormatter.ofPattern("uuuu.MM.dd HH:mm:ss"))
+        val fileLastModified = unixToDate(fileLastModifiedUnix)
         val mimeType: String? = file.type
         if(lastSync != null && lastSync > fileLastModifiedUnix ){
             logger.info("Ignoring file<path={$filepath} lastModified={$fileLastModified}>")
@@ -115,9 +122,32 @@ class FolderViewModel(
                     folder.lastSync = currentTime
                     folderDao.updateFolder(folder)
                 }
+                updateLastSynchronizationMsg()
                 _status.value = FolderStatus(FolderStatus.Type.Confirmation, "")
             } catch (e: Exception){
                 _status.value = FolderStatus(FolderStatus.Type.Error, e.toString())
+            }
+        }
+    }
+
+    fun updateLastSynchronizationMsg(){
+        viewModelScope.launch(Dispatchers.IO) {
+            var earliestDate: Long? = null
+                for (folder in folderDao.getFolders()) {
+                    if(folder.lastSync == null){
+                        earliestDate = null;
+                        break
+                    }
+                    if(earliestDate == null){
+                        earliestDate = folder.lastSync;
+                    } else{
+                        earliestDate = if(earliestDate > folder.lastSync!!) folder.lastSync else earliestDate
+                    }
+                }
+            if(earliestDate == null){
+                _lastSynchronizationMsg.value = "Never";
+            } else {
+                _lastSynchronizationMsg.value = unixToDate(earliestDate)
             }
         }
     }
