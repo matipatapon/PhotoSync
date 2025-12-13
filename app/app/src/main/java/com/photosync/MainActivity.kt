@@ -227,7 +227,14 @@ class MainActivity : ComponentActivity() {
                                 color = MaterialTheme.colorScheme.primary,
                                 textAlign = TextAlign.Center,
                                 fontSize = 12.sp)
+                        } else {
+                            Spacer(modifier = Modifier.height(20.dp))
                         }
+                        MyButton(
+                            text = "Cancel",
+                            enabled = true,
+                            onClick = { folderViewModel!!.resetStatus() }
+                        )
                     } else if(folderStatus.value.type == FolderStatus.Type.Error){
                         Text(text = "Error",
                             color = MaterialTheme.colorScheme.primary,
@@ -247,7 +254,7 @@ class MainActivity : ComponentActivity() {
                             color = MaterialTheme.colorScheme.primary,
                             textAlign = TextAlign.Center,
                             fontSize = 20.sp)
-                        Spacer(modifier = Modifier.height(10.dp))
+                        Spacer(modifier = Modifier.height(20.dp))
                         MyButton(
                             text = "Ok",
                             enabled = true,

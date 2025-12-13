@@ -27,7 +27,7 @@ data class FolderStatus(
         Idle,
         Sync,
         Error,
-        Confirmation
+        Confirmation,
     }
 }
 
@@ -97,6 +97,9 @@ class FolderViewModel(
 
     private fun syncFolder(folder: DocumentFile, lastSync: Long?){
         for(file in folder.listFiles()){
+            if(_status.value.type != FolderStatus.Type.Sync){
+                return
+            }
             if(file.isDirectory){
                 syncFolder(file, lastSync)
                 continue
@@ -119,6 +122,9 @@ class FolderViewModel(
                     }
                     val currentTime = System.currentTimeMillis()
                     syncFolder(directory, folder.lastSync)
+                    if(_status.value.type != FolderStatus.Type.Sync){
+                        return@launch
+                    }
                     folder.lastSync = currentTime
                     folderDao.updateFolder(folder)
                 }
