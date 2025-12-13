@@ -65,6 +65,7 @@ import com.photosync.view_models.LoginViewModel
 import com.photosync.view_models.Window
 import com.example.app.R
 import com.photosync.ui.theme.LightGray
+import com.photosync.ui.theme.PlaceHolderTextColor
 
 class MainActivity : ComponentActivity() {
     private var localDatabase: LocalDatabase? = null
@@ -158,7 +159,7 @@ class MainActivity : ComponentActivity() {
         if(secure){
             SecureTextField(
                 state = state,
-                placeholder = { Text(text) },
+                placeholder = { Text(color=PlaceHolderTextColor, text=text) },
                 modifier = Modifier.fillMaxWidth(),
                 enabled = enabled,
                 colors = colors
@@ -166,7 +167,7 @@ class MainActivity : ComponentActivity() {
         } else{
             TextField(
                 state = state,
-                placeholder = { Text(text) },
+                placeholder = { Text(color=PlaceHolderTextColor, text=text) },
                 lineLimits = TextFieldLineLimits.SingleLine,
                 modifier = Modifier.fillMaxWidth(),
                 enabled = enabled,
@@ -396,9 +397,7 @@ class MainActivity : ComponentActivity() {
                         color = MaterialTheme.colorScheme.onError,
                         textAlign = TextAlign.Center,
                         modifier = Modifier
-                            .background(MaterialTheme.colorScheme.error)
                             .fillMaxWidth()
-                            .padding(10.dp)
                     )
                 }
                 MyButton(text = "Login", !loginStatus.isPending(), onClick = {

@@ -12,9 +12,7 @@ private val LightColorScheme = lightColorScheme(
     onSecondary = Black,
     background = Background,
     tertiary = PurpleFocus,
-    error = Color(0xFF460000),
     onError = Color(0xFFFF0000),
-    errorContainer = Color(0xFF330000)
 )
 
 @Composable
