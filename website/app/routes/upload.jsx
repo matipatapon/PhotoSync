@@ -95,9 +95,9 @@ export default function Upload({exit}){
         return html
     }
 
-    const generateSummaryForFiles = (filenames, postfix) => {
+    const generateSummaryForFiles = (filenames, postfix, count) => {
         return <div className={'filelist_container'} style={{display: filenames.length != 0 ? "block" : "none"}}>
-                <h1>{filenames.length} {postfix}</h1>
+                <h1>{count} {postfix}</h1>
                 <div className='filelist'>
                     {filenames}
                 </div>
@@ -168,8 +168,8 @@ export default function Upload({exit}){
     if(stage === "FINISH"){
         outlet = <>
             <h1>Finished</h1>
-            {generateSummaryForFiles(generateListForUploadedFiles(), "files were uploaded")}
-            {generateSummaryForFiles(failedFiles.current, "files failed to be uploaded")}
+            {generateSummaryForFiles(generateListForUploadedFiles(), "files were uploaded", uploadedFiles.current.length)}
+            {generateSummaryForFiles(failedFiles.current, "files failed to be uploaded", failedFiles.current.length)}
             <div className='button' onClick={() => {window.location.reload(), exit()}}>Ok</div>
         </>
     }
