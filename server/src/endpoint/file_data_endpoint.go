@@ -61,7 +61,7 @@ func (fe *FileDataEndpoint) Get(c *gin.Context) {
 		return
 	}
 
-	rows, err := fe.db.Query("SELECT id, filename, TO_CHAR(creation_date, 'YYYY.MM.DD HH24:MI:SS') AS date, mime_type, size, CASE WHEN thumbnail IS NOT NULL THEN thumbnail ELSE file END FROM files WHERE user_id = $1 AND TO_CHAR(creation_date, 'YYYY.MM.DD') ILIKE $2 || '%' ORDER BY id DESC, creation_date DESC", jwt.UserId, date)
+	rows, err := fe.db.Query("SELECT id, filename, TO_CHAR(creation_date, 'YYYY.MM.DD HH24:MI:SS') AS date, mime_type, size, CASE WHEN thumbnail IS NOT NULL THEN thumbnail ELSE file END FROM files WHERE user_id = $1 AND TO_CHAR(creation_date, 'YYYY.MM.DD') ILIKE $2 || '%' ORDER BY creation_date DESC, id DESC", jwt.UserId, date)
 	if err != nil {
 		c.Status(500)
 		fe.logger.Printf("Query failed: '%s'", err.Error())

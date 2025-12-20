@@ -2,11 +2,14 @@ package com.photosync
 
 import android.content.Intent
 import android.os.Bundle
+import android.widget.Space
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -15,9 +18,10 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.sizeIn
-import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.input.TextFieldLineLimits
@@ -42,7 +46,8 @@ import com.photosync.ui.theme.AppTheme
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -51,12 +56,16 @@ import androidx.core.net.toUri
 import androidx.room.Room
 import com.photosync.api.ApiHandler
 import com.photosync.database.LocalDatabase
+import com.photosync.ui.theme.Background
 import com.photosync.ui.theme.Black
 import com.photosync.ui.theme.DisabledContainerColor
 import com.photosync.view_models.FolderStatus
 import com.photosync.view_models.FolderViewModel
 import com.photosync.view_models.LoginViewModel
 import com.photosync.view_models.Window
+import com.example.app.R
+import com.photosync.ui.theme.LightGray
+import com.photosync.ui.theme.PlaceHolderTextColor
 
 class MainActivity : ComponentActivity() {
     private var localDatabase: LocalDatabase? = null
@@ -91,12 +100,10 @@ class MainActivity : ComponentActivity() {
         Text(text = "PhotoSync",
             color = MaterialTheme.colorScheme.primary,
             modifier = Modifier
-            .fillMaxWidth()
-            .wrapContentHeight(
-                Alignment.Bottom
-            ), textAlign = TextAlign.Center, fontSize = 24.sp, fontWeight = FontWeight.Bold)
+            .fillMaxWidth(),
+            textAlign = TextAlign.Center, fontSize = 24.sp, fontWeight = FontWeight.Bold)
     }
-    
+
     @Composable
     fun View(innerPadding: PaddingValues){
         val window by loginViewModel!!.window.collectAsState()
@@ -141,18 +148,18 @@ class MainActivity : ComponentActivity() {
     @Composable
     fun MyTextFiled(text: String, enabled: Boolean, state: TextFieldState, secure: Boolean = false){
         val colors = TextFieldDefaults.colors(
-            unfocusedContainerColor = MaterialTheme.colorScheme.primary,
-            focusedContainerColor = MaterialTheme.colorScheme.primary ,
-            unfocusedTextColor = MaterialTheme.colorScheme.onPrimary,
-            focusedTextColor = MaterialTheme.colorScheme.onPrimary,
-            cursorColor = MaterialTheme.colorScheme.onPrimary,
+            unfocusedContainerColor = MaterialTheme.colorScheme.secondary,
+            focusedContainerColor = MaterialTheme.colorScheme.secondary ,
+            unfocusedTextColor = MaterialTheme.colorScheme.onSecondary,
+            focusedTextColor = MaterialTheme.colorScheme.onSecondary,
+            cursorColor = MaterialTheme.colorScheme.onSecondary,
             focusedIndicatorColor = MaterialTheme.colorScheme.tertiary,
             disabledContainerColor = DisabledContainerColor
         )
         if(secure){
             SecureTextField(
                 state = state,
-                placeholder = { Text(text) },
+                placeholder = { Text(color=PlaceHolderTextColor, text=text) },
                 modifier = Modifier.fillMaxWidth(),
                 enabled = enabled,
                 colors = colors
@@ -160,7 +167,7 @@ class MainActivity : ComponentActivity() {
         } else{
             TextField(
                 state = state,
-                placeholder = { Text(text) },
+                placeholder = { Text(color=PlaceHolderTextColor, text=text) },
                 lineLimits = TextFieldLineLimits.SingleLine,
                 modifier = Modifier.fillMaxWidth(),
                 enabled = enabled,
@@ -194,52 +201,69 @@ class MainActivity : ComponentActivity() {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color(0, 0, 0, 203)),
+                .background(Background)
+                .padding(50.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center,
             content = {
-                val columnColor = if (folderStatus.value.type == FolderStatus.Type.Error) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary
+                Header()
+                Spacer(Modifier.height(20.dp))
+                Spacer(modifier = Modifier.weight(0.3f))
                 Column(
                     modifier = Modifier
                         .clip(RoundedCornerShape(10.dp))
-                        .sizeIn(maxWidth = 300.dp, maxHeight = 400.dp)
-                        .background(color = columnColor)
-                        .padding(10.dp),
+                        .background(color = LightGray)
+                        .padding(10.dp)
+                        .fillMaxWidth(),
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(10.dp, Alignment.CenterVertically),
                     ){
                     if(folderStatus.value.type == FolderStatus.Type.Sync){
                         Text(text = "Uploading",
-                            color = MaterialTheme.colorScheme.onPrimary,
+                            color = MaterialTheme.colorScheme.primary,
                             textAlign = TextAlign.Center,
                             fontSize = 20.sp)
                         if(folderStatus.value.info != ""){
                             Text(text = folderStatus.value.info,
-                                color = MaterialTheme.colorScheme.onPrimary,
+                                color = MaterialTheme.colorScheme.primary,
                                 textAlign = TextAlign.Center,
-                                maxLines = 1)
+                                fontSize = 12.sp)
+                        } else {
+                            Spacer(modifier = Modifier.height(20.dp))
                         }
+                        MyButton(
+                            text = "Cancel",
+                            enabled = true,
+                            onClick = { folderViewModel!!.resetStatus() }
+                        )
                     } else if(folderStatus.value.type == FolderStatus.Type.Error){
                         Text(text = "Error",
-                            color = MaterialTheme.colorScheme.onError,
+                            color = MaterialTheme.colorScheme.primary,
                             textAlign = TextAlign.Center,
                             fontSize = 20.sp)
                         Text(text = folderStatus.value.info,
-                            color = MaterialTheme.colorScheme.onError,
+                            color = MaterialTheme.colorScheme.primary,
+                            textAlign = TextAlign.Left,
+                            fontSize = 12.sp)
+                        MyButton(
+                            text = "Ok",
+                            enabled = true,
+                            onClick = { folderViewModel!!.resetStatus() }
+                        )
+                    } else if(folderStatus.value.type == FolderStatus.Type.Confirmation) {
+                        Text(text = "Finished",
+                            color = MaterialTheme.colorScheme.primary,
                             textAlign = TextAlign.Center,
-                            maxLines = 1)
-                        Button(
-                            content = {Text("Ok")},
-                            onClick = {
-                                folderViewModel!!.resetStatus()
-                            },
-                            colors = ButtonDefaults.buttonColors(
-                                contentColor = MaterialTheme.colorScheme.onError,
-                                containerColor = MaterialTheme.colorScheme.errorContainer
-                            )
+                            fontSize = 20.sp)
+                        Spacer(modifier = Modifier.height(20.dp))
+                        MyButton(
+                            text = "Ok",
+                            enabled = true,
+                            onClick = { folderViewModel!!.resetStatus() }
                         )
                     }
                 }
+                Spacer(modifier = Modifier.weight(0.7f))
             }
         )
     }
@@ -248,59 +272,92 @@ class MainActivity : ComponentActivity() {
     fun Folders(){
         val folders by folderViewModel!!.folders.collectAsState()
         val folderStatus = folderViewModel!!.status.collectAsState()
+        val lastSynchronizationMsg = folderViewModel!!.lastSynchronizationMsg.collectAsState()
         val enabled = folderStatus.value.type == FolderStatus.Type.Idle
         Box(content= {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(50.dp)
-                    .verticalScroll(rememberScrollState()),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(10.dp, Alignment.CenterVertically),
+                    .padding(20.dp),
                 content = {
+                    Spacer(Modifier.height(30.dp))
                     Header()
-                    Spacer(Modifier.weight(0.5f))
-                    for (folder in folders) {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clip(RoundedCornerShape(25.dp))
-                                .background(MaterialTheme.colorScheme.primary)
-                                .padding(10.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            content = {
-                                Spacer(Modifier.weight(0.5f))
-                                Text(
-                                    text = folder.uri.toUri().path.toString().substringAfter(":"),
-                                    textAlign = TextAlign.Center,
-                                    maxLines = 1
-                                )
-                                Spacer(Modifier.weight(0.5f))
-                                Button(
-                                    content = { Text("x") },
-                                    onClick = {
-                                        folderViewModel!!.deleteFolder(folder)
-                                    },
-                                    colors = ButtonDefaults.buttonColors(
-                                        contentColor = MaterialTheme.colorScheme.onSecondary,
-                                        containerColor = MaterialTheme.colorScheme.secondary
-                                    ),
-                                    enabled = enabled
+                    Spacer(Modifier.height(20.dp))
+                    Column(
+                        modifier = Modifier
+                            .verticalScroll(rememberScrollState())
+                            .clip(RoundedCornerShape(10.dp))
+                            .background(LightGray)
+                            .weight(1f, true)
+                            .fillMaxWidth()
+                            .padding(20.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(10.dp),
+                        content= {
+                            for (folder in folders) {
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .clip(RoundedCornerShape(5.dp))
+                                        .background(Background),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    content = {
+                                        Spacer(Modifier.width(20.dp))
+                                        Text(
+                                            text = folder.uri.toUri().path.toString()
+                                                .substringAfter(":"),
+                                            maxLines = 1,
+                                            color = MaterialTheme.colorScheme.primary,
+                                            fontSize = 16.sp,
+                                            modifier = Modifier.horizontalScroll(rememberScrollState()).weight(1f, fill = true),
+                                        )
+                                        Spacer(Modifier.width(20.dp))
+                                        Button(
+                                            modifier = Modifier.width(40.dp).height(40.dp),
+                                            contentPadding = PaddingValues(5.dp),
+                                            content = {
+                                                Image(
+                                                    painter = painterResource(id = R.drawable.trash),
+                                                    contentDescription = null
+                                                )
+                                            },
+                                            onClick = {
+                                                folderViewModel!!.deleteFolder(folder)
+                                            },
+                                            colors = ButtonDefaults.buttonColors(
+                                                contentColor = MaterialTheme.colorScheme.onPrimary,
+                                            ),
+                                            enabled = enabled,
+                                            shape = RectangleShape,
+                                        )
+                                    }
                                 )
                             }
-                        )
-                    }
-                    Spacer(Modifier.weight(0.5f))
+                    })
+                    Spacer(Modifier.height(10.dp))
+                    Text(text = "Last successful synchronization",
+                        color = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier
+                            .fillMaxWidth(),
+                        textAlign = TextAlign.Center, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                    Text(text = lastSynchronizationMsg.value,
+                        color = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier
+                            .fillMaxWidth(),
+                        textAlign = TextAlign.Center, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                    Spacer(Modifier.height(10.dp))
                     MyButton(
-                        text = "+",
+                        text = "Add folder",
                         enabled = enabled,
                         onClick = { addFolderToSync() }
                     )
+                    Spacer(Modifier.height(5.dp))
                     MyButton(
-                        text = "Sync",
+                        text = "Synchronize",
                         enabled = enabled,
                         onClick = { folderViewModel!!.syncFolders()}
                     )
+                    Spacer(Modifier.height(30.dp))
                 }
             )
             Popup()
@@ -340,9 +397,7 @@ class MainActivity : ComponentActivity() {
                         color = MaterialTheme.colorScheme.onError,
                         textAlign = TextAlign.Center,
                         modifier = Modifier
-                            .background(MaterialTheme.colorScheme.error)
                             .fillMaxWidth()
-                            .padding(10.dp)
                     )
                 }
                 MyButton(text = "Login", !loginStatus.isPending(), onClick = {

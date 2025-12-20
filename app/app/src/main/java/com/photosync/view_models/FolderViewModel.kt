@@ -10,6 +10,7 @@ import com.photosync.api.ApiHandler
 import com.photosync.api.UploadStatus
 import com.photosync.database.Folder
 import com.photosync.database.LocalDatabase
+import com.photosync.database.UploadedFile
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -26,7 +27,8 @@ data class FolderStatus(
     enum class Type {
         Idle,
         Sync,
-        Error
+        Error,
+        Confirmation,
     }
 }
 
@@ -40,8 +42,11 @@ class FolderViewModel(
     private val _folders = MutableStateFlow(listOf<Folder>())
     val folders = _folders.asStateFlow()
     private val folderDao = localDatabase.folderDao()
+    private val uploadedFileDao = localDatabase.uploadedFileDao()
     private val _status = MutableStateFlow(FolderStatus(FolderStatus.Type.Idle, ""))
     val status = _status.asStateFlow()
+    private val _lastSynchronizationMsg = MutableStateFlow("Please wait...");
+    val lastSynchronizationMsg = _lastSynchronizationMsg.asStateFlow()
 
     private fun refreshFolders(){
         val newFolders = mutableListOf<Folder>()
@@ -49,6 +54,7 @@ class FolderViewModel(
             newFolders.add(folder)
         }
         _folders.value = newFolders
+        updateLastSynchronizationMsg()
     }
 
     init{
@@ -57,13 +63,20 @@ class FolderViewModel(
         }
     }
 
-    private fun syncFile(file: DocumentFile, lastSync: Long?){
-        val filename = file.uri.path.toString().substringAfterLast("/")
+    private fun unixToDate(epochMili: Long): String{
+        return Instant.ofEpochMilli(epochMili)
+            .atZone(ZoneId.systemDefault())
+            .format(DateTimeFormatter.ofPattern("uuuu.MM.dd HH:mm:ss"));
+    }
+
+    private fun syncFile(folderId: Long, file: DocumentFile, lastSync: Long?){
         val filepath = file.uri.path
         val fileLastModifiedUnix = file.lastModified()
-        val fileLastModified = Instant.ofEpochMilli(fileLastModifiedUnix)
-            .atZone(ZoneId.systemDefault())
-            .format(DateTimeFormatter.ofPattern("uuuu.MM.dd HH:mm:ss"))
+        if(uploadedFileDao.getUploadedFile(filepath!!, fileLastModifiedUnix) != null){
+                return
+        }
+        val filename = file.uri.path.toString().substringAfterLast("/")
+        val fileLastModified = unixToDate(fileLastModifiedUnix)
         val mimeType: String? = file.type
         if(lastSync != null && lastSync > fileLastModifiedUnix ){
             logger.info("Ignoring file<path={$filepath} lastModified={$fileLastModified}>")
@@ -83,17 +96,21 @@ class FolderViewModel(
         logger.info("Uploading file<path={$filepath} size={${bytes.size}} lastModified={$fileLastModified}  mimeType={$mimeType}>")
         val result = apiHandler.uploadFile(bytes, filename, fileLastModified)
         if(result == UploadStatus.ERROR){
-            throw Exception("API error")
+            throw Exception("Failed to upload $filepath")
         }
+        uploadedFileDao.addUploadedFile(UploadedFile(filepath, fileLastModifiedUnix, folderId))
     }
 
-    private fun syncFolder(folder: DocumentFile, lastSync: Long?){
+    private fun syncFolder(folderId: Long, folder: DocumentFile, lastSync: Long?){
         for(file in folder.listFiles()){
+            if(_status.value.type != FolderStatus.Type.Sync){
+                return
+            }
             if(file.isDirectory){
-                syncFolder(file, lastSync)
+                syncFolder(folderId, file, lastSync)
                 continue
             }
-            syncFile(file, lastSync)
+            syncFile(folderId, file, lastSync)
         }
     }
 
@@ -110,13 +127,40 @@ class FolderViewModel(
                         throw Exception("Invalid folder")
                     }
                     val currentTime = System.currentTimeMillis()
-                    syncFolder(directory, folder.lastSync)
+                    syncFolder(folder.id!!, directory, folder.lastSync)
+                    if(_status.value.type != FolderStatus.Type.Sync){
+                        return@launch
+                    }
                     folder.lastSync = currentTime
                     folderDao.updateFolder(folder)
+                    uploadedFileDao.removeAllUploadedFilesInGivenFolderFromCache(folder.id!!)
                 }
-                _status.value = FolderStatus(FolderStatus.Type.Idle, "")
+                updateLastSynchronizationMsg()
+                _status.value = FolderStatus(FolderStatus.Type.Confirmation, "")
             } catch (e: Exception){
                 _status.value = FolderStatus(FolderStatus.Type.Error, e.toString())
+            }
+        }
+    }
+
+    fun updateLastSynchronizationMsg(){
+        viewModelScope.launch(Dispatchers.IO) {
+            var earliestDate: Long? = null
+                for (folder in folderDao.getFolders()) {
+                    if(folder.lastSync == null){
+                        earliestDate = null;
+                        break
+                    }
+                    if(earliestDate == null){
+                        earliestDate = folder.lastSync;
+                    } else{
+                        earliestDate = if(earliestDate > folder.lastSync!!) folder.lastSync else earliestDate
+                    }
+                }
+            if(earliestDate == null){
+                _lastSynchronizationMsg.value = "Never";
+            } else {
+                _lastSynchronizationMsg.value = unixToDate(earliestDate)
             }
         }
     }
@@ -134,7 +178,7 @@ class FolderViewModel(
                         folderDao.deleteFolder(folder)
                     }
                 }
-                folderDao.addFolder(Folder(uriStr, null))
+                folderDao.addFolder(Folder(id = null, uri = uriStr, lastSync = null))
                 refreshFolders()
             } catch (e: Exception){
                 _status.value = FolderStatus(FolderStatus.Type.Error, e.toString())
