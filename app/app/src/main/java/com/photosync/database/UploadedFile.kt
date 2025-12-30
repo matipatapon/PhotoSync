@@ -8,5 +8,4 @@ import androidx.room.PrimaryKey
 data class UploadedFile(
     @PrimaryKey() val uri: String,
     @ColumnInfo(name = "modificationDate") val modificationDate: Long,
-    @ColumnInfo(name = "folderId") val folderId: Long,
 )

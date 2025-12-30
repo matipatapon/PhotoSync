@@ -6,7 +6,7 @@ import androidx.room.PrimaryKey
 
 @Entity
 data class AppSettings(
-    @PrimaryKey val uid: Int,
+    @PrimaryKey
     @ColumnInfo(name = "server") val server: String,
     @ColumnInfo(name = "login") val login: String,
 )

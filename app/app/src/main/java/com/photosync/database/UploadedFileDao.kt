@@ -14,6 +14,6 @@ interface UploadedFileDao {
     @Insert
     fun addUploadedFile(uploadedFile: UploadedFile)
 
-    @Query("DELETE FROM uploadedfile WHERE folderId = :folderId")
-    fun removeAllUploadedFilesInGivenFolderFromCache(folderId: Long)
+    @Query("DELETE FROM uploadedfile")
+    fun removeAllUploadedFilesFromCache()
 }

@@ -55,7 +55,7 @@ class LoginViewModel(
                     SUCCESS -> {
                         _loginStatus.value = LoginStatus(error="", pending = false)
                         settingsDao.clearSettings()
-                        settingsDao.insertSettings(AppSettings(1, server, username))
+                        settingsDao.insertSettings(AppSettings(server, username))
                         _window.value = Window.Sync
                     }
                     INVALID_CREDENTIALS -> {

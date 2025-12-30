@@ -69,7 +69,7 @@ class FolderViewModel(
             .format(DateTimeFormatter.ofPattern("uuuu.MM.dd HH:mm:ss"));
     }
 
-    private fun syncFile(folderId: Long, file: DocumentFile, lastSync: Long?){
+    private fun syncFile(file: DocumentFile, lastSync: Long?){
         val filepath = file.uri.path
         val fileLastModifiedUnix = file.lastModified()
         if(uploadedFileDao.getUploadedFile(filepath!!, fileLastModifiedUnix) != null){
@@ -98,19 +98,19 @@ class FolderViewModel(
         if(result == UploadStatus.ERROR){
             throw Exception("Failed to upload $filepath")
         }
-        uploadedFileDao.addUploadedFile(UploadedFile(filepath, fileLastModifiedUnix, folderId))
+        uploadedFileDao.addUploadedFile(UploadedFile(filepath, fileLastModifiedUnix))
     }
 
-    private fun syncFolder(folderId: Long, folder: DocumentFile, lastSync: Long?){
+    private fun syncFolder(folder: DocumentFile, lastSync: Long?){
         for(file in folder.listFiles()){
             if(_status.value.type != FolderStatus.Type.Sync){
                 return
             }
             if(file.isDirectory){
-                syncFolder(folderId, file, lastSync)
+                syncFolder(file, lastSync)
                 continue
             }
-            syncFile(folderId, file, lastSync)
+            syncFile(file, lastSync)
         }
     }
 
@@ -127,14 +127,15 @@ class FolderViewModel(
                         throw Exception("Invalid folder")
                     }
                     val currentTime = System.currentTimeMillis()
-                    syncFolder(folder.id!!, directory, folder.lastSync)
+                    syncFolder(directory, folder.lastSync)
                     if(_status.value.type != FolderStatus.Type.Sync){
                         return@launch
                     }
                     folder.lastSync = currentTime
                     folderDao.updateFolder(folder)
-                    uploadedFileDao.removeAllUploadedFilesInGivenFolderFromCache(folder.id!!)
+
                 }
+                uploadedFileDao.removeAllUploadedFilesFromCache()
                 updateLastSynchronizationMsg()
                 _status.value = FolderStatus(FolderStatus.Type.Confirmation, "")
             } catch (e: Exception){
@@ -178,7 +179,7 @@ class FolderViewModel(
                         folderDao.deleteFolder(folder)
                     }
                 }
-                folderDao.addFolder(Folder(id = null, uri = uriStr, lastSync = null))
+                folderDao.addFolder(Folder(uri = uriStr, lastSync = null))
                 refreshFolders()
             } catch (e: Exception){
                 _status.value = FolderStatus(FolderStatus.Type.Error, e.toString())
