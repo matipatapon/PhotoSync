@@ -146,7 +146,7 @@ function FocusedFile({focusedFileData, focusedFileUrl, setFocusedFileData, remov
     }
 
     const date = focusedFileData.creation_date.substring(0, focusedFileData.creation_date.indexOf(" "))
-    let removalConfirmationPopUp = showConfirmation ? <div className="pop_up_container">
+    let removalConfirmationPopUp = showConfirmation ? <div className="pop_up_container removal_confirmation_container">
             <div className="pop_up_window">
                 <h1>Are you sure?</h1>
                 <div className="button" onClick={()=>{removePhoto(focusedFileData.id, date)}}>Yes</div>
