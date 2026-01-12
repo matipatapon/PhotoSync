@@ -252,7 +252,10 @@ export default function Gallery(){
                             if(timeout !== null){
                                 clearTimeout(timeout)
                             }
-                            timeout = setTimeout(()=>{setContainerWidth(entry.contentBoxSize[0].inlineSize)}, 200)
+                            timeout = setTimeout(
+                                ()=>{setContainerWidth(entry.contentBoxSize[0].inlineSize)},
+                                200
+                            )
                         }
                     }
                }
@@ -346,7 +349,10 @@ export default function Gallery(){
         {
             const element = elements[i]
             totalHeight += element.height + 1
-            if(element.start - LOAD_MARGIN <= scrollData.bottom && element.start + element.height + LOAD_MARGIN >= scrollData.top)
+            const topRenderBorder = scrollData.top - LOAD_MARGIN
+            const bottomRenderBorder = scrollData.bottom + LOAD_MARGIN
+            const elementBottom = element.start + element.height
+            if(element.start <= bottomRenderBorder && elementBottom >= topRenderBorder)
             {
                 outlet.push(<Day key={element.date.date + "_" + element.date.file_count} day={element} tileSize={tileSize.current} setFocusedFileData={setFocusedFileData} resizeDay={resizeDay} navigate={navigate}/>)
             }

@@ -19,7 +19,7 @@ export async function clientAction({request}) {
 
 function Message({status}){
     if(status === "INVALID_USER_OR_PASSWORD"){
-        return <span className="error">User or Password is invalid</span>
+        return <span className="error">User or password is invalid</span>
     }
     if(status === "ERROR"){
         return <span className="error">Error occured</span>

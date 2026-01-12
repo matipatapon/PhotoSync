@@ -161,7 +161,7 @@ export default function Upload({exit}){
     if(stage === "UPLOAD"){
         outlet = <>
             <h1>Processing {processedFileCount}/{files.current.length}</h1>
-            {generateSummaryForFiles(failedFiles.current, "files failed to be uploaded")}
+            {generateSummaryForFiles(failedFiles.current, "files failed to be uploaded", failedFiles.current.length)}
             <div className='button' onClick={() => setStage("FINISH")}>Cancel</div>
         </>
     }
@@ -182,8 +182,8 @@ export default function Upload({exit}){
         event.preventDefault()
         if(stage === "SELECT"){
             files.current = []
-            getFilesFromItems(event.dataTransfer.items, files.current, () => setStage("OPTIONS"))
             setStage("LOAD")
+            getFilesFromItems(event.dataTransfer.items, files.current, () => setStage("OPTIONS"))
         }
     }
 

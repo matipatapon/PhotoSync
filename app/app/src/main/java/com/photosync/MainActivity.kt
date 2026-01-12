@@ -2,7 +2,6 @@ package com.photosync
 
 import android.content.Intent
 import android.os.Bundle
-import android.widget.Space
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -20,7 +19,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -146,7 +144,7 @@ class MainActivity : ComponentActivity() {
     }
 
     @Composable
-    fun MyTextFiled(text: String, enabled: Boolean, state: TextFieldState, secure: Boolean = false){
+    fun CustomizedTextField(text: String, enabled: Boolean, state: TextFieldState, secure: Boolean = false){
         val colors = TextFieldDefaults.colors(
             unfocusedContainerColor = MaterialTheme.colorScheme.secondary,
             focusedContainerColor = MaterialTheme.colorScheme.secondary ,
@@ -177,7 +175,7 @@ class MainActivity : ComponentActivity() {
     }
 
     @Composable
-    fun MyButton(text: String, enabled: Boolean, onClick: ()-> Unit){
+    fun CustomizedButton(text: String, enabled: Boolean, onClick: ()-> Unit){
         Button(
             onClick = onClick,
             enabled = enabled,
@@ -231,7 +229,7 @@ class MainActivity : ComponentActivity() {
                         } else {
                             Spacer(modifier = Modifier.height(20.dp))
                         }
-                        MyButton(
+                        CustomizedButton(
                             text = "Cancel",
                             enabled = true,
                             onClick = { folderViewModel!!.resetStatus() }
@@ -245,7 +243,7 @@ class MainActivity : ComponentActivity() {
                             color = MaterialTheme.colorScheme.primary,
                             textAlign = TextAlign.Left,
                             fontSize = 12.sp)
-                        MyButton(
+                        CustomizedButton(
                             text = "Ok",
                             enabled = true,
                             onClick = { folderViewModel!!.resetStatus() }
@@ -256,7 +254,7 @@ class MainActivity : ComponentActivity() {
                             textAlign = TextAlign.Center,
                             fontSize = 20.sp)
                         Spacer(modifier = Modifier.height(20.dp))
-                        MyButton(
+                        CustomizedButton(
                             text = "Ok",
                             enabled = true,
                             onClick = { folderViewModel!!.resetStatus() }
@@ -346,13 +344,13 @@ class MainActivity : ComponentActivity() {
                             .fillMaxWidth(),
                         textAlign = TextAlign.Center, fontSize = 14.sp, fontWeight = FontWeight.Bold)
                     Spacer(Modifier.height(10.dp))
-                    MyButton(
+                    CustomizedButton(
                         text = "Add folder",
                         enabled = enabled,
                         onClick = { addFolderToSync() }
                     )
                     Spacer(Modifier.height(5.dp))
-                    MyButton(
+                    CustomizedButton(
                         text = "Synchronize",
                         enabled = enabled,
                         onClick = { folderViewModel!!.syncFolders()}
@@ -387,9 +385,9 @@ class MainActivity : ComponentActivity() {
             content = {
                 Header()
                 Spacer(Modifier.weight(0.5f))
-                MyTextFiled(text = "server", enabled = !loginStatus.isPending(), state = server)
-                MyTextFiled(text = "login", enabled = !loginStatus.isPending(), state = username)
-                MyTextFiled(text = "password", enabled = !loginStatus.isPending(), state = password, secure = true)
+                CustomizedTextField(text = "server", enabled = !loginStatus.isPending(), state = server)
+                CustomizedTextField(text = "login", enabled = !loginStatus.isPending(), state = username)
+                CustomizedTextField(text = "password", enabled = !loginStatus.isPending(), state = password, secure = true)
                 val error = loginStatus.getError()
                 if(error != ""){
                     Text(
@@ -400,7 +398,7 @@ class MainActivity : ComponentActivity() {
                             .fillMaxWidth()
                     )
                 }
-                MyButton(text = "Login", !loginStatus.isPending(), onClick = {
+                CustomizedButton(text = "Login", !loginStatus.isPending(), onClick = {
                     loginViewModel!!.login(
                         server.text.toString(),
                         username.text.toString(),
