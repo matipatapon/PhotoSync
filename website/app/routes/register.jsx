@@ -1,5 +1,5 @@
 import { Link , redirect, useFetcher} from "react-router";
-import { registerUser, loginUser} from "../api/api"
+import { registerUser } from "../api/api"
 import './authentication.css'
 
 export async function clientAction({request}) {
@@ -7,60 +7,42 @@ export async function clientAction({request}) {
     let username = formData.get("username");
     let password = formData.get("password");
     let password_repeated = formData.get("password_repeated");
-    let status
+    let errorMsg
     if(username === ""){
-        status = "USERNAME_EMPTY"
+        errorMsg = "Username cannot be empty"
     }
     else if(password === ""){
-        status = "PASSWORD_EMPTY"
+        errorMsg = "Password cannot be empty"
     }
     else if(password !== password_repeated){
-        status = "PASSWORD_MISMATCH"
-    }else{
-        status = await registerUser(username, password)
+        errorMsg = "Password mismatch"
+    }
+    else{
+        const status = await registerUser(username, password)
+        if(status === "USER_ALREADY_EXISTS"){
+            errorMsg = "User with given username already exists"
+        }
+        else if(status === "SUCCESS"){
+            return redirect("/login")
+        }
+        else{
+            errorMsg = "Error occured"
+        }
     }
 
-    if(status === "SUCCESS"){
-        return redirect("/login")
-    }
-
-    return {username: username, status: status}
+    return {errorMsg: errorMsg}
 }
 
-function Message({status}){
-    if(status === undefined){
-        return null
+function ErrorMessage({fetcher}){
+    if(fetcher.data === undefined || fetcher.data.errorMsg === null){
+        return <></>
     }
-
-    let msg = "Error occured"
-    if(status === "USER_ALREADY_EXISTS"){
-        msg = "User with given username already exists!"
-    }
-    if(status === "PASSWORD_MISMATCH"){
-        msg = "Password mismatch!"
-    }
-    if(status === "EMPTY_PASSWORD"){
-        msg = "Password cannot be empty!"
-    }
-    if(status === "EMPTY_USERNAME"){
-        msg = "Username cannot be empty!"
-    }
-    if(status === "WORKING"){
-        msg = "Please wait..."
-    }
-    return <span className="error">{msg}</span>
+    return <span className="error">{fetcher.data.errorMsg}</span>
 }
 
 export default function Register(){
     let fetcher = useFetcher()
-    let username = undefined
-    let status = undefined
-    let state = fetcher.state
-    let isIdle = state === "idle"
-    if(fetcher.data !== undefined){
-        username = fetcher.data.username
-        status = fetcher.data.status
-    }
+    let isIdle = fetcher.state === "idle"
     return(
             <>
                 <header><Link className="button" to={"/login"}>Login</Link></header>
@@ -70,7 +52,7 @@ export default function Register(){
                         <input type="text" name="username" placeholder="username" disabled={!isIdle}/>
                         <input type="password" name="password" placeholder="password" disabled={!isIdle}/>
                         <input type="password" name="password_repeated" placeholder="password" disabled={!isIdle}/>
-                        <Message status={isIdle ? status : "WORKING"}/>
+                        <ErrorMessage fetcher={fetcher}/>
                         <button className="button" type="submit" disabled={!isIdle}>Register</button>
                     </fetcher.Form>
                 </div>
