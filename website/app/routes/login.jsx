@@ -1,6 +1,5 @@
 import { useFetcher , redirect, Link} from "react-router";
 import { loginUser } from "../api/api";
-import './authentication.css'
 import { useLayoutEffect } from "react";
 
 export async function clientAction({request}) {
@@ -28,9 +27,9 @@ function Message({status}){
 
 export default function Login(){
     let fetcher = useFetcher()
-    let isIdle = fetcher.state
+    let isIdle = fetcher.state === "idle"
     let status
-    if(fetcher.data !== undefined){
+    if(fetcher.data !== undefined && isIdle){
         status = fetcher.data.status
     }
     useLayoutEffect(() => {sessionStorage.setItem("Authorization", null)},[])

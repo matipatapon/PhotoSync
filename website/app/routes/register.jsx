@@ -1,6 +1,5 @@
 import { Link , redirect, useFetcher} from "react-router";
 import { registerUser } from "../api/api"
-import './authentication.css'
 
 export async function clientAction({request}) {
     let formData = await request.formData();
@@ -34,7 +33,7 @@ export async function clientAction({request}) {
 }
 
 function ErrorMessage({fetcher}){
-    if(fetcher.data === undefined || fetcher.data.errorMsg === null){
+    if(fetcher.data === undefined || fetcher.data.errorMsg === null || fetcher.state !== "idle"){
         return <></>
     }
     return <span className="error">{fetcher.data.errorMsg}</span>
@@ -50,7 +49,7 @@ export default function Register(){
                     <fetcher.Form className="pop_up_window" method="post" action="">
                         <h1>Register</h1>
                         <input type="text" name="username" placeholder="username" disabled={!isIdle}/>
-                        <input type="password" name="password" placeholder="password" disabled={!isIdle}/>
+                        <input type="password" name="password" placeholder="password" disabled={!isIdle} autoComplete={"new-password"}/>
                         <input type="password" name="password_repeated" placeholder="password" disabled={!isIdle}/>
                         <ErrorMessage fetcher={fetcher}/>
                         <button className="button" type="submit" disabled={!isIdle}>Register</button>

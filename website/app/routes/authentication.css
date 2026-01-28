@@ -1,9 +1,0 @@
-.window input{
-    display: block;
-    width: 100%;
-    box-sizing: border-box;
-}
-
-.window input:not(:first-child){
-    margin-top: 5px;
-}

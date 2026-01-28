@@ -43,6 +43,11 @@ header .button{
     background-color: #e9b7fb;
 }
 
+.button:disabled{
+    background-color: #5f4968;
+    pointer-events: none;
+}
+
 .window_container{
     display:grid;
     place-items: center;
@@ -99,6 +104,15 @@ header .button{
 .pop_up_window input:invalid{
     background-color: rgb(255, 185, 185);
     border: 3px red solid;
+}
+
+.pop_up_window input:-webkit-autofill {
+    -webkit-box-shadow: 0 0 0px 1000px white inset;
+}
+
+.pop_up_window input:disabled{
+    -webkit-box-shadow: 0 0 0px 1000px white inset;
+    color:black;
 }
 
 .pop_up_window .button{
